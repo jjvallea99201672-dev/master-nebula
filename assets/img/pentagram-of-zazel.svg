@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 480" width="420" height="480">
+  
+  <rect width="420" height="480" fill="#0d0d0d"></rect>
+  
+  
+  <text x="210" y="36" text-anchor="middle" fill="#d4af37" font-family="serif" font-size="18" font-weight="bold">
+    Constructed Pentagram of Zazel
+  </text>
+  <text x="210" y="58" text-anchor="middle" fill="#888" font-family="serif" font-size="13">
+    Saturn 3×3 Kamea
+  </text>
+
+  
+  <g transform="translate(60,90)">
+    
+    <rect x="0" y="0" width="300" height="300" fill="#1a1a1a" stroke="#d4af37" stroke-width="3"></rect>
+    
+    
+    <line x1="100" y1="0" x2="100" y2="300" stroke="#555" stroke-width="1.5"></line>
+    <line x1="200" y1="0" x2="200" y2="300" stroke="#555" stroke-width="1.5"></line>
+    <line x1="0" y1="100" x2="300" y2="100" stroke="#555" stroke-width="1.5"></line>
+    <line x1="0" y1="200" x2="300" y2="200" stroke="#555" stroke-width="1.5"></line>
+
+    
+    
+    <text x="50" y="62" text-anchor="middle" fill="#666" font-family="serif" font-size="28">4</text>
+    <text x="150" y="62" text-anchor="middle" fill="#ffd700" font-family="serif" font-size="32" font-weight="bold">9</text>
+    <text x="250" y="62" text-anchor="middle" fill="#666" font-family="serif" font-size="28">2</text>
+    
+    
+    <text x="50" y="162" text-anchor="middle" fill="#ffd700" font-family="serif" font-size="32" font-weight="bold">3</text>
+    <text x="150" y="162" text-anchor="middle" fill="#ffd700" font-family="serif" font-size="32" font-weight="bold">5</text>
+    <text x="250" y="162" text-anchor="middle" fill="#ffd700" font-family="serif" font-size="32" font-weight="bold">7</text>
+    
+    
+    <text x="50" y="262" text-anchor="middle" fill="#666" font-family="serif" font-size="28">8</text>
+    <text x="150" y="262" text-anchor="middle" fill="#ffd700" font-family="serif" font-size="32" font-weight="bold">1</text>
+    <text x="250" y="262" text-anchor="middle" fill="#666" font-family="serif" font-size="28">6</text>
+
+    
+    <polyline points="150,50  150,250  250,150  50,150  150,150  150,50" fill="none" stroke="#d4af37" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+    
+    
+    
+    <circle cx="150" cy="50" r="8" fill="#0d0d0d" stroke="#ffd700" stroke-width="3"></circle>
+    
+    <circle cx="150" cy="250" r="7" fill="#ffd700"></circle>
+    
+    <circle cx="250" cy="150" r="7" fill="#ffd700"></circle>
+    
+    <circle cx="50" cy="150" r="7" fill="#ffd700"></circle>
+    
+    <circle cx="150" cy="150" r="7" fill="#ffd700"></circle>
+    
+    
+    <line x1="142" y1="42" x2="158" y2="58" stroke="#ffd700" stroke-width="2.5"></line>
+    <line x1="158" y1="42" x2="142" y2="58" stroke="#ffd700" stroke-width="2.5"></line>
+  </g>
+
+  
+  <text x="210" y="420" text-anchor="middle" fill="#aaa" font-family="serif" font-size="14">
+    Path: 9 → 1 → 7 → 3 → 5 → 9
+  </text>
+  <text x="210" y="442" text-anchor="middle" fill="#888" font-family="serif" font-size="12">
+    Gold cells = vertices • Start circle + end cross on 9
+  </text>
+  <text x="210" y="462" text-anchor="middle" fill="#666" font-family="serif" font-size="11">
+    Contains original Zazel path cells (7-1-3)
+  </text>
+</svg>
