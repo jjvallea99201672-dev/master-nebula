@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Nebula · Jay Vallea — software, music, images and physics</title>
+<meta name="description" content="Master Nebula is the home of Jay Vallea's software and apps, music, images and physics videos (Horizonless). Ideas are Jay's; AI helps draft and build.">
+<meta name="theme-color" content="#05060f">
+<meta property="og:title" content="Master Nebula · Jay Vallea">
+<meta property="og:description" content="Software and apps, music, images and physics videos. Ideas are Jay's; AI helps draft and build.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#software">Skip to content</a>
+
+<header class="nav">
+  <a class="brand" href="#top">MASTER <span>NEBULA</span></a>
+  <button class="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
+  <nav id="menu">
+    <a href="#software">Software</a>
+    <a href="#music">Music</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#physics">Physics</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <p class="eyebrow">Jay Vallea presents</p>
+  <h1>MASTER <span>NEBULA</span></h1>
+  <p class="tag">Software, music, images and physics ideas. Built with AI as a collaborator, steered by one human.</p>
+  <div class="cta">
+    <a class="btn gold" href="soul-forge/">Open Soul Forge Studio</a>
+    <a class="btn" href="#music">Hear the music</a>
+    <a class="btn" href="#physics">Watch the physics</a>
+  </div>
+</section>
+
+<!-- ============ SOFTWARE ============ -->
+<section id="software" class="sec">
+  <h2>Software &amp; Apps</h2>
+  <p class="lead">Tools Jay designed and directed, with AI doing much of the coding and testing. Each card says what it really is and what state it is in.</p>
+
+  <div class="cards">
+    <article class="card feature">
+      <img src="assets/img/soul-forge.svg" alt="Soul Forge Studio V3 title card" loading="lazy">
+      <div class="body">
+        <span class="badge live">Live in your browser</span>
+        <h3>Soul Forge Studio V3</h3>
+        <p>Free in-browser audio mastering. Drop a track, press <em>MASTER IT</em>, download a WAV. It measures integrated loudness (ITU-R BS.1770-4) and 4× oversampled true peak, then lands on −14 LUFS with a look-ahead limiter. Everything runs locally in your browser. Nothing is uploaded.</p>
+        <p class="small">Single self-contained HTML file, no network requests.</p>
+        <div class="row">
+          <a class="btn gold" href="soul-forge/">Launch the app</a>
+          <a class="btn" href="https://youtu.be/uEbOvBGTTYE" target="_blank" rel="noopener">Demo video</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img src="assets/img/lattice-keeper.svg" alt="Lattice Keeper explainer title card" loading="lazy">
+      <div class="body">
+        <span class="badge video">Demo video</span>
+        <h3>Lattice Keeper</h3>
+        <p>A signed, hash-chained, tamper-evident log: it proves which key signed which entries, in what order, and that nothing changed since. It does <strong>not</strong> prove the content is true, and it is not a blockchain.</p>
+        <p class="small">Proprietary, all rights reserved. Source is not published; the video uses a throwaway demo key.</p>
+        <div class="row"><a class="btn" href="https://youtu.be/7i1TaigkTxU" target="_blank" rel="noopener">Watch the explainer</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="glyph" aria-hidden="true">
+        <svg viewBox="0 0 120 60"><polyline points="0,40 15,38 30,42 45,30 60,34 75,18 90,22 105,10 120,14" /><circle cx="105" cy="10" r="3"/></svg>
+      </div>
+      <div class="body">
+        <span class="badge note">Part of Lattice Keeper</span>
+        <h3>Guardian drift detector</h3>
+        <p>Reads recent signed pulses, checks each signature, timing and ordering, and reports <em>stable</em>, <em>anomaly</em> or <em>insufficient data</em>. Its score is a heuristic anomaly score between 0 and 1, not a physical entropy. Version 0.40.1 ships with 23 tests.</p>
+        <p class="small">No standalone download yet.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="glyph" aria-hidden="true">
+        <svg viewBox="0 0 120 60"><g class="grid"><rect x="10" y="8" width="20" height="20"/><rect x="36" y="8" width="20" height="20"/><rect x="62" y="8" width="20" height="20"/><rect x="88" y="8" width="20" height="20"/><rect x="10" y="34" width="20" height="20"/><rect x="36" y="34" width="20" height="20" class="on"/><rect x="62" y="34" width="20" height="20"/><rect x="88" y="34" width="20" height="20" class="on"/></g></svg>
+      </div>
+      <div class="body">
+        <span class="badge note">Runs on Jay's machine</span>
+        <h3>Grid Memory</h3>
+        <p>A notebook you own and hand to AI models: a signed, append-only log of facts, decisions, corrections and questions in one SQLite file. It makes a short briefing you paste into any chat. The models don't learn from it, and "verified" only means a check was actually run.</p>
+        <p class="small">Version 0.1, local command-line tool. Not published yet.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="glyph amber" aria-hidden="true">
+        <svg viewBox="0 0 120 60"><polyline points="0,12 15,20 30,26 45,34 60,38 75,44 90,46 105,50 120,50"/></svg>
+      </div>
+      <div class="body">
+        <span class="badge warn">Simulation, not real training</span>
+        <h3>Bathurst LoRA Forge</h3>
+        <p>A browser console that <strong>looks like</strong> a LoRA fine-tuning run for a music model. The training is simulated: the loss curve is a formula plus noise, with no model, no GPU and no backend. What is real in the browser: WebAudio synthesis, WAV export, loudness mastering, hashing and QR codes.</p>
+        <div class="row">
+          <a class="btn" href="lora-forge/">Open the corrected copy</a>
+          <a class="btn ghost" href="https://ruby-drum-autumn-tundra.grok.me" target="_blank" rel="noopener">Original snapshot</a>
+        </div>
+        <p class="small">The corrected copy labels every simulated part. The original snapshot is older and still says "live".</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ MUSIC ============ -->
+<section id="music" class="sec">
+  <h2>Music</h2>
+  <p class="lead">Songs and visuals from the <strong>MASTER NEBULA</strong> channel. Songs are made with AI music tools such as Suno, from Jay's ideas, lyrics and direction.</p>
+
+  <div class="videos">
+    <div class="vid" data-yt="70A4MKvZqUI" data-title="Names of the Wind"></div>
+    <div class="vid" data-yt="dSbU3nVdKBU" data-title="Golden Hour, Don't Let It Go"></div>
+    <div class="vid" data-yt="7owy4EeYZb4" data-title="The Old Path Calls"></div>
+    <div class="vid" data-yt="o0VfxX24PgA" data-title="Midnight Sleigh Ride 2026 (v2)"></div>
+    <div class="vid" data-yt="Rhk2ng9i9A0" data-title="Patch Me Up"></div>
+    <div class="vid" data-yt="0YyR_OoZQys" data-title="Still Here, Still Singing"></div>
+  </div>
+  <div class="row center">
+    <a class="btn gold" href="https://www.youtube.com/@jayvallea" target="_blank" rel="noopener">MASTER NEBULA on YouTube</a>
+    <a class="btn" href="https://suno.com/@master_nebula99" target="_blank" rel="noopener">master_nebula99 on Suno</a>
+  </div>
+
+  <h3 class="sub">Animated lyric videos</h3>
+  <div class="videos">
+    <div class="vid" data-yt="pza1OFVcmnI" data-title="Avatar of Silence (animated lyric video)"></div>
+    <div class="vid" data-yt="1Qf-grrVxQQ" data-title="Pleiadian Mind (animated lyric video)"></div>
+  </div>
+
+  <h3 class="sub">From the Suno catalogue</h3>
+  <ul class="tracks">
+    <li><a href="https://suno.com/song/e150b722-911f-4c64-ae42-4b2e3d15f568" target="_blank" rel="noopener">Silver Blue 2026</a></li>
+    <li><a href="https://suno.com/song/14de522f-be10-486c-a4d3-5ca3dd6a817a" target="_blank" rel="noopener">Pleiadian Starseed</a></li>
+    <li><a href="https://suno.com/song/5d406597-93a6-4ccf-bf54-be60147defa0" target="_blank" rel="noopener">Kuh’ra Va, Mountain Mother</a></li>
+    <li><a href="https://suno.com/song/908e0764-fd10-4cd6-b142-b106b2707504" target="_blank" rel="noopener">Sacred Geometry</a></li>
+    <li><a href="https://suno.com/song/0d352612-6565-4f30-a261-278ae9769bbf" target="_blank" rel="noopener">Enochian Frequency Theory</a></li>
+    <li><a href="https://suno.com/song/ff218bb3-a941-4b69-8464-7d428e54c0e8" target="_blank" rel="noopener">Dolphin Clicks</a></li>
+  </ul>
+  <p class="small center">Streaming-service releases are not set up yet. When they are, they will be linked here.</p>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section id="gallery" class="sec">
+  <h2>Gallery</h2>
+  <p class="lead">Cover art, title cards and explainer posters. Tap an image to enlarge. Made with AI image tools and code, under Jay's direction.</p>
+  <div class="gallery">
+    <figure><button data-full="assets/img/avatar-of-silence-art.svg"><img src="assets/img/avatar-of-silence-art.svg" alt="Hooded figure in a blue digital cathedral with lyrics beside it" loading="lazy"></button><figcaption>Avatar of Silence, lyric art</figcaption></figure>
+    <figure><button data-full="assets/img/avatar-of-silence.svg"><img src="assets/img/avatar-of-silence.svg" alt="Avatar of Silence title card" loading="lazy"></button><figcaption>Avatar of Silence, title card</figcaption></figure>
+    <figure><button data-full="assets/img/pleiadian-mind.svg"><img src="assets/img/pleiadian-mind.svg" alt="Pleiadian Mind title card with glowing yellow lettering over a star map" loading="lazy"></button><figcaption>Pleiadian Mind</figcaption></figure>
+    <figure><button data-full="assets/img/midnight-sleigh-ride.svg"><img src="assets/img/midnight-sleigh-ride.svg" alt="Midnight Sleigh Ride, a sleigh under green aurora over snowy mountains" loading="lazy"></button><figcaption>Midnight Sleigh Ride 2026</figcaption></figure>
+    <figure><button data-full="assets/img/heptagram.svg"><img src="assets/img/heptagram.svg" alt="Master Nebula heptagram poster in gold on dark blue" loading="lazy"></button><figcaption>Master Nebula heptagram poster</figcaption></figure>
+    <figure><button data-full="assets/img/persistence-poster.svg"><img src="assets/img/persistence-poster.svg" alt="Persistence Through Time poster showing a glowing black hole" loading="lazy"></button><figcaption>Persistence Through Time</figcaption></figure>
+    <figure><button data-full="assets/img/light-cone.svg"><img src="assets/img/light-cone.svg" alt="Light cone diagram poster with gold and cyan lines" loading="lazy"></button><figcaption>Light-cone poster</figcaption></figure>
+    <figure><button data-full="assets/img/zeptoverse.svg"><img src="assets/img/zeptoverse.svg" alt="Zeptoverse poster with ornate gold border" loading="lazy"></button><figcaption>Zeptoverse plate</figcaption></figure>
+    <figure><button data-full="assets/img/simulation-hypothesis.svg"><img src="assets/img/simulation-hypothesis.svg" alt="Simulation hypothesis, three layers, poster" loading="lazy"></button><figcaption>Simulation hypothesis, three layers</figcaption></figure>
+    <figure><button data-full="assets/img/lattice-poster.svg"><img src="assets/img/lattice-poster.svg" alt="Operator broadcast audited poster" loading="lazy"></button><figcaption>Operator broadcast, audited</figcaption></figure>
+    <figure><button data-full="assets/img/photon-sphere.svg"><img src="assets/img/photon-sphere.svg" alt="Infographic: the photon sphere is not the most curved place outside a black hole" loading="lazy"></button><figcaption>Photon sphere explainer</figcaption></figure>
+    <figure><button data-full="assets/img/matter-wave.svg"><img src="assets/img/matter-wave.svg" alt="Infographic: matter has a wavelength" loading="lazy"></button><figcaption>Matter has a wavelength</figcaption></figure>
+    <figure><button data-full="assets/img/causality.svg"><img src="assets/img/causality.svg" alt="Infographic: you can't get information from the future" loading="lazy"></button><figcaption>Causality explainer</figcaption></figure>
+    <figure><button data-full="assets/img/two-ais.svg"><img src="assets/img/two-ais.svg" alt="Two AIs, one method, zero pixels apart title card" loading="lazy"></button><figcaption>Two AIs. One method. 0 pixels apart.</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============ PHYSICS ============ -->
+<section id="physics" class="sec">
+  <div class="phys-head">
+    <img src="assets/img/horizonless-avatar.svg" alt="Horizonless logo, an H inside a ring of golden strands" width="96" height="96" loading="lazy">
+    <div>
+      <h2>Physics &amp; Horizonless</h2>
+      <p class="lead">Horizonless is Jay's channel for physics explainers and fact-checks. <strong>The ideas are Jay's. AI helps draft and elaborate them</strong>, and the videos say where something was wrong and got fixed. Treat them as exploration, not peer-reviewed science.</p>
+    </div>
+  </div>
+
+  <div class="videos">
+    <div class="vid" data-yt="0NgIZyi9KY8" data-title="UPDATE (Part 2): Iowa Lead Azide Blast Is Done. Who Knew What, and When?"></div>
+    <div class="vid" data-yt="ZRW6_T5tP4Q" data-title="The Iowa Lead Azide Detonation: What's Verified, the Army's Case, and What Was Left Out"></div>
+    <div class="vid" data-yt="F_ao8CGKYxo" data-title="What If Black Holes Have No Horizon? The Fuzzball Proposal"></div>
+    <div class="vid" data-yt="R05oZ1OibLY" data-title="Holographic Renormalization, Done Right: Why My Energy Density Was Off by 16"></div>
+    <div class="vid" data-yt="3ReRoOj9ICI" data-title="I Asked AI to Do String Theory. Here's What It Got Wrong."></div>
+    <div class="vid" data-yt="zOpaUsHfarA" data-title="Entanglement Can't Send Messages"></div>
+  </div>
+  <div class="row center">
+    <a class="btn gold" href="https://www.youtube.com/@HorizonlessPhysics" target="_blank" rel="noopener">Horizonless on YouTube</a>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="sec narrow">
+  <h2>About &amp; contact</h2>
+  <p>I'm Jay Vallea. I make music, software and physics videos under the name Master Nebula. I don't write code by hand. I come up with the ideas and direction, and AI helps write, build and check them. I try to say clearly what each project is and what it isn't.</p>
+  <p>Say hello or follow along:</p>
+  <div class="row">
+    <a class="btn gold" href="https://x.com/JVallea23792" target="_blank" rel="noopener">@JVallea23792 on X</a>
+    <a class="btn" href="https://www.youtube.com/@jayvallea" target="_blank" rel="noopener">YouTube: MASTER NEBULA</a>
+    <a class="btn" href="https://www.youtube.com/@HorizonlessPhysics" target="_blank" rel="noopener">YouTube: Horizonless</a>
+    <a class="btn" href="https://suno.com/@master_nebula99" target="_blank" rel="noopener">Suno: master_nebula99</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <p>© 2026 Jay Vallea · Master Nebula. All rights reserved. Made with AI assistance.</p>
+</footer>
+
+<div class="lightbox" id="lightbox" hidden><button class="close" aria-label="Close">×</button><img alt=""></div>
+<script src="script.js"></script>
+</body>
+</html>
