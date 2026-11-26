@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOUL FORGE STUDIO V3 — In-Browser Mastering</title>
+<style>
+:root{--accent:#00ff41;--pink:#ff2e9a;--bg:#0a0a0a;--panel:#111;--line:#222;--mute:#9a9a9a;--dim:#6b6b6b;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+  --sans:'Space Grotesk',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:#fff;font-family:var(--sans)}
+.mono{font-family:var(--mono)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.top{border-bottom:1px solid #1e1e1e}.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:36px;height:36px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#000;font-weight:900;font-size:18px}
+.k1{font-size:11px;letter-spacing:.22em;color:var(--mute)}.k2{font-size:13px;font-weight:700;letter-spacing:.04em}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;border:1px solid #2a2a2a;border-radius:999px;padding:4px 10px;color:var(--mute)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}.pulse{animation:pulse 1.4s infinite}@keyframes pulse{50%{opacity:.25}}
+.btn{font-family:var(--mono);font-weight:700;font-size:12px;border:1px solid rgba(0,255,65,.6);color:var(--accent);background:transparent;border-radius:999px;padding:6px 14px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--accent);color:#000}
+header.hero{text-align:center;padding:30px 0 20px}
+.gradient-text{background:linear-gradient(90deg,#ff2e9a 0%,#ff6b35 22%,#ffc700 42%,#00ff41 62%,#00e5ff 84%,#ff2e9a 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{font-weight:900;line-height:.92;letter-spacing:-.02em;margin:16px 0 0;font-size:clamp(2.6rem,7.5vw,5.2rem)}
+.sub{margin-top:12px;font-size:13px;letter-spacing:.14em;color:#d6d6d6}.lead{margin:8px auto 0;font-size:15px;color:var(--mute);max-width:720px;line-height:1.55}
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:12px;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:12px 16px;margin-bottom:16px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;letter-spacing:.12em;background:#2a2a2a;color:var(--mute)}
+.badge.LOADED{background:var(--accent);color:#000}.badge.LOADING,.badge.MASTERING,.badge.ANALYZING{background:#ffc700;color:#000}.badge.MASTERED{background:var(--pink);color:#fff}.badge.ERROR{background:#ef4444;color:#fff}
+.fname{flex:1;min-width:180px;font-size:13px;color:#e8e8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;align-items:start}@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+.col{min-width:0;display:flex;flex-direction:column;gap:16px}
+.drop{position:relative;display:block;cursor:pointer;border:2px dashed #2f2f2f;background:#101010;border-radius:22px;transition:.15s;text-align:center;padding:36px 20px}
+.drop:hover{border-color:rgba(0,255,65,.7);background:#121212}.drop.over{border-color:var(--accent);background:rgba(0,255,65,.1);transform:scale(1.005)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.up{margin:0 auto;width:72px;height:72px;border-radius:50%;background:var(--accent);display:grid;place-items:center;box-shadow:0 0 40px rgba(0,255,65,.35)}
+.drop .t{margin-top:16px;font-weight:900;font-size:clamp(1.35rem,4vw,2.1rem);letter-spacing:-.01em}
+.drop .s{margin-top:6px;color:var(--mute);font-size:15px}.drop .s b{color:var(--accent);text-decoration:underline;text-underline-offset:4px}
+.chips{margin-top:16px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.chip{font-size:11px;font-weight:700;border:1px solid #2a2a2a;background:#0a0a0a;border-radius:999px;padding:4px 10px;color:#d6d6d6}
+.note{margin-top:12px;font-size:11px;color:var(--dim)}
+.overlay{position:absolute;inset:0;display:none;place-items:center;background:rgba(0,255,65,.12);font-family:var(--mono);font-weight:900;color:var(--accent);font-size:22px;letter-spacing:.1em}.drop.over .overlay{display:grid}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;overflow:hidden}
+.card.pinkb{border-color:rgba(255,46,154,.35);background:#140b10}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1e1e1e;font-size:11px;letter-spacing:.2em}
+.ch .l{display:flex;align-items:center;gap:8px;font-weight:800;color:#e8e8e8}.ch .r{color:var(--mute)}
+.cb{padding:14px 16px}
+.engine{padding:12px 16px}.bar{height:6px;border-radius:99px;background:#1e1e1e;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#00e5ff);transition:width .25s}
+canvas.wave{width:100%;height:120px;display:block;border-radius:10px;background:#0b0b0b;border:1px solid #1b1b1b}
+audio{width:100%;margin-top:10px;height:36px;filter:invert(.9) hue-rotate(180deg)}
+.ph{margin-top:10px;border:1px solid #1e1e1e;border-radius:10px;padding:8px;text-align:center;font-size:11px;color:var(--dim)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{border:1px solid #2a1a22;background:#0d0d0d;border-radius:12px;padding:10px;text-align:center}
+.stat .h{font-size:10px;letter-spacing:.16em;color:var(--mute)}.stat .v{margin-top:6px;font-size:18px;font-weight:800;color:#fff}.stat .d{font-size:10px;color:var(--dim);margin-top:2px}
+.stat .v.ok{color:var(--accent)}.stat .v.warn{color:#ffc700}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big{font-family:var(--mono);font-weight:900;font-size:13px;letter-spacing:.08em;border:0;border-radius:12px;padding:16px;cursor:pointer;transition:.15s}
+.big.go{background:var(--accent);color:#000;box-shadow:0 0 30px rgba(0,255,65,.25)}.big.go:hover{filter:brightness(1.1)}
+.big.dl{background:var(--pink);color:#fff}.big:disabled{background:#2a2a2a;color:#666;box-shadow:none;cursor:not-allowed}
+.hint{text-align:center;font-size:11px;color:var(--dim);margin-top:-4px}
+.ctrl{padding:16px;display:flex;flex-direction:column;gap:18px}
+.row .top2{display:flex;justify-content:space-between;align-items:baseline}.row .lab{font-size:12px;font-weight:700;letter-spacing:.16em;color:#e8e8e8}
+.row .val{font-size:16px;font-weight:800;color:var(--accent)}.row .val small{font-size:11px;color:var(--mute);margin-left:4px}
+.row .foot{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:2px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),#2a2a2a var(--p,50%))}
+input[type=range]::-moz-range-track{height:4px;border-radius:99px;background:#2a2a2a}input[type=range]::-moz-range-progress{height:4px;background:var(--accent)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);margin-top:-7px;box-shadow:0 0 12px rgba(0,255,65,.6);border:3px solid #0a0a0a}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid #0a0a0a}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:4px;margin-top:8px}
+.seg.two{grid-template-columns:1fr 1fr}
+.seg button{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.1em;background:transparent;color:var(--mute);border:0;border-radius:8px;padding:9px 4px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#000}
+.small{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5}
+.chain{border:1px solid #222;border-radius:12px;padding:12px;background:#0d0d0d}.chain .lab{font-size:10px;letter-spacing:.2em;color:var(--mute)}
+.nodes{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px;font-size:10px}.node{border:1px solid #2a2a2a;border-radius:6px;padding:4px 7px;color:#d6d6d6;background:#111}
+.node.hl{background:var(--accent);color:#000;border-color:var(--accent);font-weight:800}.node.pk{background:#fff;color:#000;font-weight:800}.arr{color:var(--accent)}
+.two-btn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ghost{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.1em;border:1px solid #2a2a2a;background:#0a0a0a;color:#e8e8e8;border-radius:10px;padding:10px;cursor:pointer}.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.priv{display:flex;gap:10px;padding:14px 16px}.priv b{font-size:13px}.priv p{margin:4px 0 0;font-size:12px;color:var(--mute);line-height:1.5}
+.log{margin-top:16px;border:1px solid var(--line);background:#0d0d0d;border-radius:16px;overflow:hidden}
+.logbody{padding:12px 16px;max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.logbody div{font-size:12.5px;line-height:1.55;color:#c8c8c8;overflow-wrap:anywhere;white-space:pre-wrap}.logbody div:before{content:"› ";color:var(--accent)}
+.logbody div.warn{color:#ffc700}.logbody div.err{color:#ff6b6b}
+.logfoot{padding:8px 16px;border-top:1px solid #1e1e1e;font-size:11px;color:var(--dim)}
+footer{padding:16px 0 10px;text-align:center;font-size:11px;color:var(--dim)}
+.spin{display:inline-block;animation:spin 4s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap">
+  <div class="brand"><div class="logo">◉</div><div><div class="k1 mono">AUDIO MASTERING • IN BROWSER</div><div class="k2">SOUL FORGE <span style="color:var(--accent)">• V3</span></div></div></div>
+  <div style="display:flex;gap:8px;align-items:center"><span class="pill mono"><span class="dot pulse"></span> ENGINE LIVE</span><button class="btn" id="testBtn">TEST IMPORT</button></div>
+</div></div>
+
+<main class="wrap">
+  <header class="hero">
+    <span class="pill mono" style="letter-spacing:.18em"><span style="color:var(--accent)">●</span> REAL MASTERING • NO UPLOAD • YOUR FILES STAY HERE</span>
+    <h1 class="gradient-text">SOUL FORGE STUDIO</h1>
+    <div class="sub mono">V3 - TRUE LUFS - TRUE PEAK LIMITER - DITHERED EXPORT</div>
+    <p class="lead">Drop a track. Tune loudness, bass, air, width &amp; compression. V3 measures real BS.1770 loudness, pushes to your target and catches the peaks with a look-ahead true-peak limiter — then exports a dithered WAV.</p>
+  </header>
+
+  <div class="status">
+    <span class="badge mono" id="badge"><span class="dot" style="background:currentColor"></span> <span id="stateTxt">READY</span></span>
+    <span class="fname mono" id="fname">No file loaded — drop audio anywhere</span>
+    <span class="mono" style="font-size:12px;color:var(--mute)" id="fsize"></span>
+    <span class="mono" style="font-size:12px;color:var(--accent)" id="finfo"></span>
+    <span class="mono" style="font-size:11px;color:var(--mute)" id="targetPill">TARGET -14 LUFS • CEILING -1 dBTP</span>
+  </div>
+
+  <div class="grid">
+    <section class="col">
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="audio/*,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aiff,.aif">
+        <div class="up"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="t">DROP YOUR TRACK HERE</div>
+        <div class="s">or <b>CLICK TO BROWSE</b> — drag &amp; drop works anywhere on this page</div>
+        <div class="chips mono"><span class="chip">WAV</span><span class="chip">MP3</span><span class="chip">FLAC</span><span class="chip">OGG</span><span class="chip">M4A</span></div>
+        <div class="note mono">Brave-safe • window-level preventDefault on dragenter / dragover / dragleave / drop</div>
+        <div class="overlay">RELEASE TO IMPORT ↓</div>
+      </label>
+
+      <div class="card engine"><div style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;color:var(--mute)" class="mono"><span>ENGINE</span><span id="pct">0%</span></div><div class="bar"><i id="barFill"></i></div></div>
+
+      <div class="card">
+        <div class="ch mono"><span class="l"><span style="color:var(--accent)">▮▮</span> 01 — ORIGINAL</span><span class="r" id="origTag">NO FILE</span></div>
+        <div class="cb">
+          <canvas class="wave" id="cvO"></canvas>
+          <div id="origPlayer"><div class="ph mono">Original player appears after import</div></div>
+          <div class="stats mono" id="origStats" style="display:none">
+            <div class="stat"><div class="h">INTEGRATED</div><div class="v" id="oL">—</div><div class="d">LUFS (BS.1770)</div></div>
+            <div class="stat"><div class="h">TRUE PEAK</div><div class="v" id="oTP">—</div><div class="d">dBTP (4× oversampled)</div></div>
+            <div class="stat"><div class="h">SAMPLE PEAK</div><div class="v" id="oSP">—</div><div class="d">dBFS</div></div>
+            <div class="stat"><div class="h">LRA</div><div class="v" id="oLRA">—</div><div class="d">LU (EBU 3342)</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card pinkb">
+        <div class="ch mono"><span class="l"><span style="color:var(--pink)">▮▮</span> 02 — MASTERED</span><span class="r" id="mTag">AWAITING MASTER</span></div>
+        <div class="cb">
+          <canvas class="wave" id="cvM"></canvas>
+          <div id="mPlayer"><div class="ph mono">Mastered player appears after MASTER IT</div></div>
+          <div class="stats mono">
+            <div class="stat"><div class="h">INTEGRATED</div><div class="v" id="mL">—</div><div class="d">LUFS (BS.1770)</div></div>
+            <div class="stat"><div class="h">TRUE PEAK</div><div class="v" id="mTP">—</div><div class="d" id="mTPd">ceiling -1 dBTP</div></div>
+            <div class="stat"><div class="h">LIMITER GR</div><div class="v" id="mGR">—</div><div class="d">max dB</div></div>
+            <div class="stat"><div class="h">LRA</div><div class="v" id="mLRA">—</div><div class="d">LU</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="big go" id="masterBtn" disabled>⚡ MASTER IT →</button>
+        <button class="big dl" id="dlBtn" disabled>⬇ DOWNLOAD MASTERED WAV</button>
+      </div>
+      <div class="hint mono" id="dlHint">Exports &lt;filename&gt;_MASTERED.wav • 16-bit PCM with TPDF dither</div>
+    </section>
+
+    <aside class="col">
+      <div class="card">
+        <div class="ch mono"><span class="l"><span style="color:var(--accent)">☰</span> MASTERING CONTROLS</span><span class="pill" style="color:var(--accent);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.08);font-size:10px;letter-spacing:.1em">TRUE-PEAK ENGINE</span></div>
+        <div class="ctrl mono" id="controls"></div>
+      </div>
+      <div class="card priv">
+        <div style="color:var(--accent);font-size:18px">⛨</div>
+        <div><b>Private by design</b><p>Everything runs in your browser — decoding, BS.1770 metering, limiting and WAV encoding happen on your machine in a Web Worker. No file is uploaded. Brave won't hijack a drop — window handlers block the default tab-open.</p></div>
+      </div>
+      <div class="mono" style="text-align:center;font-size:11px;color:var(--dim)"><span class="spin">✺</span> SOUL FORGE STUDIO V3 • TRUE LUFS • TRUE PEAK • BRAVE SAFE</div>
+    </aside>
+  </div>
+
+  <div class="log mono">
+    <div class="ch"><span class="l" style="color:var(--mute);font-weight:400"><span class="dot"></span> LOG — TERMINAL</span><button class="ghost" style="padding:4px 10px" id="clearLog">CLEAR</button></div>
+    <div class="logbody" id="log"></div>
+    <div class="logfoot" id="logfoot">Status: READY • awaiting import • Last log at bottom</div>
+  </div>
+  <footer class="mono">SOUL FORGE STUDIO V3 — Drop anywhere • Master in-browser • Download real WAV</footer>
+</main>
+
+<script id="sf-dsp">
+/* Soul Forge Studio V3 — DSP engine (pure JS, runs in browser, Web Worker and Node).
+ * BS.1770-4 loudness, 4x true peak, JS compressor, look-ahead true-peak brickwall limiter,
+ * TPDF-dithered WAV export. No WebAudio processing nodes are used for the master. */
+(function (root) {
+  'use strict';
+  var SF = {};
+  var LOG10 = Math.log(10);
+  function db(x) { return x > 0 ? 20 * Math.log(x) / LOG10 : -Infinity; }
+  function undb(d) { return Math.pow(10, d / 20); }
+  SF.db = db; SF.undb = undb;
+
+  /* ---------- biquad (direct form I, double-precision state) ---------- */
+  function biquadInPlace(x, c) {
+    var b0 = c[0], b1 = c[1], b2 = c[2], a1 = c[3], a2 = c[4];
+    var x1 = 0, x2 = 0, y1 = 0, y2 = 0, n = x.length;
+    for (var i = 0; i < n; i++) {
+      var xi = x[i];
+      var y = b0 * xi + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+      x2 = x1; x1 = xi; y2 = y1; y1 = y;
+      x[i] = y;
+    }
+  }
+  /* RBJ cookbook shelves with S = 1 (same definition WebAudio's BiquadFilterNode uses) */
+  function shelf(type, f, gainDb, sr) {
+    f = Math.min(f, sr * 0.45);
+    var A = Math.pow(10, gainDb / 40), w0 = 2 * Math.PI * f / sr;
+    var cs = Math.cos(w0), al = Math.sin(w0) / 2 * Math.SQRT2, sA = 2 * Math.sqrt(A) * al;
+    var b0, b1, b2, a0, a1, a2;
+    if (type === 'low') {
+      b0 = A * ((A + 1) - (A - 1) * cs + sA); b1 = 2 * A * ((A - 1) - (A + 1) * cs);
+      b2 = A * ((A + 1) - (A - 1) * cs - sA); a0 = (A + 1) + (A - 1) * cs + sA;
+      a1 = -2 * ((A - 1) + (A + 1) * cs); a2 = (A + 1) + (A - 1) * cs - sA;
+    } else {
+      b0 = A * ((A + 1) + (A - 1) * cs + sA); b1 = -2 * A * ((A - 1) + (A + 1) * cs);
+      b2 = A * ((A + 1) + (A - 1) * cs - sA); a0 = (A + 1) - (A - 1) * cs + sA;
+      a1 = 2 * ((A - 1) - (A + 1) * cs); a2 = (A + 1) - (A - 1) * cs - sA;
+    }
+    return [b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0];
+  }
+  SF.shelf = shelf;
+
+  /* ---------- ITU-R BS.1770-4 K-weighting, exact for any sample rate ---------- */
+  function kWeighting(sr) {
+    // Stage 1: high-shelf pre-filter (bilinear from the analog prototype, as in libebur128)
+    var f0 = 1681.974450955533, G = 3.999843853973347, Q = 0.7071752369554196;
+    var K = Math.tan(Math.PI * f0 / sr), Vh = Math.pow(10, G / 20), Vb = Math.pow(Vh, 0.4996667741545416);
+    var a0 = 1 + K / Q + K * K;
+    var s1 = [(Vh + Vb * K / Q + K * K) / a0, 2 * (K * K - Vh) / a0, (Vh - Vb * K / Q + K * K) / a0,
+              2 * (K * K - 1) / a0, (1 - K / Q + K * K) / a0];
+    // Stage 2: RLB high-pass
+    f0 = 38.13547087602444; Q = 0.5003270373238773; K = Math.tan(Math.PI * f0 / sr);
+    a0 = 1 + K / Q + K * K;
+    var s2 = [1, -2, 1, 2 * (K * K - 1) / a0, (1 - K / Q + K * K) / a0];
+    return [s1, s2];
+  }
+  SF.kWeighting = kWeighting;
+
+  /* Sum of K-weighted squares per 100 ms segment, summed over channels (G = 1 for L/R/mono). */
+  function kSegments(chans, sr, gain) {
+    gain = gain || 1;
+    var seg = Math.round(sr * 0.1), n = chans[0].length, S = Math.floor(n / seg);
+    var out = new Float64Array(S), kw = kWeighting(sr), c1 = kw[0], c2 = kw[1];
+    for (var ch = 0; ch < chans.length; ch++) {
+      var x = chans[ch];
+      var x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0, w1 = 0, w2 = 0;
+      for (var s = 0; s < S; s++) {
+        var acc = 0, end = (s + 1) * seg;
+        for (var i = s * seg; i < end; i++) {
+          var xi = x[i] * gain;
+          var y = c1[0] * xi + c1[1] * x1 + c1[2] * x2 - c1[3] * y1 - c1[4] * y2;
+          x2 = x1; x1 = xi; y2 = y1; y1 = y;
+          var z = y - 2 * z1 + z2 - c2[3] * w1 - c2[4] * w2;   // c2 b = [1,-2,1]
+          z2 = z1; z1 = y; w2 = w1; w1 = z;
+          acc += z * z;
+        }
+        out[s] += acc;
+      }
+    }
+    return { seg: seg, sums: out };
+  }
+
+  function gatedMean(energies, relDb) {
+    var abs = Math.pow(10, (-70 + 0.691) / 10), s = 0, c = 0, i;
+    for (i = 0; i < energies.length; i++) if (energies[i] > abs) { s += energies[i]; c++; }
+    if (!c) return { mean: 0, rel: Infinity };
+    var rel = (s / c) * Math.pow(10, relDb / 10);
+    return { rel: Math.max(rel, abs) };
+  }
+
+  /* Integrated loudness (400 ms blocks, 75 % overlap, -70 LUFS abs gate, -10 LU rel gate)
+     and loudness range (EBU Tech 3342: 3 s short-term, -20 LU rel gate, 10th..95th pct). */
+  function measureLoudness(chans, sr, gain) {
+    var k = kSegments(chans, sr, gain), seg = k.seg, sums = k.sums, S = sums.length;
+    function blocks(nSeg) {
+      var arr = [], run = 0;
+      for (var i = 0; i < S; i++) {
+        run += sums[i];
+        if (i >= nSeg) run -= sums[i - nSeg];
+        if (i >= nSeg - 1) arr.push(run / (nSeg * seg));
+      }
+      return arr;
+    }
+    var mb = blocks(4), abs = Math.pow(10, (-70 + 0.691) / 10), s = 0, c = 0, i;
+    for (i = 0; i < mb.length; i++) if (mb[i] > abs) { s += mb[i]; c++; }
+    var integrated = -Infinity;
+    if (c) {
+      var relT = (s / c) * 0.1; s = 0; c = 0;
+      for (i = 0; i < mb.length; i++) if (mb[i] > abs && mb[i] > relT) { s += mb[i]; c++; }
+      if (c) integrated = -0.691 + 10 * Math.log(s / c) / LOG10;
+    }
+    // LRA
+    var st = blocks(30), lra = 0; s = 0; c = 0;
+    for (i = 0; i < st.length; i++) if (st[i] > abs) { s += st[i]; c++; }
+    if (c) {
+      var relL = (s / c) * 0.01, v = [];
+      for (i = 0; i < st.length; i++) if (st[i] > abs && st[i] > relL) v.push(-0.691 + 10 * Math.log(st[i]) / LOG10);
+      if (v.length > 1) {
+        v.sort(function (a, b) { return a - b; });
+        var pct = function (p) { var idx = Math.round(p * (v.length - 1)); return v[idx]; };
+        lra = pct(0.95) - pct(0.10);
+      }
+    }
+    var maxM = -Infinity, maxS = -Infinity;
+    for (i = 0; i < mb.length; i++) if (mb[i] > 0) maxM = Math.max(maxM, -0.691 + 10 * Math.log(mb[i]) / LOG10);
+    for (i = 0; i < st.length; i++) if (st[i] > 0) maxS = Math.max(maxS, -0.691 + 10 * Math.log(st[i]) / LOG10);
+    return { integrated: integrated, lra: lra, maxMomentary: maxM, maxShortTerm: maxS };
+  }
+  SF.measureLoudness = measureLoudness;
+
+  /* ---------- 4x oversampling true peak (polyphase windowed-sinc FIR, 12 taps/phase) ---------- */
+  function besselI0(x) { var s = 1, t = 1; for (var k = 1; k < 30; k++) { t *= (x / (2 * k)) * (x / (2 * k)); s += t; } return s; }
+  var PHASES = (function () {
+    var beta = 6.0, half = 6, ph = [];
+    for (var p = 1; p < 4; p++) {
+      var f = p / 4, c = new Float64Array(12), sum = 0;
+      for (var k = -5; k <= 6; k++) {
+        var t = k - f, sinc = Math.sin(Math.PI * t) / (Math.PI * t);
+        var r = t / half, w = Math.abs(r) < 1 ? besselI0(beta * Math.sqrt(1 - r * r)) / besselI0(beta) : 0;
+        c[k + 5] = sinc * w; sum += c[k + 5];
+      }
+      for (k = 0; k < 12; k++) c[k] /= sum;
+      ph.push(c);
+    }
+    return ph;
+  })();
+
+  /* Linked per-sample true-peak envelope: env[i] = max |x| over channels at sample i
+     and the 3 interpolated points between i and i+1 (also folded into i+1). */
+  function truePeakEnvelope(chans) {
+    var n = chans[0].length, env = new Float32Array(n), p1 = PHASES[0], p2 = PHASES[1], p3 = PHASES[2];
+    for (var ch = 0; ch < chans.length; ch++) {
+      var x = chans[ch];
+      for (var i = 0; i < n; i++) {
+        var a = 0, b = 0, c = 0;
+        if (i >= 5 && i + 6 < n) {
+          for (var k = 0; k < 12; k++) { var v = x[i - 5 + k]; a += p1[k] * v; b += p2[k] * v; c += p3[k] * v; }
+        } else {
+          for (k = 0; k < 12; k++) { var j = i - 5 + k; if (j < 0 || j >= n) continue; v = x[j]; a += p1[k] * v; b += p2[k] * v; c += p3[k] * v; }
+        }
+        var m = Math.max(Math.abs(x[i]), Math.abs(a), Math.abs(b), Math.abs(c));
+        if (m > env[i]) env[i] = m;
+        if (i + 1 < n && Math.max(Math.abs(a), Math.abs(b), Math.abs(c)) > env[i + 1]) env[i + 1] = Math.max(Math.abs(a), Math.abs(b), Math.abs(c));
+      }
+    }
+    return env;
+  }
+  SF.truePeakEnvelope = truePeakEnvelope;
+
+  function measurePeaks(chans) {
+    var sp = 0, n = chans[0].length;
+    for (var ch = 0; ch < chans.length; ch++) { var x = chans[ch]; for (var i = 0; i < n; i++) { var a = x[i] < 0 ? -x[i] : x[i]; if (a > sp) sp = a; } }
+    var env = truePeakEnvelope(chans), tp = 0;
+    for (i = 0; i < n; i++) if (env[i] > tp) tp = env[i];
+    return { samplePeakDb: db(sp), truePeakDb: db(tp) };
+  }
+  SF.measurePeaks = measurePeaks;
+
+  SF.analyze = function (chans, sr) {
+    var L = measureLoudness(chans, sr), P = measurePeaks(chans);
+    return { lufs: L.integrated, lra: L.lra, maxShortTerm: L.maxShortTerm, truePeakDb: P.truePeakDb, samplePeakDb: P.samplePeakDb };
+  };
+
+  /* ---------- feed-forward compressor (linked stereo, soft knee, no auto makeup) ---------- */
+  SF.COMP_PRESETS = {
+    Light:  { threshold: -18, knee: 22, ratio: 2,   attack: 0.012, release: 0.28 },
+    Medium: { threshold: -16, knee: 18, ratio: 3.5, attack: 0.008, release: 0.20 },
+    Heavy:  { threshold: -14, knee: 12, ratio: 6,   attack: 0.003, release: 0.15 }
+  };
+  function compress(chans, sr, p) {
+    var n = chans[0].length, T = p.threshold, W = p.knee, R = p.ratio;
+    var aC = Math.exp(-1 / (p.attack * sr)), rC = Math.exp(-1 / (p.release * sr));
+    var gr = 0, maxGr = 0, sumGr = 0, nc = chans.length;
+    for (var i = 0; i < n; i++) {
+      var lv = 0;
+      for (var ch = 0; ch < nc; ch++) { var a = Math.abs(chans[ch][i]); if (a > lv) lv = a; }
+      var xdb = lv > 1e-9 ? 20 * Math.log(lv) / LOG10 : -180, over = xdb - T, target;
+      if (2 * over < -W) target = 0;
+      else if (2 * Math.abs(over) <= W) target = (1 / R - 1) * (over + W / 2) * (over + W / 2) / (2 * W);
+      else target = (1 / R - 1) * over;
+      var want = -target;                       // positive dB of reduction wanted
+      gr = want > gr ? aC * gr + (1 - aC) * want : rC * gr + (1 - rC) * want;
+      var g = Math.pow(10, -gr / 20);
+      for (ch = 0; ch < nc; ch++) chans[ch][i] *= g;
+      if (gr > maxGr) maxGr = gr; sumGr += gr;
+    }
+    return { maxGrDb: maxGr, avgGrDb: sumGr / n };
+  }
+  SF.compress = compress;
+
+  /* ---------- look-ahead true-peak brickwall limiter ----------
+     env = linked true-peak envelope of the (pre-gain) input; preGain is linear.
+     Gain curve: required gain -> forward min over lookahead window -> release one-pole
+     (instant attack) -> boxcar average over the same window. The boxcar of a min-held
+     curve never exceeds the required gain at a peak, so g*tp <= threshold. */
+  function limiterGain(env, sr, preGain, threshLin, lookMs, relMs) {
+    var n = env.length, L = Math.max(1, Math.round(sr * lookMs / 1000));
+    var h = new Float32Array(n), dq = new Int32Array(n), head = 0, tail = 0, i;
+    var req = function (j) { var e = env[j] * preGain; return e > threshLin ? threshLin / e : 1; };
+    // forward min over [i, i+L-1] via monotonic deque, scanning from the end
+    for (i = n - 1; i >= 0; i--) {
+      var r = req(i);
+      while (tail > head && req(dq[tail - 1]) >= r) tail--;
+      dq[tail++] = i;
+      while (dq[head] > i + L - 1) head++;
+      h[i] = req(dq[head]);
+    }
+    var rc = Math.exp(-1 / (sr * relMs / 1000)), prev = 1;
+    for (i = 0; i < n; i++) { var v = h[i]; prev = v < prev ? v : v + (prev - v) * rc; h[i] = prev; }
+    var g = new Float32Array(n), run = 0, minG = 1, grSum = 0, grCount = 0;
+    for (i = 0; i < n; i++) {
+      run += h[i]; if (i >= L) run -= h[i - L];
+      var gi = run / Math.min(i + 1, L);
+      if (i < L) { /* warm-up: be conservative */ var m = 1; for (var k = 0; k <= i; k++) if (h[k] < m) m = h[k]; gi = Math.min(gi, m); }
+      if (gi > h[i] && h[i] < 1 && i >= L) { /* numerical guard */ }
+      g[i] = gi; if (gi < minG) minG = gi; if (gi < 0.8912509) { grCount++; } grSum += -db(gi);
+    }
+    return { g: g, maxGrDb: -db(minG), avgGrDb: grSum / n, fracOver1dB: grCount / n, lookSamples: L };
+  }
+  SF.limiterGain = limiterGain;
+
+  function applyGain(chans, g, preGain) {
+    var out = [];
+    for (var ch = 0; ch < chans.length; ch++) {
+      var x = chans[ch], y = new Float32Array(x.length);
+      for (var i = 0; i < x.length; i++) y[i] = x[i] * preGain * g[i];
+      out.push(y);
+    }
+    return out;
+  }
+
+  /* ---------- full master ---------- */
+  SF.DEFAULTS = { targetLufs: -14, ceilingDb: -1, bassDb: -2, airDb: 1, width: 1.3, comp: 'Medium', lookaheadMs: 3, releaseMs: 80 };
+
+  SF.master = function (input, sr, opts, log, progress) {
+    opts = Object.assign({}, SF.DEFAULTS, opts || {});
+    log = log || function () {}; progress = progress || function () {};
+    var t0 = Date.now(), nc = input.length, n = input[0].length, i, ch;
+    var chans = input.map(function (x) { return new Float32Array(x); });
+    progress(5);
+    var before = SF.analyze(input, sr);
+    log('↳ Source — ' + fmt(before.lufs) + ' LUFS integrated • LRA ' + before.lra.toFixed(1) + ' LU • true peak ' + fmt(before.truePeakDb, 2) + ' dBTP • sample peak ' + fmt(before.samplePeakDb, 2) + ' dBFS');
+    progress(15);
+    // tone
+    if (Math.abs(opts.bassDb) > 1e-6) { var cl = shelf('low', 120, opts.bassDb, sr); chans.forEach(function (x) { biquadInPlace(x, cl); }); }
+    if (Math.abs(opts.airDb) > 1e-6) { var ch2 = shelf('high', 10000, opts.airDb, sr); chans.forEach(function (x) { biquadInPlace(x, ch2); }); }
+    progress(22);
+    // dynamics
+    var comp = { maxGrDb: 0, avgGrDb: 0 };
+    if (opts.comp && SF.COMP_PRESETS[opts.comp]) comp = compress(chans, sr, SF.COMP_PRESETS[opts.comp]);
+    log('↳ Tone + compression (' + opts.comp + ') — compressor GR max ' + comp.maxGrDb.toFixed(1) + ' dB, avg ' + comp.avgGrDb.toFixed(1) + ' dB');
+    progress(30);
+    // width (M/S)
+    if (nc === 2 && Math.abs(opts.width - 1) > 1e-3) {
+      var Lc = chans[0], Rc = chans[1], w = opts.width;
+      for (i = 0; i < n; i++) { var m = 0.5 * (Lc[i] + Rc[i]), s = 0.5 * (Lc[i] - Rc[i]) * w; Lc[i] = m + s; Rc[i] = m - s; }
+    }
+    progress(35);
+    // loudness + limiter loop
+    var pre = measureLoudness(chans, sr).integrated;
+    var env = truePeakEnvelope(chans);
+    progress(50);
+    var ceil = opts.ceilingDb, thrDb = ceil - 0.05, gainDb = opts.targetLufs - pre;
+    log('↳ Pass 1 — shaped signal at ' + fmt(pre) + ' LUFS → applying ' + sign(gainDb) + ' dB to hit ' + opts.targetLufs + ' LUFS; true-peak limiter catches peaks above ' + ceil + ' dBTP');
+    var lim, out, outL, tp, iter = 0, maxIter = 10, hitCap = false, prevG = null, prevL = null;
+    for (iter = 1; iter <= maxIter; iter++) {
+      lim = limiterGain(env, sr, undb(gainDb), undb(thrDb), opts.lookaheadMs, opts.releaseMs);
+      out = applyGain(chans, lim.g, undb(gainDb));
+      outL = measureLoudness(out, sr).integrated;
+      var err = opts.targetLufs - outL;
+      progress(Math.min(90, 50 + iter * 5));
+      log('  iter ' + iter + ': gain ' + sign(gainDb) + ' dB → ' + fmt(outL, 2) + ' LUFS (limiter GR max ' + lim.maxGrDb.toFixed(1) + ' dB)');
+      if (Math.abs(err) <= 0.1) break;
+      if (lim.maxGrDb > 18 && err > 0) { hitCap = true; break; }
+      // limiting is compressive, so use a secant step (measured dLUFS/dGain) once we have two points
+      var step = err;
+      if (prevG !== null && Math.abs(gainDb - prevG) > 1e-3) {
+        var slope = (outL - prevL) / (gainDb - prevG);
+        step = err / Math.min(1, Math.max(0.1, slope));
+      }
+      step = Math.max(-6, Math.min(6, step));
+      prevG = gainDb; prevL = outL; gainDb += step;
+    }
+    // verify true peak, tighten threshold if the oversampled check finds an over
+    for (var v = 0; v < 4; v++) {
+      tp = measurePeaks(out);
+      if (tp.truePeakDb <= ceil) break;
+      thrDb -= (tp.truePeakDb - ceil) + 0.02;
+      lim = limiterGain(env, sr, undb(gainDb), undb(thrDb), opts.lookaheadMs, opts.releaseMs);
+      out = applyGain(chans, lim.g, undb(gainDb));
+      log('  true-peak recheck: tightened limiter threshold to ' + thrDb.toFixed(2) + ' dB');
+    }
+    progress(95);
+    var after = SF.analyze(out, sr);
+    var report = {
+      before: before, after: after, appliedGainDb: gainDb, iterations: iter,
+      limiter: { maxGrDb: lim.maxGrDb, avgGrDb: lim.avgGrDb, fracOver1dB: lim.fracOver1dB, lookaheadMs: opts.lookaheadMs, releaseMs: opts.releaseMs },
+      compressor: comp, opts: opts, seconds: (Date.now() - t0) / 1000,
+      onTarget: Math.abs(after.lufs - opts.targetLufs) <= 0.5, hitCap: hitCap
+    };
+    if (!report.onTarget) log('⚠ Could not reach ' + opts.targetLufs + ' LUFS within the ' + ceil + ' dBTP ceiling without extreme limiting — landed at ' + fmt(after.lufs) + ' LUFS.');
+    if (lim.maxGrDb > 6) log('⚠ Heavy limiting: peak gain reduction ' + lim.maxGrDb.toFixed(1) + ' dB (' + (lim.fracOver1dB * 100).toFixed(1) + '% of the track above 1 dB GR). Consider a lower target or Light compression.');
+    else log('↳ Limiter: max GR ' + lim.maxGrDb.toFixed(1) + ' dB • ' + (lim.fracOver1dB * 100).toFixed(1) + '% of samples above 1 dB GR');
+    progress(100);
+    return { channels: out, report: report };
+  };
+
+  function fmt(x, d) { return isFinite(x) ? x.toFixed(d == null ? 1 : d) : '-∞'; }
+  function sign(x) { return (x >= 0 ? '+' : '') + x.toFixed(2); }
+
+  /* ---------- WAV export with TPDF dither ---------- */
+  function rng(seed) { var s = seed >>> 0 || 0x9e3779b9; return function () { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+  SF.encodeWav = function (chans, sr, bits, seed) {
+    bits = bits === 24 ? 24 : 16;
+    var nc = chans.length, n = chans[0].length, bps = bits / 8, dataLen = n * nc * bps;
+    var buf = new ArrayBuffer(44 + dataLen), dv = new DataView(buf), u8 = new Uint8Array(buf);
+    function str(o, s) { for (var i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); }
+    str(0, 'RIFF'); dv.setUint32(4, 36 + dataLen, true); str(8, 'WAVE'); str(12, 'fmt ');
+    dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, nc, true); dv.setUint32(24, sr, true);
+    dv.setUint32(28, sr * nc * bps, true); dv.setUint16(32, nc * bps, true); dv.setUint16(34, bits, true);
+    str(36, 'data'); dv.setUint32(40, dataLen, true);
+    var r = rng(seed || 12345), full = bits === 16 ? 32767 : 8388607, lo = -full - 1, o = 44;
+    for (var i = 0; i < n; i++) for (var ch = 0; ch < nc; ch++) {
+      var v = Math.round(chans[ch][i] * full + (r() - r()));   // TPDF, ±1 LSB
+      if (v > full) v = full; else if (v < lo) v = lo;
+      if (bits === 16) { dv.setInt16(o, v, true); o += 2; }
+      else { u8[o] = v & 255; u8[o + 1] = (v >> 8) & 255; u8[o + 2] = (v >> 16) & 255; o += 3; }
+    }
+    return buf;
+  };
+
+  /* minimal PCM WAV reader (16/24/32-bit int, 32-bit float) for the test harness */
+  SF.decodeWav = function (ab) {
+    var dv = new DataView(ab), o = 12, fmt = null, data = null;
+    while (o + 8 <= dv.byteLength) {
+      var id = String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3)), sz = dv.getUint32(o + 4, true);
+      if (id === 'fmt ') fmt = { tag: dv.getUint16(o + 8, true), nc: dv.getUint16(o + 10, true), sr: dv.getUint32(o + 12, true), bits: dv.getUint16(o + 22, true) }
+      if (id === 'fmt ' && fmt.tag === 0xFFFE && sz >= 40) fmt.tag = dv.getUint16(o + 32, true);  // WAVE_FORMAT_EXTENSIBLE subformat
+      if (id === 'data') { data = { off: o + 8, len: Math.min(sz, dv.byteLength - o - 8) }; break; }
+      o += 8 + sz + (sz & 1);
+    }
+    var bps = fmt.bits / 8, n = Math.floor(data.len / (bps * fmt.nc)), ch = [], c, i;
+    for (c = 0; c < fmt.nc; c++) ch.push(new Float32Array(n));
+    for (i = 0; i < n; i++) for (c = 0; c < fmt.nc; c++) {
+      var p = data.off + (i * fmt.nc + c) * bps, v;
+      if (fmt.tag === 3) v = dv.getFloat32(p, true);
+      else if (fmt.bits === 16) v = dv.getInt16(p, true) / 32768;
+      else if (fmt.bits === 24) { v = dv.getUint8(p) | (dv.getUint8(p + 1) << 8) | (dv.getInt8(p + 2) << 16); v /= 8388608; }
+      else v = dv.getInt32(p, true) / 2147483648;
+      ch[c][i] = v;
+    }
+    return { sampleRate: fmt.sr, channels: ch };
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = SF; else root.SF = SF;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var DEF = { targetLufs: -14, ceilingDb: -1, bassDb: -2, airDb: 1, width: 1.3, comp: 'Medium', bits: 16 };
+  var st = Object.assign({}, DEF), file = null, srcChans = null, sr = 0, mastered = null, report = null, busy = false, origAnalysis = null;
+  var mUrl = null, oUrl = null;
+
+  /* ---------- log ---------- */
+  function ts() { var d = new Date(); return d.toTimeString().slice(0, 8); }
+  function log(msg, cls) { var el = document.createElement('div'); el.textContent = '[' + ts() + '] ' + msg; if (cls) el.className = cls; else if (/^⚠/.test(msg)) el.className = 'warn'; else if (/^✕/.test(msg)) el.className = 'err'; $('log').appendChild(el); $('log').scrollTop = 1e9; }
+  function setState(s) { var b = $('badge'); b.className = 'badge mono ' + s; $('stateTxt').textContent = s; $('logfoot').textContent = 'Status: ' + s + ' • ' + (file ? file.name + ' • ' + size(file.size) : 'awaiting import') + ' • Last log at bottom'; }
+  function prog(p) { $('barFill').style.width = p + '%'; $('pct').textContent = Math.round(p) + '%'; }
+  function size(b) { return b > 1048576 ? (b / 1048576).toFixed(2) + ' MB' : (b / 1024).toFixed(0) + ' KB'; }
+  function dur(s) { var m = Math.floor(s / 60), x = Math.floor(s % 60); return m + ':' + (x < 10 ? '0' : '') + x; }
+  function f1(x, d) { return isFinite(x) ? x.toFixed(d == null ? 1 : d) : '-∞'; }
+
+  /* ---------- controls ---------- */
+  var SLIDERS = [
+    { k: 'targetLufs', label: 'TARGET LOUDNESS', min: -20, max: -8, step: 0.5, unit: 'LUFS', hint: 'Streaming sweet spot', lo: '-20LUFS', hi: '-8LUFS' },
+    { k: 'ceilingDb', label: 'TRUE PEAK CEILING', min: -3, max: -0.3, step: 0.1, unit: 'dBTP', hint: 'Limiter ceiling (4× oversampled)', lo: '-3dB', hi: '-0.3dB' },
+    { k: 'bassDb', label: 'BASS', min: -6, max: 6, step: 0.5, unit: 'dB', hint: 'Lowshelf @ 120 Hz', lo: '-6dB', hi: '+6dB' },
+    { k: 'airDb', label: 'AIR', min: -3, max: 6, step: 0.5, unit: 'dB', hint: 'Highshelf @ 10 kHz', lo: '-3dB', hi: '+6dB' },
+    { k: 'width', label: 'STEREO WIDTH', min: 0.5, max: 1.8, step: 0.05, unit: '×', hint: 'Mid/Side — 1.0 = untouched', lo: '0.5×', hi: '1.8×' }
+  ];
+  var COMP_TXT = { Light: 'Light — Threshold -18 dB • Ratio 2:1 • Gentle glue', Medium: 'Medium — Threshold -16 dB • Ratio 3.5:1 • Balanced punch', Heavy: 'Heavy — Threshold -14 dB • Ratio 6:1 • Dense & loud' };
+  function fmtVal(s, v) { return (s.k === 'width' ? v.toFixed(2) : ((v > 0 && (s.k === 'bassDb' || s.k === 'airDb')) ? '+' : '') + v.toFixed(1)); }
+  function buildControls() {
+    var c = $('controls'); c.innerHTML = '';
+    SLIDERS.forEach(function (s) {
+      var row = document.createElement('div'); row.className = 'row';
+      row.innerHTML = '<div class="top2"><span class="lab">' + s.label + '</span><span class="val"><span></span><small>' + s.unit + '</small></span></div>' +
+        '<input type="range" min="' + s.min + '" max="' + s.max + '" step="' + s.step + '" aria-label="' + s.label + '">' +
+        '<div class="foot"><span>' + s.lo + '</span><span>' + s.hint + '</span><span>' + s.hi + '</span></div>';
+      var inp = row.querySelector('input'), out = row.querySelector('.val span');
+      function paint() { var v = st[s.k]; inp.value = v; out.textContent = fmtVal(s, v); inp.style.setProperty('--p', ((v - s.min) / (s.max - s.min) * 100) + '%'); }
+      inp.addEventListener('input', function () { st[s.k] = parseFloat(inp.value); paint(); updatePill(); });
+      s.paint = paint; paint(); c.appendChild(row);
+    });
+    var comp = document.createElement('div');
+    comp.innerHTML = '<div class="top2" style="display:flex;justify-content:space-between"><span class="lab" style="font-size:12px;font-weight:700;letter-spacing:.16em">COMPRESSION</span><span id="compVal" style="color:var(--accent);font-weight:800"></span></div><div class="seg" id="compSeg"></div><div class="small" id="compTxt"></div>';
+    c.appendChild(comp);
+    var seg = comp.querySelector('#compSeg');
+    ['Light', 'Medium', 'Heavy'].forEach(function (m) { var b = document.createElement('button'); b.textContent = m.toUpperCase(); b.dataset.m = m; b.onclick = function () { st.comp = m; paintComp(); }; seg.appendChild(b); });
+    var exp = document.createElement('div');
+    exp.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-size:12px;font-weight:700;letter-spacing:.16em">EXPORT</span><span id="bitVal" style="color:var(--accent);font-weight:800"></span></div><div class="seg two" id="bitSeg"><button data-b="16">16-BIT + TPDF</button><button data-b="24">24-BIT + TPDF</button></div><div class="small">TPDF dither (±1 LSB) is added before rounding. 16-bit for streaming uploads, 24-bit for archiving or further processing.</div>';
+    c.appendChild(exp);
+    exp.querySelectorAll('button').forEach(function (b) { b.onclick = function () { st.bits = +b.dataset.b; paintBits(); reencode(); }; });
+    var chain = document.createElement('div'); chain.className = 'chain';
+    chain.innerHTML = '<div class="lab">⌁ SIGNAL CHAIN</div><div class="nodes"><span class="node">SOURCE</span><span class="arr">→</span><span class="node">BASS 120Hz</span><span class="arr">→</span><span class="node">AIR 10kHz</span><span class="arr">→</span><span class="node">COMP</span><span class="arr">→</span><span class="node">WIDTH</span><span class="arr">→</span><span class="node hl">GAIN → TARGET</span><span class="arr">→</span><span class="node pk">TP LIMITER</span><span class="arr">→</span><span class="node">DITHER</span></div>' +
+      '<div class="small" style="color:#bbb">Measures integrated loudness (ITU-R BS.1770-4), applies the full gain to hit your target, and a 3 ms look-ahead brickwall limiter with 4× oversampled true-peak detection holds the ceiling. A trim loop re-measures until the output lands on target.</div>';
+    c.appendChild(chain);
+    var two = document.createElement('div'); two.className = 'two-btn';
+    two.innerHTML = '<button class="ghost" id="resetBtn">RESET PRESET</button><button class="ghost" id="test2">⟲ TEST IMPORT</button>';
+    c.appendChild(two);
+    $('resetBtn').onclick = function () { var b = st.bits; st = Object.assign({}, DEF, { bits: b }); SLIDERS.forEach(function (s) { s.paint(); }); paintComp(); updatePill(); log('↺ Preset reset — -14 LUFS • -1 dBTP • Bass -2 • Air +1 • Width 1.30× • Medium'); };
+    $('test2').onclick = testImport;
+    paintComp(); paintBits(); updatePill();
+  }
+  function paintComp() { document.querySelectorAll('#compSeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === st.comp); }); $('compVal').textContent = st.comp.toUpperCase(); $('compTxt').textContent = COMP_TXT[st.comp]; }
+  function paintBits() { document.querySelectorAll('#bitSeg button').forEach(function (b) { b.classList.toggle('on', +b.dataset.b === st.bits); }); $('bitVal').textContent = st.bits + '-BIT'; $('dlHint').textContent = 'Exports <filename>_MASTERED.wav • ' + st.bits + '-bit PCM with TPDF dither'; }
+  function updatePill() { $('targetPill').textContent = 'TARGET ' + st.targetLufs + ' LUFS • CEILING ' + st.ceilingDb.toFixed(1) + ' dBTP'; $('mTPd').textContent = 'ceiling ' + st.ceilingDb.toFixed(1) + ' dBTP'; }
+
+  /* ---------- waveform ---------- */
+  function drawWave(cv, chans, color, ceilDb) {
+    var dpr = window.devicePixelRatio || 1, w = cv.clientWidth || 600, h = cv.clientHeight || 120;
+    cv.width = w * dpr; cv.height = h * dpr; var g = cv.getContext('2d'); g.scale(dpr, dpr);
+    g.fillStyle = '#0b0b0b'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#161616'; g.lineWidth = 1;
+    for (var x = 0; x < w; x += w / 24) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, h); g.stroke(); }
+    for (var y = 0; y <= 4; y++) { g.beginPath(); g.moveTo(0, y * h / 4 + .5); g.lineTo(w, y * h / 4 + .5); g.stroke(); }
+    if (!chans) { g.fillStyle = '#3a3a3a'; g.font = '11px ' + getComputedStyle(document.body).getPropertyValue('--mono'); g.fillText('NO AUDIO LOADED — DROP A TRACK TO SEE ITS WAVEFORM', 10, h / 2 + 4); return; }
+    var n = chans[0].length, step = n / w, mid = h / 2;
+    g.fillStyle = color; g.shadowColor = color; g.shadowBlur = 6;
+    for (x = 0; x < w; x++) {
+      var a = Math.floor(x * step), b = Math.min(n, Math.floor((x + 1) * step)), mn = 0, mx = 0;
+      var stride = Math.max(1, Math.floor((b - a) / 400));
+      for (var c = 0; c < chans.length; c++) { var d = chans[c]; for (var i = a; i < b; i += stride) { var v = d[i]; if (v < mn) mn = v; if (v > mx) mx = v; } }
+      g.fillRect(x, mid - mx * mid * 0.95, 1, Math.max(1, (mx - mn) * mid * 0.95));
+    }
+    g.shadowBlur = 0;
+    if (ceilDb != null) { var cl = Math.pow(10, ceilDb / 20) * mid * 0.95; g.strokeStyle = 'rgba(255,255,255,.35)'; g.setLineDash([4, 4]); [mid - cl, mid + cl].forEach(function (yy) { g.beginPath(); g.moveTo(0, yy); g.lineTo(w, yy); g.stroke(); }); g.setLineDash([]); }
+  }
+  function redraw() { drawWave($('cvO'), srcChans, '#00ff41'); drawWave($('cvM'), mastered, '#ff2e9a', mastered && report ? report.opts.ceilingDb : null); }
+  window.addEventListener('resize', redraw);
+
+  /* ---------- engine: Web Worker built from the inlined DSP (falls back to main thread) ---------- */
+  var DSP_SRC = $('sf-dsp').textContent, worker = null, jobs = {}, jobId = 0;
+  var GLUE = '\nself.onmessage=function(e){var d=e.data,id=d.id;try{' +
+    'if(d.cmd==="analyze"){postMessage({id:id,t:"done",result:SF.analyze(d.chans,d.sr)});return;}' +
+    'var r=SF.master(d.chans,d.sr,d.opts,function(m){postMessage({id:id,t:"log",m:m});},function(p){postMessage({id:id,t:"p",p:p});});' +
+    'var wav=SF.encodeWav(r.channels,d.sr,d.bits,(Math.random()*4294967295)>>>0);' +
+    'postMessage({id:id,t:"done",result:{report:r.report,channels:r.channels,wav:wav}},r.channels.map(function(c){return c.buffer;}).concat([wav]));' +
+    '}catch(err){postMessage({id:id,t:"err",m:String(err&&err.message||err)});}};';
+  try {
+    worker = new Worker(URL.createObjectURL(new Blob([DSP_SRC + GLUE], { type: 'text/javascript' })));
+    worker.onmessage = function (e) { var d = e.data, j = jobs[d.id]; if (!j) return; if (d.t === 'log') log(d.m); else if (d.t === 'p') prog(d.p); else if (d.t === 'err') { delete jobs[d.id]; j.rej(new Error(d.m)); } else { delete jobs[d.id]; j.res(d.result); } };
+    worker.onerror = function (e) { log('⚠ Worker error (' + (e.message || 'unknown') + ') — falling back to main thread.'); worker = null; };
+  } catch (e) { worker = null; }
+  function run(cmd, payload) {
+    if (worker) return new Promise(function (res, rej) { var id = ++jobId; jobs[id] = { res: res, rej: rej }; payload.cmd = cmd; payload.id = id; worker.postMessage(payload); });
+    return new Promise(function (res, rej) {
+      setTimeout(function () {
+        try {
+          if (cmd === 'analyze') return res(SF.analyze(payload.chans, payload.sr));
+          var r = SF.master(payload.chans, payload.sr, payload.opts, function (m) { log(m); }, prog);
+          res({ report: r.report, channels: r.channels, wav: SF.encodeWav(r.channels, payload.sr, payload.bits, (Math.random() * 4294967295) >>> 0) });
+        } catch (err) { rej(err); }
+      }, 30);
+    });
+  }
+  function copyChans(ch) { return ch.map(function (c) { return new Float32Array(c); }); }
+
+  /* ---------- decode at the file's native sample rate ---------- */
+  function sniffRate(u8, name) {
+    try {
+      var s = String.fromCharCode(u8[0], u8[1], u8[2], u8[3]), dv = new DataView(u8.buffer, u8.byteOffset);
+      if (s === 'RIFF') { var o = 12; while (o + 8 < u8.length) { var id = String.fromCharCode(u8[o], u8[o + 1], u8[o + 2], u8[o + 3]), sz = dv.getUint32(o + 4, true); if (id === 'fmt ') return dv.getUint32(o + 12, true); o += 8 + sz + (sz & 1); } }
+      if (s === 'fLaC') return (u8[18] << 12) | (u8[19] << 4) | (u8[20] >> 4);
+      if (s === 'FORM') { /* AIFF: leave to default */ }
+      var p = 0;
+      if (u8[0] === 0x49 && u8[1] === 0x44 && u8[2] === 0x33) p = 10 + ((u8[6] & 127) << 21 | (u8[7] & 127) << 14 | (u8[8] & 127) << 7 | (u8[9] & 127));
+      for (var i = p; i < Math.min(u8.length - 4, p + 65536); i++) {
+        if (u8[i] === 0xFF && (u8[i + 1] & 0xE0) === 0xE0) {
+          var ver = (u8[i + 1] >> 3) & 3, layer = (u8[i + 1] >> 1) & 3, sri = (u8[i + 2] >> 2) & 3;
+          if (ver === 1 || layer === 0 || sri === 3) continue;
+          var base = [44100, 48000, 32000][sri]; return ver === 3 ? base : ver === 2 ? base / 2 : base / 4;
+        }
+      }
+      if (s === 'OggS') return 48000;
+    } catch (e) {}
+    return /\.(ogg|opus|webm)$/i.test(name) ? 48000 : 44100;
+  }
+  async function loadFile(f) {
+    if (!f || busy) return;
+    file = f; mastered = null; report = null; srcChans = null;
+    $('fname').textContent = f.name; $('fsize').textContent = size(f.size); $('finfo').textContent = '';
+    setState('LOADING'); prog(10); log('↓ IMPORT — "' + f.name + '" • ' + size(f.size));
+    $('masterBtn').disabled = true; $('dlBtn').disabled = true; $('mTag').textContent = 'AWAITING MASTER';
+    ['mL', 'mTP', 'mGR', 'mLRA'].forEach(function (k) { $(k).textContent = '—'; $(k).className = 'v'; });
+    $('mPlayer').innerHTML = '<div class="ph mono">Mastered player appears after MASTER IT</div>';
+    try {
+      var ab = await f.arrayBuffer(), rate = sniffRate(new Uint8Array(ab), f.name), buf;
+      try { buf = await new OfflineAudioContext(1, 1, rate).decodeAudioData(ab.slice(0)); }
+      catch (e1) { var ac = new (window.AudioContext || window.webkitAudioContext)(); buf = await ac.decodeAudioData(ab.slice(0)); ac.close(); }
+      sr = buf.sampleRate; var nc = Math.min(2, buf.numberOfChannels); srcChans = [];
+      for (var c = 0; c < nc; c++) srcChans.push(new Float32Array(buf.getChannelData(c)));
+      if (buf.numberOfChannels > 2) log('⚠ ' + buf.numberOfChannels + ' channels found — mastering the first two (L/R).');
+      $('finfo').textContent = dur(buf.duration) + ' • ' + sr.toLocaleString() + ' Hz • ' + (nc === 1 ? 'MONO' : nc + 'CH');
+      log('✓ Decoded — ' + dur(buf.duration) + ' • ' + sr + ' Hz • ' + (nc === 1 ? 'Mono' : '2ch Stereo') + ' • ' + srcChans[0].length.toLocaleString() + ' samples');
+      if (oUrl) URL.revokeObjectURL(oUrl); oUrl = URL.createObjectURL(f);
+      $('origPlayer').innerHTML = ''; var au = document.createElement('audio'); au.controls = true; au.src = oUrl; $('origPlayer').appendChild(au);
+      $('origTag').textContent = 'SOURCE'; redraw();
+      setState('ANALYZING'); prog(40);
+      var a = await run('analyze', { chans: copyChans(srcChans), sr: sr });
+      origAnalysis = a; $('origStats').style.display = '';
+      $('oL').textContent = f1(a.lufs); $('oTP').textContent = f1(a.truePeakDb, 2); $('oSP').textContent = f1(a.samplePeakDb, 2); $('oLRA').textContent = f1(a.lra);
+      log('↳ Source meter — ' + f1(a.lufs) + ' LUFS integrated • ' + f1(a.truePeakDb, 2) + ' dBTP • sample peak ' + f1(a.samplePeakDb, 2) + ' dBFS • LRA ' + f1(a.lra) + ' LU');
+      setState('LOADED'); prog(0); $('masterBtn').disabled = false; log('✓ Waveform drawn. Mastering ready.');
+    } catch (e) { setState('ERROR'); prog(0); log('✕ DECODE FAILED — ' + (e && e.message || 'unsupported file') + '. Try WAV or MP3.'); }
+  }
+
+  /* ---------- master ---------- */
+  async function doMaster() {
+    if (!srcChans || busy) return;
+    busy = true; $('masterBtn').disabled = true; $('dlBtn').disabled = true; setState('MASTERING'); prog(2);
+    log('⚡ MASTERING START — Target ' + st.targetLufs + ' LUFS • Ceiling ' + st.ceilingDb + ' dBTP • Bass ' + (st.bassDb >= 0 ? '+' : '') + st.bassDb + ' dB • Air ' + (st.airDb >= 0 ? '+' : '') + st.airDb + ' dB • Width ' + st.width.toFixed(2) + '× • Comp ' + st.comp);
+    try {
+      var opts = { targetLufs: st.targetLufs, ceilingDb: st.ceilingDb, bassDb: st.bassDb, airDb: st.airDb, width: st.width, comp: st.comp };
+      var r = await run('master', { chans: copyChans(srcChans), sr: sr, opts: opts, bits: st.bits });
+      mastered = r.channels; report = r.report; setWav(r.wav, st.bits);
+      var A = report.after, ok = Math.abs(A.lufs - opts.targetLufs) <= 0.5;
+      $('mL').textContent = f1(A.lufs); $('mL').className = 'v ' + (ok ? 'ok' : 'warn');
+      $('mTP').textContent = f1(A.truePeakDb, 2); $('mTP').className = 'v ' + (A.truePeakDb <= opts.ceilingDb + 0.01 ? 'ok' : 'warn');
+      $('mGR').textContent = report.limiter.maxGrDb.toFixed(1); $('mGR').className = 'v ' + (report.limiter.maxGrDb > 6 ? 'warn' : 'ok');
+      $('mLRA').textContent = f1(A.lra);
+      $('mTag').textContent = 'MASTERED • ' + report.seconds.toFixed(1) + ' s';
+      setState('MASTERED'); prog(100); $('dlBtn').disabled = false; redraw();
+      log('✓ MASTERED — ' + f1(A.lufs, 2) + ' LUFS integrated (target ' + opts.targetLufs + ') • true peak ' + f1(A.truePeakDb, 2) + ' dBTP • sample peak ' + f1(A.samplePeakDb, 2) + ' dBFS • LRA ' + f1(A.lra) + ' LU • limiter max GR ' + report.limiter.maxGrDb.toFixed(1) + ' dB • ready to download');
+    } catch (e) { setState('LOADED'); prog(0); log('✕ MASTERING FAILED — ' + (e && e.message || e)); }
+    busy = false; $('masterBtn').disabled = !srcChans;
+  }
+  var wavBlob = null, wavBits = 16;
+  function setWav(ab, bits) {
+    wavBlob = new Blob([ab], { type: 'audio/wav' }); wavBits = bits;
+    if (mUrl) URL.revokeObjectURL(mUrl); mUrl = URL.createObjectURL(wavBlob);
+    $('mPlayer').innerHTML = ''; var au = document.createElement('audio'); au.controls = true; au.src = mUrl; $('mPlayer').appendChild(au);
+  }
+  function reencode() {
+    if (!mastered || wavBits === st.bits) return;
+    setWav(SF.encodeWav(mastered, sr, st.bits, (Math.random() * 4294967295) >>> 0), st.bits);
+    log('↻ Re-encoded mastered WAV as ' + st.bits + '-bit PCM with TPDF dither.');
+  }
+  function download() {
+    if (!wavBlob) { log('✕ No mastered audio yet — press MASTER IT first.'); return; }
+    var base = (file && file.name.replace(/\.[^/.]+$/, '')) || 'track', a = document.createElement('a');
+    var url = URL.createObjectURL(wavBlob); a.href = url; a.download = base + '_MASTERED.wav'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    log('⬇ DOWNLOADED "' + base + '_MASTERED.wav" — ' + (wavBlob.size / 1048576).toFixed(2) + ' MB WAV • ' + wavBits + '-bit PCM • TPDF dither');
+  }
+  function testImport() {
+    log('✓ TEST IMPORT — listeners LIVE: window dragenter/dragover/dragleave/drop + click-to-browse. Drop a file anywhere to verify.');
+    log('✓ TEST — Drop zone is a <label> wrapping a hidden file input. Click it now if you want to browse.');
+    $('drop').classList.add('over'); setTimeout(function () { $('drop').classList.remove('over'); }, 650);
+  }
+
+  /* ---------- Brave-safe window-level drag & drop ---------- */
+  var depth = 0;
+  window.addEventListener('dragenter', function (e) { e.preventDefault(); depth++; $('drop').classList.add('over'); });
+  window.addEventListener('dragover', function (e) { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; });
+  window.addEventListener('dragleave', function (e) { e.preventDefault(); depth = Math.max(0, depth - 1); if (!depth) $('drop').classList.remove('over'); });
+  window.addEventListener('drop', function (e) { e.preventDefault(); depth = 0; $('drop').classList.remove('over'); var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) loadFile(f); });
+  $('file').addEventListener('change', function (e) { loadFile(e.target.files && e.target.files[0]); e.target.value = ''; });
+  $('masterBtn').onclick = doMaster; $('dlBtn').onclick = download; $('testBtn').onclick = testImport;
+  $('clearLog').onclick = function () { $('log').innerHTML = ''; log('Log cleared.'); };
+
+  buildControls(); redraw();
+  log('SOUL FORGE STUDIO V3 — READY. Drop audio anywhere or click to browse.');
+  log('Engine: BS.1770-4 LUFS • 4× true peak • look-ahead TP limiter • TPDF dither • ' + (worker ? 'Web Worker' : 'main thread'));
+})();
+</script>
+</body>
+</html>
