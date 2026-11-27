@@ -110,3 +110,8 @@ footer{text-align:center;color:var(--dim);font-size:13px;padding:36px 20px 50px;
   .sec{padding:48px 16px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.card.feature.album{flex-wrap:wrap;align-items:stretch}
+.card.feature.album img{width:280px;height:280px;max-width:46%;flex:none;aspect-ratio:1;object-fit:cover;align-self:flex-start}
+.card.feature.album .body{flex:1;min-width:220px}
+.card.feature.album .tracks{flex-basis:100%;margin:0;padding:0 20px 20px}
