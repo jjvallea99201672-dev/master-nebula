@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random-Matrix Experiment: λ_min(N) — Jay Vallea</title>
+<meta name="description" content="Generic random-matrix predictions for the smallest eigenvalue versus the strand-ensemble document's assumptions.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Random-Matrix Experiment</h1>
+  <p class="subtitle">Generic λ_min(N) vs the document's assumptions</p>
+<style>.tbl{overflow-x:auto;margin:1em 0 2em}.tbl table{border-collapse:collapse;font-size:14px;min-width:640px}.tbl th,.tbl td{border:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left;white-space:pre-line}.tbl th{color:var(--gold)}.note{border-left:3px solid var(--cyan);padding:.4em 1em;color:var(--text)}</style>
+  <p>A random-matrix experiment that tests one assumption in the strand-ensemble instanton calculation: how the smallest Hessian eigenvalue scales with N. It compares generic ensembles against the document's assumptions A1 to A6.</p>
+  <h2>Ensemble Comparison</h2>
+  <p class="note">Random-Matrix Experiment  —  Generic λ_min(N) vs Document Assumptions</p>
+  <p class="note">Pipeline: Cholesky + inverse iteration, cross-validated to 13 digits vs Jacobi. Estimator: E[log λ_min] vs log N  (exact for λ_min = c·Nᵖ·ξ). Control: square Wishart (M=N), theory p=−2; measured N²λ_min → 0.088–0.089 ✓</p>
+  <div class="tbl"><table><tr><th>Ensemble</th><th>Near-Zero ρ(λ)</th><th>Measured λ_min(N)</th><th>λ_IR Exponent p</th><th>Implied S_inst</th><th>Implied A_audit</th><th>Status</th></tr><tr><td>Shifted GOE
+(doc&#x27;s own ρ ∝ N√λ shape)</td><td>Vanishes as √λ  (soft edge)</td><td>~ c·N^(−2/3)
+(Tracy–Widom theorem;
+measured −0.85 ± 0.4)</td><td>−2/3</td><td>N^(4/3)</td><td>N^(−4/3)</td><td>GENERIC for doc&#x27;s spectral shape.
+Neither branch in the doc.
+S ~ N^(4/3) is the unlisted branch.</td></tr><tr><td>Wishart  XᵀX/N,  M−N=2
+(Hessian-like ensemble)</td><td>Diverges as λ^(−1/2)  (hard edge)</td><td>~ c·N^(−2)
+N²λ_min → 2.6 (stable)
+N^(−3) hypothesis rejected</td><td>−2</td><td>N^(1)</td><td>N^(−1)</td><td>NUMERICALLY DECISIVE.
+But contradicts doc&#x27;s assumed ρ ∝ √λ;
+entire integrand changes.</td></tr><tr><td>Doc Assumption A5
+(fine-tuned soft mode)</td><td>— (not a generic RMT prediction)</td><td>N^(−3)  [ASSUMED]
+3.5 powers softer than generic</td><td>−3</td><td>N^(3/4)</td><td>N^(−3/4)</td><td>REQUIRES symmetry-protected near-zero
+(Goldstone-like). Must be demonstrated.
+§6.1 asserts, does not derive.</td></tr><tr><td>A5 Fails — mean spacing
+(bulk concept, not edge)</td><td>— (bulk estimator, incorrect for edge)</td><td>N^(−1)  [ASSUMED]
+Malformed: mean spacing
+is not λ_min</td><td>−1</td><td>N^(5/4)</td><td>N^(−5/4)</td><td>INCORRECT framing. λ_min is an edge
+quantity; bulk mean spacing N^(−1)
+is not the right IR cutoff concept.</td></tr></table></div>
+  <p class="note">VERDICT  —  The question &#x27;is λ_IR at N^(−3) or N^(−1)?&#x27; is malformed. IR cutoff = smallest eigenvalue = edge quantity. Generic answers: N^(−2/3) (soft edge, GOE) or N^(−2) (hard edge, Wishart). A5 survives only with a symmetry-protected near-zero mode — demonstrated, not assumed.</p>
+  <h2>Scaling Table</h2>
+  <p class="note">Spectral Integral  —  Σ under A3–A6  (conditional on A5 being justified)</p>
+  <p class="note">⚠  Generic RMT gives λ_IR ~ N^(−2/3) or N^(−2), NOT N^(−3). Table below assumes A5 holds.</p>
+  <div class="tbl"><table><tr><th>Factor in Integrand</th><th>Expression</th><th>N-Scaling</th><th>Role</th></tr></table></div>
+  <p class="note">① BULK TERM  —  integral at upper limit √Λ</p>
+  <div class="tbl"><table><tr><td>Coupling  |g(λ)|²</td><td>γ/N²</td><td>N⁻²</td><td>p=2 normalization</td></tr><tr><td>Density  ρ ∝ N√λ</td><td>N·λ^(1/2)/Λ^(3/2)</td><td>N⁺¹</td><td>O(N) modes; square-root edge</td></tr><tr><td>∫^Λ λ^(−1/2) dλ</td><td>2√Λ  (O(1))</td><td>N⁰</td><td>UV end; N-independent</td></tr><tr><td>Product — BULK TERM</td><td>2γ/(NΛ)</td><td>N⁻¹</td><td>Removed by A6 cancellation</td></tr></table></div>
+  <p class="note">② EDGE TERM  —  integral at lower limit √λ_IR  [A5: λ_IR = c·N^(−3)]</p>
+  <div class="tbl"><table><tr><td>Coupling  |g(λ)|²</td><td>γ/N²</td><td>N⁻²</td><td>Same envelope</td></tr><tr><td>Density  ρ ∝ N√λ</td><td>N·λ^(1/2)/Λ^(3/2)</td><td>N⁺¹</td><td>Square-root edge</td></tr><tr><td>∫_λIR λ^(−1/2) dλ</td><td>2√c·N^(−3/2)</td><td>N⁻³/²</td><td>ASSUMES A5: λ_IR = c·N^(−3)</td></tr><tr><td>Product — EDGE TERM</td><td>∝ N⁻²·N¹·N^(−3/2)</td><td>N⁻⁵/²</td><td>Σ_edge after bulk cancels</td></tr></table></div>
+  <p class="note">③ CANCELLATION  —  A6 removes O(N^(−1)) bulk; leaves N^(−5/2) remainder</p>
+  <div class="tbl"><table><tr><td>Bulk Σ piece</td><td>2γ/(NΛ)</td><td>N⁻¹</td><td>Removed by A6</td></tr><tr><td>Bare ω₀²  [A6]</td><td>2γ/(NΛ)  — tuned</td><td>N⁻¹</td><td>Must equal bulk Σ — fine-tuning</td></tr><tr><td>Remainder ω̃₀² = ω₀² − Σ</td><td>2γ√c/Λ^(3/2)·N^(−5/2)</td><td>N⁻⁵/²</td><td>Positive (stable); only if A5+A6 hold</td></tr></table></div>
+  <h2>Downstream Chain</h2>
+  <p class="note">Downstream Scaling Chain  —  Four Branches Depending on λ_IR</p>
+  <div class="tbl"><table><tr><th>Scenario</th><th>λ_IR(N)</th><th>ω̃₀²</th><th>V_max</th><th>S_inst</th><th>A_audit</th><th>Notes</th></tr><tr><td>Soft edge / GOE
+(doc&#x27;s ρ ∝ √λ, generic)</td><td>N^(−2/3)
+[Tracy–Widom]</td><td>N^(−2/3) − N^(−1)
+→ N^(−2/3) dominates</td><td>N^(4/3)</td><td>N^(4/3)</td><td>N^(−4/3)</td><td>GENERIC for doc&#x27;s spectral shape
+Unlisted in paper</td></tr><tr><td>Hard edge / Wishart
+(Hessian-like, M−N=2)</td><td>N^(−2)
+[numerical: N²λ→2.6]</td><td>Changes: ρ ∝ λ^(−1/2)
+not ρ ∝ √λ</td><td>N¹</td><td>N¹</td><td>N^(−1)</td><td>NUMERICALLY DECISIVE but
+ρ assumption itself fails</td></tr><tr><td>Doc A5  (fine-tuned)</td><td>N^(−3)
+[assumed: A5]</td><td>N^(−5/2)
+[after A6 cancel]</td><td>N^(−1/2)</td><td>N^(3/4)</td><td>N^(−3/4)</td><td>TARGET RESULT — requires
+symmetry-protected near-zero mode</td></tr><tr><td>A5 fails, mean spacing
+(bulk concept — incorrect framing)</td><td>N^(−1)
+[bulk spacing, wrong]</td><td>N^(−3/2)
+[after A6 cancel]</td><td>N^(1/2)</td><td>N^(5/4)</td><td>N^(−5/4)</td><td>INCORRECT: λ_min ≠ mean spacing
+(edge vs bulk confusion)</td></tr></table></div>
+  <p class="note">HOW TO CLOSE  —  Compute H_mn = ∂²F/∂n_m∂n_n at saddle. Fit E[log λ_min] vs log N. N^(2/3)·λ → const → soft edge → S ~ N^(4/3).  N²·λ → const → hard edge → S ~ N.  N³·λ → const → A5 survives → S ~ N^(3/4).</p>
+  <h2>Assumptions</h2>
+  <p class="note">Assumptions A1–A6  —  Updated Status After RMT Experiment</p>
+  <div class="tbl"><table><tr><th>#</th><th>Statement</th><th>Where Used</th><th>Pre-Experiment Status</th><th>Post-Experiment Status</th></tr><tr><td>A1</td><td>M_eff = μN²  (embedding)</td><td>Instanton chain Step 2</td><td>Follows from §2.3 — clean</td><td>UNCHANGED — independent of spectral model</td></tr><tr><td>A2</td><td>V_max ~ N² ω̃₀²  (Landau barrier)</td><td>Instanton chain Step 3</td><td>Standard — Landau form + O(1) width</td><td>UNCHANGED — independent of spectral model</td></tr><tr><td>A3</td><td>ρ(λ) ∝ N√λ  (square-root edge)</td><td>Spectral integral</td><td>Unspecified — needs Hessian</td><td>CONSISTENT with GOE/soft-edge ensemble.
+But Wishart gives ρ ∝ λ^(−1/2) — opposite sign.</td></tr><tr><td>A4</td><td>|g|² = γ/N²  (p=2 coupling)</td><td>Spectral integral</td><td>Unspecified — normalization choice</td><td>UNCHANGED — not probed by RMT experiment</td></tr><tr><td>A5</td><td>λ_IR = c·N^(−3)  (IR cutoff)</td><td>Spectral integral lower limit</td><td>MOST FRAGILE: 3.5 powers softer than generic</td><td>CHALLENGED. Generic: N^(−2/3) [GOE] or N^(−2) [Wishart].
+Requires symmetry-protected near-zero mode.</td></tr><tr><td>A6</td><td>ω₀² = 2γ/(NΛ)  (bare cancellation)</td><td>Soft eigenvalue §6–7</td><td>Fine-tuning O(N^(−1)); needs criticality argument</td><td>UNCHANGED STATUS — still requires criticality argument.
+And matters less if A5 fails.</td></tr></table></div>
+  <p class="note">Caveats: Ensembles are placeholders. They establish generic RMT predictions, not confirmed or excluded fine-tuned modes. GOE slope (−2/3) rests on Tracy–Widom theorem; numeric measurement consistent but noisy. Wishart result (p=−2) is numerically decisive with calibrated control.</p>
+  <footer class="page-end">Jay Vallea · Master Nebula. Converted from the original spreadsheet. The ensembles are placeholders that give generic predictions, not a verdict on the full model.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>

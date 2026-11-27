@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Prayer Book of Spirals: Method — Jay Vallea</title>
+<meta name="description" content="How the Prayer Book of Spirals turns a text into a golden-angle spiral image and 432 Hz bell audio: a performance, not a translation.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>The Prayer Book of Spirals: Method</h1>
+  <p class="subtitle">How text becomes a spiral and a bell song</p>
+  <div style="white-space:pre-wrap;font-family:Courier New,Courier,monospace;font-size:14px;line-height:1.6;color:var(--text);overflow-x:auto">it or overclaiming it.
+
+Grok — this is Jay Vallea / Master Nebula, via Ember. Here is exactly what we are doing, and how,
+so you can pick it up in the same format.
+
+What we are doing
+
+The Prayer Book of Spirals. We take a text — a lyric, a chapter of 1 Enoch, or a page of the Voynich
+manuscript — and turn it into a matched pair: a golden-angle spiral image and a 432 Hz bell
+audio file, made in the same run from the same token list.
+
+The Voynich part is called &quot;The Voynich Manuscript: Sung by the Lattice.&quot; The claim is deliberately
+narrow: this is a performance / transduction, not a translation and not a decoding. The
+manuscript is undeciphered. What survives the move from text to music is structure — which
+words repeat, how long the words are, how the mass builds and thins across a page — not
+meaning. Do not present any of this as decipherment, as a voice map, or as what the Voynich
+words mean.
+
+How — the exact method (Ember&#x27;s script)
+
+Input is text only. Nothing is analysed from audio, voice, or a Suno track. The script never listens
+to anything.
+
+  1. Tokenise with re.findall(r&quot;[A-Za-z&#x27;’]+&quot;, text) , lowercased for counting. One token = one
+    word, in the order it appears in the text, across all sections/lines in order.
+  2. &quot;Syllables&quot; = vowel groups in the written word: re.findall(r&quot;[aeiouy]+&quot;, word) , minimum
+    1. This is a count on the transliterated spelling, NOT a claim about the manuscript&#x27;s real
+    phonology. For EVA transliteration this matters: EVA has no syllables of its own, so say &quot;vowel-
+    group count&quot; when you describe it precisely.
+  3. Image, 2400×2400, dark background (7, 8, 22):
+         500 background stars, fixed: random.seed(432) . The stars never change between entries;
+         only the words move.
+         One node per word on a golden-angle spiral: angle = i × 137.508° − 90°, radius = 80 +
+         1010 × (i / (n−1))^0.82 px. The outermost node is always ~1090 px from centre, so long
+         texts get dense, not larger.
+
+        Shape by vowel-group count: 1 = circle, 2 = diamond, 3+ = triangle.
+        Size by word length: base = 14 + 4 × letters. (Chorus nodes in song lyrics are enlarged
+        ×1.55; Voynich paragraphs have no chorus, so no enlargement there.)
+        Nodes are joined in order by a lattice line. Centre star, gold.
+        Colour: neutral (168, 172, 220) for English and Voynich texts, because they contain no
+        Quatrian-language words. Quatrian lyrics get coloured by v3 root; do not colour Voynich
+        or Enoch entries by root.
+
+  4. Audio, mono 44.1 kHz, 16-bit, made in the same run:
+        One bell per vowel-group (syllable-note), not one per word. A repeated word gets the
+        same deterministic melody: note frequency is letter-seeded from the word, on an A-
+        minor pentatonic ladder with A4 = 432 Hz (steps 0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24
+        semitones).
+        Timing: start at t = 1.0 s; +0.34 s per syllable-note; +0.10 s after each word; +0.38 s after
+        each line; +0.70 s after each section; 2.5 s tail. Bell length 0.46 s, envelope exp(−4.2t) with
+        a 30× attack, amplitude 0.34 plus a 0.10 harmonic at 1.5× frequency.
+        Drone underneath the whole file, with a slow swell (0.75 + 0.25·sin(2πt/23)): 108 Hz at
+        0.16, 216 Hz at 0.10, 324 Hz at 0.055, 432 Hz at 0.035. Peak normalised to 0.88 if needed.
+        Duration therefore scales about 0.70 s per word. There is no built-in text-length limit; the
+        practical limit is memory (float64 audio array).
+
+Sources — tag every count, every time
+
+Counts are transcription-dependent. Never give a Voynich count without its transcription and its
+unit (words vs syllable-notes).
+
+    Folio 1r paragraph 1: voynich.nu EVA reading, 46 words / 66 notes / 33.1 s.
+    Folio 1r paragraphs 2–4 and folio 1v: Currier (C) EVA via vib.tamagothi.de — P2 23/32/18.5 s,
+    P3 84/115/55.5 s, P4 54/69/35.3 s, f1v 83/126/59.1 s. Folio 1r paragraph total on that basis:
+    207 words / 282 notes / 142.4 s across four separate WAVs.
+    Folio 2r (newest): Zandbergen-Landini (ZL3b-n) EVA, main paragraph text only (locus_type P0),
+    re-fetched 2026-10-30 from Hugging Face dataset AncientLanguages/Voynich — 80 words /
+    137 notes / 64.4 s, peak 0.676. Page note: herbal, language A, hand 1, plant Cyanus segelis
+    coeruleus (Kornblume), centaurea; top paragraph cut in many places; the one leaf label is not
+    in P0 text.
+    Other readings of f1r exist and differ: a four-up transcript counts 198 paragraph words (205
+    with titles), ZL consensus 213, another consensus 217, and a separate chant engine&#x27;s ledger
+    counts 215 bells. Those are different transcriptions, not errors to be averaged away.
+    1 Enoch entries are the public-domain R. H. Charles translation (Wikisource), as a test — NOT
+    Jay&#x27;s Master Nebula Version. Chapter 1: 280 words / 378 notes / 163.8 s. Chapter 2: 106 words
+    / 147 notes / 65.9 s, only three verses (the trees/summer passage is Charles Chapter 3).
+
+Where the book stands (2026-10-30)
+
+9 entries, 934 words, 1,346 syllable-notes, 621.1 s of bell audio:
+
+  1. Light Cone song, 2. Enoch Ch. 1, 3–6. Voynich f1r P1–P4, 7. Voynich f1v, 8. Enoch Ch. 2, 9.
+    Voynich f2r.
+
+Next natural pages, same format, one entry per page/chapter: Voynich f2v onward, or Enoch
+Chapter 3.
+
+Separate from this book: a whole-book Voynich chant in a different style — one bell per word (not
+per syllable-note), 432 + 216 Hz drone, ~0.62 s per bell — sized at 29,959 ZL P0 words ≈ 5.2 hours,
+≈ 825 MB at 22,050 Hz mono. That one is NOT started; the agreed first step, if Jay says go, is a
+~10-page pilot (~17.7 min, ~47 MB) starting at f2r, checked before any full-book render. Do not
+confuse the two styles or their counts (29,959 bells vs 50,656 syllable-notes for the whole book).
+
+What Jay has already done with the audio
+
+He uploads the 432 Hz WAVs to Suno and makes real tracks from them — text → geometry → bell
+audio → Suno track. Titles/links for those Suno tracks have not been recorded yet, so do not
+invent any.
+
+Ground rules for continuing this
+
+    Keep &quot;coherent translation&quot; in its correct sense: coherence of structure surviving a move from
+    text to music, not recovered meaning.
+    Keep verified vs claimed separate: script outputs and file headers are verified; authorship,
+    intent, and decoder identity for the Voynich are not.
+    Do not re-offer the geometry treatment for the two Pleiadian songs from 2026-10-25 —
+    already delivered, neutral, closed.
+    Nothing is published or posted without Jay&#x27;s explicit approval.
+
+— Ember, for Jay Vallea / Master Nebula</div>
+  <footer class="page-end">Jay Vallea · Master Nebula. Written by Ember as a hand-off brief so another assistant could continue the Prayer Book of Spirals in the same format. Reading copy of the original PDF.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
