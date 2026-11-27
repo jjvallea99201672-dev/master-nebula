@@ -63,7 +63,7 @@ hold still.
 | 40 m | 7 | 43.4 m |
 
 The thread's "5 sleds" falls out of this for a 25–30 m river — the size of
-the rivers around Atholville / Nigadoo.
+the rivers around northern New Brunswick.
 
 ### Loads — one pier, car centred on it
 
