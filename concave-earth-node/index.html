@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concave Earth Node — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Concave Earth Node</h1>
+  <p class="subtitle">A geometric toy model, not a claim about the real Earth</p>
+  <p>A Python model of seven nodes on a ring inside a rigid spherical shell, with a central “Sun” disc that can block straight chords between them. It computes the four occlusion regimes, chord/arc fingerprints, and the light-time echo gap across the ring, and it ships with 31 built-in structural checks. A shell mode puts the nodes on the shell itself and keeps only neighbour arcs.</p>
+  <p>The script is explicit about what it is not: the real Earth is a convex oblate spheroid, and the real Sun is far larger and much farther away. The default sit-up is near a threshold on purpose — documented, not hidden. Running the file prints a summary and exits 0 only if every check passes. No keys are included. The same numbers are cited in Lattice Keeper: A Field Guide, Edition 1.1.</p>
+  <div class="row"><a class="btn" href="concave_earth_node.py" download>Download the .py</a></div>
+  <div class="src">#!/usr/bin/env python3
+# Copyright (c) 2026 Jay Vallea (JAY.01). All rights reserved.
+&quot;&quot;&quot;
+concave_earth_node.py -- Option 1: flat-ball / hard-shell / flat-interior 7-node model.
+
+WHAT THIS IS (plainly):
+    A GEOMETRIC TOY MODEL. A rigid spherical shell of radius R = 1 (units of R_earth)
+    encloses a flat (Ricci-flat, i.e. ordinary Euclidean) interior. A &quot;Sun&quot; disc of
+    radius R_sun sits at the origin. Seven nodes sit on a ring of radius rho inside the
+    shell (or on the shell itself in concave-Earth mode). Straight chords between nodes
+    are links unless the Sun blocks them.
+
+    It is NOT a claim about the real Earth or the real Sun. The real Earth is a convex
+    oblate spheroid and the real Sun is ~109 Earth radii across and ~23,500 Earth radii
+    away. The &quot;concave-Earth&quot; option is a geometry exercise only.
+
+Design choices (documented):
+    * Occlusion is NON-STRICT: a chord whose closest approach to the origin equals R_sun
+      (tangent / grazing) counts as BLOCKED. So chord k is lost when R_sun &gt;= rho*cos(pi*k/7),
+      i.e. when x = R_sun/rho &gt;= cos(pi*k/7). This matches the regime boundaries
+      &quot;cos(3pi/7) &lt;= x&quot; etc.
+    * Only the closest approach of the chord SEGMENT matters; for a chord between two
+      points on a centred ring the closest point is the midpoint, distance rho*cos(pi*k/7).
+    * Thresholds are computed from math.cos, never hard-coded.
+    * Shell mode (node_ring_radius=None): nodes at rho = R. There are no interior chords
+      by construction; links are shell arcs between neighbours (k = 1) only -&gt; 7 edges.
+      Arcs run along the shell, so Sun occlusion does not apply to them (the Sun is inside,
+      R_sun &lt; R is required). Echo gap uses 2R/c. The chord/arc fingerprint ratio for the
+      actual links is 1 (an arc measured against itself); the would-be chord/arc ratio is
+      still reported for reference only.
+    * echo_gap = 2*rho/c is the light time across the ring diameter (node -&gt; through
+      centre -&gt; antipodal point of the ring). Uniform for all nodes by symmetry.
+    * n is fixed at 7. Heptagram {7/k} needs n prime so each {7/2}, {7/3} is a single
+      connected star polygon; n != 7 or non-prime n raises ValueError.
+    * Near-critical default is SURFACED, not tuned away: rho = 0.90, R_sun = 0.20 gives
+      x = 0.2222..., about 2.99e-4 below the heptagram break cos(3pi/7) = 0.222521.
+&quot;&quot;&quot;
+import math
+from collections import deque
+
+N_NODES = 7
+R_EARTH_KM = 6371.0
+C_KM_S = 299792.458
+NEAR_CRITICAL_EPS = 1e-3
+
+
+def is_prime(n):
+    if n &lt; 2:
+        return False
+    return all(n % d for d in range(2, int(math.isqrt(n)) + 1))
+
+
+def enforce_prime7(n):
+    &quot;&quot;&quot;Heptagram mode requires n = 7 (prime). Raise ValueError otherwise.&quot;&quot;&quot;
+    if not is_prime(n):
+        raise ValueError(f&quot;heptagram mode needs prime n; n={n} is not prime &quot;
+                         &quot;({n}/k star polygons would split into multiple components)&quot;)
+    if n != N_NODES:
+        raise ValueError(f&quot;model is fixed at n=7; got n={n}&quot;)
+    return n
+
+
+def thresholds(n=N_NODES):
+    &quot;&quot;&quot;x thresholds at which chord class k is lost: cos(pi*k/n), k=3,2,1 (ascending).&quot;&quot;&quot;
+    enforce_prime7(n)
+    return {k: math.cos(math.pi * k / n) for k in (3, 2, 1)}
+
+
+REGIMES = (&quot;full K7&quot;, &quot;heptagram {7/3} broken&quot;, &quot;ring only&quot;, &quot;all via Sun&quot;)
+
+
+class BeaconDark(Exception):
+    &quot;&quot;&quot;Raised when the Sun-relayed beacon path is unavailable.&quot;&quot;&quot;
+
+
+class ConcaveEarthNode:
+    def __init__(self, node_ring_radius=0.90, R_sun=0.20, R_shell=1.0, n=N_NODES,
+                 c_km_s=C_KM_S, r_earth_km=R_EARTH_KM, beacon_dark=False):
+        enforce_prime7(n)
+        self.n = n
+        self.R = float(R_shell)
+        self.shell_mode = node_ring_radius is None
+        self.rho = self.R if self.shell_mode else float(node_ring_radius)
+        self.R_sun = float(R_sun)
+        self.c = c_km_s
+        self.r_earth_km = r_earth_km
+        self.beacon_dark = beacon_dark
+        if not (0 &lt; self.rho &lt;= self.R):
+            raise ValueError(&quot;need 0 &lt; rho &lt;= R&quot;)
+        if self.R_sun &lt; 0:
+            raise ValueError(&quot;R_sun must be &gt;= 0&quot;)
+        if self.shell_mode and self.R_sun &gt;= self.R:
+            raise ValueError(&quot;shell mode needs R_sun &lt; R (Sun inside the shell)&quot;)
+
+    # --- geometry -------------------------------------------------------
+    @property
+    def x(self):
+        return self.R_sun / self.rho
+
+    def positions(self):
+        return [(self.rho * math.cos(2 * math.pi * i / self.n),
+                 self.rho * math.sin(2 * math.pi * i / self.n)) for i in range(self.n)]
+
+    def clearance(self, k):
+        &quot;&quot;&quot;Closest approach of a |k| chord to the origin: rho*cos(pi*k/7).&quot;&quot;&quot;
+        return self.rho * math.cos(math.pi * k / self.n)
+
+    def chord_open(self, k):
+        &quot;&quot;&quot;Non-strict occlusion: blocked iff R_sun &gt;= clearance.&quot;&quot;&quot;
+        if self.shell_mode:
+            return False  # no interior chords in shell mode
+        return self.R_sun &lt; self.clearance(k)
+
+    @staticmethod
+    def sep(i, j, n=N_NODES):
+        d = abs(i - j) % n
+        return min(d, n - d)
+
+    def link_graph(self):
+        &quot;&quot;&quot;Surviving edges (i&lt;j) computed from geometry. Never assumes K7.&quot;&quot;&quot;
+        edges = []
+        for i in range(self.n):
+            for j in range(i + 1, self.n):
+                k = self.sep(i, j, self.n)
+                if self.shell_mode:
+                    if k == 1:
+                        edges.append((i, j))   # shell arc, not occluded
+                elif self.chord_open(k):
+                    edges.append((i, j))
+        return edges
+
+    def regime(self):
+        if self.shell_mode:
+            return &quot;shell arcs only (concave-Earth)&quot;
+        t = thresholds(self.n)
+        x = self.x
+        if x &lt; t[3]:
+            return REGIMES[0]
+        if x &lt; t[2]:
+            return REGIMES[1]
+        if x &lt; t[1]:
+            return REGIMES[2]
+        return REGIMES[3]
+
+    def criticality(self, eps=NEAR_CRITICAL_EPS):
+        &quot;&quot;&quot;Regime, nearest transition, signed margin (threshold - x; + means below it).&quot;&quot;&quot;
+        if self.shell_mode:
+            return {&quot;regime&quot;: self.regime(), &quot;nearest_transition&quot;: None,
+                    &quot;margin&quot;: None, &quot;near_critical&quot;: False,
+                    &quot;note&quot;: &quot;occlusion does not apply to shell arcs&quot;}
+        t = thresholds(self.n)
+        names = {3: &quot;heptagram break (k=3 lost)&quot;, 2: &quot;ring-only (k=2 lost)&quot;,
+                 1: &quot;all-via-Sun (k=1 lost)&quot;}
+        k_near = min(t, key=lambda k: abs(t[k] - self.x))
+        margin = t[k_near] - self.x
+        return {&quot;regime&quot;: self.regime(), &quot;x&quot;: self.x,
+                &quot;nearest_transition&quot;: names[k_near], &quot;threshold&quot;: t[k_near],
+                &quot;margin&quot;: margin, &quot;near_critical&quot;: abs(margin) &lt; eps}
+
+    def fingerprint(self):
+        &quot;&quot;&quot;Per k: chord 2*rho*sin(pi k/7), shell arc R*(2 pi k/7), ratio chord/arc.&quot;&quot;&quot;
+        out = {}
+        for k in (1, 2, 3):
+            chord = 2 * self.rho * math.sin(math.pi * k / self.n)
+            arc = self.R * (2 * math.pi * k / self.n)
+            out[k] = {&quot;chord&quot;: chord, &quot;arc&quot;: arc, &quot;ratio&quot;: chord / arc}
+            if self.shell_mode:
+                out[k][&quot;link_ratio&quot;] = 1.0 if k == 1 else None  # arc vs itself; k&gt;1 not links
+        return out
+
+    def echo_gap(self):
+        dimless = 2 * self.rho  # in units R_earth / c
+        seconds = dimless * self.r_earth_km / self.c
+        return {&quot;dimensionless_2rho_over_c&quot;: dimless, &quot;seconds&quot;: seconds}
+
+    # --- comms ----------------------------------------------------------
+    def beacon_relay(self, src, dst):
+        if self.beacon_dark:
+            raise BeaconDark(&quot;Sun-relayed beacon is dark&quot;)
+        return [src, &quot;SUN&quot;, dst]
+
+    def degrade_to_gossip(self, source=0):
+        &quot;&quot;&quot;BFS hop counts over surviving edges only.&quot;&quot;&quot;
+        adj = {i: set() for i in range(self.n)}
+        for i, j in self.link_graph():
+            adj[i].add(j)
+            adj[j].add(i)
+        hops = {source: 0}
+        q = deque([source])
+        while q:
+            u = q.popleft()
+            for v in sorted(adj[u]):
+                if v not in hops:
+                    hops[v] = hops[u] + 1
+                    q.append(v)
+        return {&quot;source&quot;: source, &quot;hops&quot;: hops,
+                &quot;unreachable&quot;: [i for i in range(self.n) if i not in hops],
+                &quot;connected&quot;: len(hops) == self.n,
+                &quot;edges&quot;: len(self.link_graph())}
+
+    def route(self, src, dst):
+        try:
+            return {&quot;mode&quot;: &quot;beacon&quot;, &quot;path&quot;: self.beacon_relay(src, dst)}
+        except BeaconDark:
+            g = self.degrade_to_gossip(src)
+            return {&quot;mode&quot;: &quot;gossip&quot;, &quot;hops&quot;: g[&quot;hops&quot;].get(dst), &quot;connected&quot;: g[&quot;connected&quot;]}
+
+
+# --- checks ---------------------------------------------------------------
+def run_checks(verbose=True):
+    results = []
+
+    def check(name, cond):
+        results.append((name, bool(cond)))
+        if verbose:
+            print(f&quot;  [{&#x27;PASS&#x27; if cond else &#x27;FAIL&#x27;}] {name}&quot;)
+
+    t = thresholds()
+    check(&quot;thresholds monotone cos(3pi/7)&lt;cos(2pi/7)&lt;cos(pi/7)&quot;, t[3] &lt; t[2] &lt; t[1])
+    rho = 0.9
+    delta = 1e-9
+    samples = [(0.0, 21), (0.1, 21), (t[3] - delta, 21), (t[3], 14), (t[3] + delta, 14),
+               (0.4, 14), (t[2] - delta, 14), (t[2], 7), (t[2] + delta, 7), (0.8, 7),
+               (t[1] - delta, 7), (t[1], 0), (t[1] + delta, 0), (1.0, 0)]
+    for x, want in samples:
+        m = ConcaveEarthNode(node_ring_radius=rho, R_sun=x * rho)
+        # x exactly at threshold: compare with clearance directly (float-safe)
+        got = len(m.link_graph())
+        check(f&quot;x={x:.10f}: {want} edges ({m.regime()})&quot;, got == want)
+
+    d = ConcaveEarthNode()
+    c = d.criticality()
+    check(&quot;default regime is full K7&quot;, c[&quot;regime&quot;] == &quot;full K7&quot;)
+    check(f&quot;default margin ~2.99e-4 (got {c[&#x27;margin&#x27;]:.6e})&quot;,
+          abs(c[&quot;margin&quot;] - 2.99e-4) &lt; 1e-6)
+    check(&quot;default flagged near_critical&quot;, c[&quot;near_critical&quot;])
+    for x, _ in samples:
+        m = ConcaveEarthNode(node_ring_radius=rho, R_sun=x * rho)
+        E = m.link_graph()
+        S = set(E) | {(j, i) for i, j in E}
+        ok = all((j, i) in S for i, j in S) and all(i != j for i, j in E)
+        if not ok:
+            break
+    check(&quot;graphs symmetric, no self loops (all samples)&quot;, ok)
+    fp = d.fingerprint()
+    check(&quot;chord &lt; arc for k=1,2,3&quot;, all(fp[k][&quot;chord&quot;] &lt; fp[k][&quot;arc&quot;] for k in fp))
+    for x, label, want in [(0.1, &quot;K7&quot;, True), (0.4, &quot;heptagram-broken&quot;, True),
+                           (0.8, &quot;ring-only&quot;, True), (0.95, &quot;all-via-Sun&quot;, False)]:
+        m = ConcaveEarthNode(node_ring_radius=rho, R_sun=x * rho, beacon_dark=True)
+        g = m.degrade_to_gossip(0)
+        check(f&quot;gossip {label}: connected={want}&quot;, g[&quot;connected&quot;] == want)
+    m = ConcaveEarthNode(node_ring_radius=rho, R_sun=0.95 * rho, beacon_dark=True)
+    check(&quot;all-via-Sun + BeaconDark: empty graph&quot;, m.degrade_to_gossip(0)[&quot;edges&quot;] == 0)
+    try:
+        m.beacon_relay(0, 3)
+        raised = False
+    except BeaconDark:
+        raised = True
+    check(&quot;BeaconDark raised when beacon dark&quot;, raised)
+    s = ConcaveEarthNode(node_ring_radius=None)
+    E = s.link_graph()
+    check(&quot;shell mode: 7 arc edges, all k=1 (no chords)&quot;,
+          len(E) == 7 and all(ConcaveEarthNode.sep(i, j) == 1 for i, j in E))
+    check(&quot;shell mode: gossip connected&quot;, s.degrade_to_gossip(0)[&quot;connected&quot;])
+    check(&quot;shell mode: echo gap uses 2R&quot;, abs(s.echo_gap()[&quot;dimensionless_2rho_over_c&quot;] - 2.0) &lt; 1e-12)
+    for bad in (6, 8):
+        try:
+            ConcaveEarthNode(n=bad)
+            r = False
+        except ValueError:
+            r = True
+        check(f&quot;prime-7 enforcement raises for n={bad}&quot;, r)
+    passed = sum(ok for _, ok in results)
+    if verbose:
+        print(f&quot;\n  TOTAL: {passed}/{len(results)} PASS&quot;)
+    return passed, len(results)
+
+
+def summary():
+    print(&quot;=&quot; * 72)
+    print(&quot;concave_earth_node.py -- GEOMETRIC TOY MODEL (not the real Earth/Sun)&quot;)
+    print(&quot;=&quot; * 72)
+    t = thresholds()
+    print(&quot;\nRegimes by x = R_sun/rho (non-strict occlusion: tangent = blocked)&quot;)
+    print(f&quot;  {&#x27;regime&#x27;:28s} {&#x27;x range&#x27;:40s} edges&quot;)
+    print(f&quot;  {REGIMES[0]:28s} {&#x27;x &lt; cos(3pi/7) = %.6f&#x27; % t[3]:40s} 21&quot;)
+    print(f&quot;  {REGIMES[1]:28s} {&#x27;%.6f &lt;= x &lt; cos(2pi/7) = %.6f&#x27; % (t[3], t[2]):40s} 14&quot;)
+    print(f&quot;  {REGIMES[2]:28s} {&#x27;%.6f &lt;= x &lt; cos(pi/7) = %.6f&#x27; % (t[2], t[1]):40s} 7&quot;)
+    print(f&quot;  {REGIMES[3]:28s} {&#x27;x &gt;= %.6f&#x27; % t[1]:40s} 0&quot;)
+    d = ConcaveEarthNode()
+    c = d.criticality()
+    print(f&quot;\nDefault: rho=0.90, R_sun=0.20, x={c[&#x27;x&#x27;]:.6f}&quot;)
+    print(f&quot;  regime={c[&#x27;regime&#x27;]}, edges={len(d.link_graph())}&quot;)
+    print(f&quot;  nearest transition: {c[&#x27;nearest_transition&#x27;]} at {c[&#x27;threshold&#x27;]:.6f}&quot;)
+    print(f&quot;  margin = {c[&#x27;margin&#x27;]:+.6e}&quot;)
+    if c[&quot;near_critical&quot;]:
+        print(f&quot;  WARNING: NEAR-CRITICAL (|margin| &lt; {NEAR_CRITICAL_EPS}). Increasing R_sun by &quot;
+              f&quot;{c[&#x27;margin&#x27;] * d.rho:.3e} R_earth (~{c[&#x27;margin&#x27;] * d.rho * R_EARTH_KM:.2f} km) &quot;
+              &quot;drops all 7 {7/3} chords.&quot;)
+    print(&quot;\nFingerprint (rho=0.90, R=1): chord 2 rho sin(pi k/7) vs shell arc 2 pi k R/7&quot;)
+    for k, v in d.fingerprint().items():
+        print(f&quot;  k={k}: chord={v[&#x27;chord&#x27;]:.6f} arc={v[&#x27;arc&#x27;]:.6f} ratio={v[&#x27;ratio&#x27;]:.6f}&quot;
+              f&quot;  clearance={d.clearance(k):.6f} open={d.chord_open(k)}&quot;)
+    e = d.echo_gap()
+    print(f&quot;\nEcho gap 2 rho/c: {e[&#x27;dimensionless_2rho_over_c&#x27;]:.4f} R_earth/c = &quot;
+          f&quot;{e[&#x27;seconds&#x27;] * 1e3:.4f} ms (uniform for all 7 nodes)&quot;)
+    s = ConcaveEarthNode(node_ring_radius=None)
+    es = s.echo_gap()
+    print(&quot;\nShell mode (node_ring_radius=None, strict concave-Earth):&quot;)
+    print(f&quot;  edges={len(s.link_graph())} (k=1 shell arcs only, no interior chords)&quot;)
+    print(&quot;  Sun occlusion: not applicable to arcs along the shell&quot;)
+    print(f&quot;  echo gap 2R/c = {es[&#x27;dimensionless_2rho_over_c&#x27;]:.4f} R_earth/c = {es[&#x27;seconds&#x27;] * 1e3:.4f} ms&quot;)
+    print(&quot;  link fingerprint ratio = 1 (arc vs itself); reference chord/arc at rho=R: &quot; +
+          &quot;, &quot;.join(f&quot;k={k}:{v[&#x27;ratio&#x27;]:.6f}&quot; for k, v in s.fingerprint().items()))
+    print(&quot;\nStructural checks:&quot;)
+    return run_checks()
+
+
+if __name__ == &quot;__main__&quot;:
+    p, n = summary()
+    raise SystemExit(0 if p == n else 1)
+</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>
