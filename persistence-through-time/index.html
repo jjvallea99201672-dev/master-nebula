@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Persistence Through Time, Second Edition — Jay Vallea</title>
+<meta name="description" content="Persistence Through Time, Second Edition (editorial draft) by Jay Vallea: 91 chapters in six Parts, with explanatory figures.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+<style>.paper img{max-width:100%;height:auto;display:block;margin:1.2em auto;border-radius:6px}.paper table{border-collapse:collapse;font-size:14px;margin:1em 0;display:block;overflow-x:auto}.paper td,.paper th{border:1px solid var(--line);padding:6px 9px;vertical-align:top}.pnav{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin:2.5em 0 1em}.toc li{margin:.4em 0}.draft{border-left:3px solid var(--gold);padding:.4em 1em}</style></head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#physics">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Persistence Through Time</h1>
+  <p class="subtitle">Second Edition · Editorial draft, rev1</p>
+  <p class="draft">The book is shown here as an editorial draft. The ideas are Jay's; AI helped elaborate and draft the text, and the numbers were checked independently.</p>
+  <h2>The six Parts</h2>
+  <ol class="toc"><li><a href="part-1/">Part I. Matter, Energy, and Physical Persistence</a></li><li><a href="part-2/">Part II. Records, Memory, and Meaning</a></li><li><a href="part-3/">Part III. Systems, Coupling, and Collective Behaviour</a></li><li><a href="part-4/">Part IV. Feedback, Thresholds, and Resilience</a></li><li><a href="part-5/">Part V. Knowledge, Evidence, and Judgment</a></li><li><a href="part-6/">Part VI. Agency, Governance, and Continuity</a></li></ol>
+<h1><strong>Preface</strong></h1><p>This book asks what it means for something to persist through change. It begins with a rock that will not sit still. Its atoms vibrate, its lattice supports collective modes, and its imperfections record the conditions under which it formed and what happened afterward.</p><h2><strong>The Working Definition</strong></h2><p>Chapter 1 ends with the definition the rest of the book uses: “Persistence is not the preservation of every component. It is the preservation of specified invariants under specified transformations, for a specified timescale.” Each of the three specifications matters. A claim that something persisted is incomplete until it says what stayed the same, under which changes, and for how long.</p><h2><strong>The Method</strong></h2><p>The method is simple: propose, audit, surrender what does not survive, keep what does. The book starts with the rock because the rock teaches that method, and Chapter 1 keeps three early claims that did not survive in the record as dissent, not as doctrine. Worked numbers are recomputed, and a script beside the manuscript checks them (Appendix C). Where a source claim goes further than its model allows, the text reports the claim and states the correction or the scope limit beside it.</p><h2><strong>How the Book Grew</strong></h2><p>The chapters were developed from a long sequence of numbered principles written in conversation, here called the source, and were then audited and corrected. The audit voice is kept deliberately. When the text says “the source says…”, it reports what the source claimed, and the sentences that follow say whether the claim holds, under which assumptions, and where it stops. The principle numbers are kept in the text as a reference system, usually in parentheses, as in “(1057)”. Appendix B lists every principle number with its location, and every gap: numbers that were previewed but never developed, mentioned only in narrative, or never supplied.</p><h2><strong>How to Read a Chapter</strong></h2><p>Almost every chapter ends with a Thesis, and every chapter ends with a Place to Explore: a worked problem whose answer the check script verifies, or, in a few chapters, a written or observational exercise. Chapters formed by merging two earlier chapters keep both problems, numbered, for example, 52.1 and 52.2. Where a chapter builds on others, a short Connections note at its end points to them, so that the chapter itself can begin with its own question. Models are labelled illustrative, idealized or toy where they are, and the labels are part of the claim.</p><h2><strong>What the Book Does Not Claim</strong></h2><p>The Lattice Keeper, a proposed architecture for persistent records, appears only as an illustration. Its status is stated once, in Chapter 21: it is proposed, not deployed or validated, and its declared genesis anchor is claimed and unverified. The book also never treats survival, repetition or agreement as proof. Survival and repetition add no truth (Chapter 30), and agreement adds confidence only in proportion to independence (Chapter 91).</p><h2><strong>A Map of the Six Parts</strong></h2><p>•  Part I, Matter, Energy, and Physical Persistence (Chapters 1–20): What it means for matter to last: bounded motion, timescales, energy and entropy, flows and gradients, effective laws, stable structures, barriers, and the ways materials age and fail.</p><p>•  Part II, Records, Memory, and Meaning (Chapters 21–38): How the past is carried: matter as record, codes, provenance, archives, silence, translation and cultural memory.</p><p>•  Part III, Systems, Coupling, and Collective Behaviour (Chapters 39–51): How parts combine: networks, dependencies, cooperation, lineages, living systems, modularity and diversity.</p><p>•  Part IV, Feedback, Thresholds, and Resilience (Chapters 52–63): How systems hold, recover, tip and end up somewhere new.</p><p>•  Part V, Knowledge, Evidence, and Judgment (Chapters 64–77): How claims earn confidence: proof, calibration, detection limits, causal inference, model domains and expertise.</p><p>•  Part VI, Agency, Governance, and Continuity (Chapters 78–91): Who is allowed to act, how authority is bounded and handed on, what the present owes its successors, and how systems end well.</p><p>The book closes with a short chapter, What Persists, that gathers the theses of the six Parts without adding new claims.</p><h2><strong>About This Edition</strong></h2><p>This second edition reorganizes the ninety-eight chapters of the previous draft into eighty-five chapters in six Parts. Thirteen pairs of closely related chapters were merged so that each derivation is stated once. This revision (rev1) adds six chapters developed from the thirtieth source thread (principles 1120–1169), each placed in the Part where its topic belongs, for ninety-one chapters in all. The source mapping, capture notes, coverage statements and revision history moved to a separate Editorial Record, summarized in Appendix A.</p>
+  <div class="pnav"><span></span><a class="btn" href="part-1/">Part I →</a></div>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
