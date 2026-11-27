@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+keys/*.dk
+keys/*.sk
+keys/index.json
+data/*.json
+data/*.tmp
+*.json.tmp
