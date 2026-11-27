@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NEBULA MASTER v6.6 — Real-Time Preview + EBU R128 — Jay Vallea</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f;
+    color: #d0d0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .container {
+    background: #111118;
+    border-radius: 28px;
+    padding: 24px 28px 28px 28px;
+    width: 1100px;
+    max-width: 98vw;
+    max-height: 98vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    border: 1px solid rgba(120,80,255,0.12);
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0d0d15; }
+  ::-webkit-scrollbar-thumb { background: #4a3af0; border-radius: 10px; }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .header h1 {
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #b0a0ff, #6a5af0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .sub {
+    font-size: 11px;
+    color: #6a6a8a;
+    letter-spacing: 1px;
+  }
+  .badge {
+    background: rgba(100,80,255,0.15);
+    padding: 4px 14px;
+    border-radius: 40px;
+    border: 1px solid rgba(100,80,255,0.25);
+    font-weight: 500;
+    color: #b8b0ff;
+    font-size: 11px;
+  }
+  .badge.green {
+    border-color: rgba(80,200,120,0.25);
+    color: #80d0a0;
+  }
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 800px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+  .waveform-wrapper {
+    background: #0d0d15;
+    border-radius: 14px;
+    padding: 4px;
+    border: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+  }
+  #waveformCanvas {
+    display: block;
+    width: 100%;
+    height: 90px;
+    border-radius: 12px;
+    background: #0a0a10;
+    cursor: pointer;
+  }
+  .waveform-overlay {
+    position: absolute;
+    bottom: 8px;
+    left: 14px;
+    display: flex;
+    gap: 14px;
+    font-size: 10px;
+    color: #5a5a7a;
+    pointer-events: none;
+  }
+  .waveform-overlay span {
+    background: rgba(0,0,0,0.6);
+    padding: 2px 10px;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+  }
+  .sonic-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 12px;
+    background: #0d0d15;
+    border-radius: 40px;
+    border: 1px solid rgba(255,255,255,0.04);
+    margin-bottom: 8px;
+  }
+  .sonic-bar .label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #6a6a8a;
+    min-width: 60px;
+  }
+  .sonic-bar .track {
+    flex: 1;
+    height: 6px;
+    background: #1a1a28;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .sonic-bar .fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #4a3af0, #b0a0ff, #f0a0ff);
+    transition: width 0.05s ease-out;
+  }
+  .sonic-bar .value {
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 56px;
+    text-align: right;
+    color: #c0b8f0;
+  }
+  .meter-row {
+    display: flex;
+    gap: 8px;
+    padding: 4px 10px;
+    background: #0d0d15;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.04);
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .meter {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 60px;
+  }
+  .meter .lbl {
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a8a;
+    min-width: 26px;
+  }
+  .meter .track {
+    flex: 1;
+    height: 3px;
+    background: #1a1a28;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .meter .fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+    transition: width 0.05s ease-out;
+  }
+  .meter .val {
+    font-size: 10px;
+    font-weight: 500;
+    min-width: 34px;
+    text-align: right;
+    color: #c0b8f0;
+  }
+  .fill-lufs { background: linear-gradient(90deg, #4a7af0, #70d0a0, #f0c040); }
+  .fill-peak { background: linear-gradient(90deg, #4a3af0, #f04060); }
+  .fill-dyn { background: linear-gradient(90deg, #4a7af0, #70d0a0); }
+  .fill-gain { background: linear-gradient(90deg, #f0a040, #f04060); }
+  .fill-reduction { background: linear-gradient(90deg, #f04060, #f0a040); }
+  .controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 700px) {
+    .controls-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .ctrl {
+    background: #0d0d15;
+    border-radius: 8px;
+    padding: 4px 8px 6px 8px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .ctrl label {
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6a6a8a;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .ctrl input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: #1a1a28;
+    border-radius: 10px;
+    outline: none;
+  }
+  .ctrl input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, #b0a0ff, #6a5af0);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .ctrl .vals {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7px;
+    color: #6a6a8a;
+  }
+  .ctrl .vals .v {
+    color: #c0b8f0;
+    font-weight: 500;
+  }
+  .ctrl .eq-label {
+    font-size: 9px;
+    color: #8a8aaa;
+    text-align: center;
+    margin-top: 1px;
+    letter-spacing: 1px;
+  }
+  .preset-selector {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .preset-selector button {
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: #0d0d15;
+    color: #8a8aaa;
+    font-size: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .preset-selector button:hover {
+    border-color: rgba(120,80,255,0.3);
+    color: #c0b8f0;
+  }
+  .preset-selector button.active {
+    border-color: rgba(120,80,255,0.5);
+    background: rgba(100,80,255,0.1);
+    color: #b0a0ff;
+  }
+  .chain-display {
+    display: flex;
+    gap: 2px;
+    padding: 3px 10px;
+    background: #0d0d15;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.04);
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .chain-display .clbl {
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6a6a8a;
+    margin-right: 4px;
+  }
+  .chain-display .node {
+    font-size: 7px;
+    background: #1a1a28;
+    padding: 1px 6px;
+    border-radius: 20px;
+    color: #b0a0ff;
+    border: 1px solid rgba(100,80,255,0.1);
+  }
+  .chain-display .node.active {
+    border-color: rgba(100,80,255,0.4);
+    background: rgba(100,80,255,0.1);
+  }
+  .chain-display .arrow { color: #4a4a6a; font-size: 7px; }
+  .action-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .action-row button {
+    flex: 1;
+    background: #1a1a28;
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #c0b8e0;
+    padding: 7px 0;
+    border-radius: 40px;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    min-width: 50px;
+  }
+  .action-row button:hover:not(:disabled) {
+    background: #2a2a40;
+    border-color: rgba(120,80,255,0.25);
+  }
+  .action-row button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .action-row button.primary {
+    background: linear-gradient(135deg, #5a4af0, #8a70ff);
+    border-color: rgba(120,80,255,0.3);
+    color: #fff;
+  }
+  .action-row button.primary:hover:not(:disabled) { transform: scale(1.02); }
+  .action-row button.green {
+    background: linear-gradient(135deg, #2a5a3a, #3a8a5a);
+    border-color: rgba(80,200,120,0.3);
+    color: #a0f0c0;
+  }
+  #log {
+    background: #0d0d15;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    color: #7a7a9a;
+    border: 1px solid rgba(255,255,255,0.04);
+    min-height: 30px;
+    max-height: 60px;
+    overflow-y: auto;
+    line-height: 1.4;
+    margin-top: 6px;
+    white-space: pre-wrap;
+  }
+  #log .hl { color: #b0a0ff; }
+  #log .ok { color: #70d0a0; }
+  #log .warn { color: #f0a040; }
+  .progress {
+    display: none;
+    margin-top: 4px;
+    padding: 4px 10px;
+    background: #0d0d15;
+    border-radius: 6px;
+    border: 1px solid rgba(80,200,120,0.15);
+  }
+  .progress.active { display: block; }
+  .progress .bar { height: 3px; background: #1a1a28; border-radius: 10px; overflow: hidden; margin-top: 2px; }
+  .progress .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #4a7af0, #40f080); border-radius: 10px; transition: width 0.1s; }
+  .progress .plbl { font-size: 8px; color: #8a8aaa; display: flex; justify-content: space-between; }
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    font-size: 8px;
+    color: #5a5a7a;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #4a7af0;
+    animation: pulse 1.8s ease-in-out infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 0.4; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+  .status-dot.warn { background: #f0a040; }
+  .status-dot.err { background: #f04050; }
+  #spectrogramCanvas {
+    width: 100%;
+    height: 140px;
+    border-radius: 12px;
+    background: #0a0a10;
+    display: block;
+  }
+  .play-mode {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: rgba(100,80,255,0.15);
+    color: #b8b0ff;
+    border: 1px solid rgba(100,80,255,0.3);
+  }
+  .play-mode.processed {
+    background: rgba(80,200,120,0.2);
+    color: #80d0a0;
+    border-color: rgba(80,200,120,0.4);
+  }
+</style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:200;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div class="container">
+  <div class="header">
+    <div><h1>◈ NEBULA MASTER</h1><span class="sub">v6.6 · Real-Time Preview + EBU R128</span></div>
+    <div><span class="badge">🎯 14 LUFS</span><span class="badge green">⚡ Subburuna</span></div>
+  </div>
+  <div class="main-grid">
+    <!-- LEFT COLUMN -->
+    <div>
+      <div class="waveform-wrapper">
+        <canvas id="waveformCanvas"></canvas>
+        <div class="waveform-overlay">
+          <span id="playStatus">⏸ ready</span>
+          <span id="timeDisplay">0:00</span>
+          <span id="playModeBadge" class="play-mode">ORIGINAL</span>
+        </div>
+      </div>
+      <div class="sonic-bar">
+        <span class="label">◈ SONIC</span>
+        <div class="track"><div class="fill" id="sonicFill"></div></div>
+        <span class="value" id="sonicValue">-∞</span>
+      </div>
+      <!-- PRESETS -->
+      <div class="preset-selector" id="presetContainer">
+        <button data-preset="streaming" class="active">🎧 Streaming</button>
+        <button data-preset="club">🔊 Club</button>
+        <button data-preset="podcast">🎙️ Podcast</button>
+        <button data-preset="subburuna">🌌 Subburuna</button>
+        <button data-preset="transparent">✨ Transparent</button>
+        <button data-preset="ebu_r128">📡 EBU R128</button>
+      </div>
+      <div class="meter-row">
+        <div class="meter"><span class="lbl">LUFS</span><div class="track"><div class="fill fill-lufs" id="lufsFill"></div></div><span class="val" id="lufsVal">-∞</span></div>
+        <div class="meter"><span class="lbl">PEAK</span><div class="track"><div class="fill fill-peak" id="peakFill"></div></div><span class="val" id="peakVal">-∞</span></div>
+        <div class="meter"><span class="lbl">DYN</span><div class="track"><div class="fill fill-dyn" id="dynFill"></div></div><span class="val" id="dynVal">0.0</span></div>
+        <div class="meter"><span class="lbl">GAIN</span><div class="track"><div class="fill fill-gain" id="gainFill"></div></div><span class="val" id="gainVal">0.0</span></div>
+        <div class="meter"><span class="lbl">GR</span><div class="track"><div class="fill fill-reduction" id="grFill"></div></div><span class="val" id="grVal">0.0</span></div>
+      </div>
+      <!-- Controls -->
+      <div class="controls-grid">
+        <div class="ctrl"><label>Target LUFS</label><input type="range" id="targetLufs" min="-24" max="-8" value="-14" step="0.5"><div class="vals"><span>‑24</span><span class="v" id="targetLufsVal">‑14.0</span><span>‑8</span></div></div>
+        <div class="ctrl"><label>Ceiling</label><input type="range" id="ceiling" min="-6" max="0" value="-1" step="0.1"><div class="vals"><span>‑6</span><span class="v" id="ceilingVal">‑1.0</span><span>0</span></div></div>
+        <div class="ctrl"><label>Drive</label><input type="range" id="drive" min="0" max="18" value="6" step="0.5"><div class="vals"><span>0</span><span class="v" id="driveVal">+6.0</span><span>18</span></div></div>
+        <div class="ctrl"><label>Width</label><input type="range" id="width" min="0" max="3" value="1.2" step="0.05"><div class="vals"><span>0</span><span class="v" id="widthVal">1.20</span><span>3</span></div></div>
+      </div>
+      <!-- EQ Controls -->
+      <div class="controls-grid">
+        <div class="ctrl">
+          <label>Low (60Hz)</label>
+          <input type="range" id="eqLow" min="-12" max="12" value="0" step="0.5">
+          <div class="vals"><span>‑12</span><span class="v" id="eqLowVal">0.0</span><span>+12</span></div>
+          <div class="eq-label">Bass</div>
+        </div>
+        <div class="ctrl">
+          <label>Mid (1kHz)</label>
+          <input type="range" id="eqMid" min="-12" max="12" value="0" step="0.5">
+          <div class="vals"><span>‑12</span><span class="v" id="eqMidVal">0.0</span><span>+12</span></div>
+          <div class="eq-label">Presence</div>
+        </div>
+        <div class="ctrl">
+          <label>High (8kHz)</label>
+          <input type="range" id="eqHigh" min="-12" max="12" value="0" step="0.5">
+          <div class="vals"><span>‑12</span><span class="v" id="eqHighVal">0.0</span><span>+12</span></div>
+          <div class="eq-label">Air</div>
+        </div>
+        <div class="ctrl">
+          <label>Attack</label>
+          <input type="range" id="attack" min="0.5" max="30" value="3" step="0.5">
+          <div class="vals"><span>0.5</span><span class="v" id="attackVal">3.0</span><span>30</span></div>
+          <div class="eq-label">ms</div>
+        </div>
+      </div>
+      <!-- DSP Chain -->
+      <div class="chain-display">
+        <span class="clbl">DSP</span>
+        <span class="node active">Gain</span><span class="arrow">→</span>
+        <span class="node active">EQ</span><span class="arrow">→</span>
+        <span class="node active">Comp</span><span class="arrow">→</span>
+        <span class="node active">Sat</span><span class="arrow">→</span>
+        <span class="node active">Limiter</span><span class="arrow">→</span>
+        <span class="node active">Widener</span>
+      </div>
+      <div class="action-row">
+        <button id="loadBtn">📂 Load</button>
+        <button id="playBtn" class="primary">▶ Play</button>
+        <button id="processBtn" disabled>✨ Process</button>
+        <button id="exportBtn" class="green" disabled>💾 Export</button>
+        <button id="resetBtn">↺ Reset</button>
+      </div>
+      <div style="margin-top:6px; font-size:8px; color:#6a6a8a; text-align:center;">
+        <span id="bufferInfo">Buffer: Original</span>
+      </div>
+    </div>
+    <!-- RIGHT COLUMN -->
+    <div>
+      <div style="background:#0d0d15;border-radius:14px;padding:4px;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;">
+        <canvas id="spectrogramCanvas"></canvas>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+        <div class="ctrl"><label>Freq Range</label><input type="range" id="freqRange" min="0" max="1" value="0.5" step="0.01"><div class="vals"><span>20Hz</span><span class="v" id="freqRangeVal">10kHz</span><span>20kHz</span></div></div>
+        <div class="ctrl"><label>Decay</label><input type="range" id="specDecay" min="0.1" max="0.9" value="0.7" step="0.05"><div class="vals"><span>fast</span><span class="v" id="specDecayVal">0.70</span><span>slow</span></div></div>
+      </div>
+      <div style="background:#0d0d15;border-radius:10px;padding:4px 10px;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:7px;color:#6a6a8a;margin-bottom:2px;">
+          <span>REAL-TIME ANALYZER</span>
+          <span id="freqInfo">20Hz – 20kHz</span>
+        </div>
+        <div style="display:flex;gap:10px;font-size:8px;color:#8a8aaa;">
+          <span>RMS: <span id="rmsDisplay">-∞</span></span>
+          <span>Peak: <span id="rtPeakDisplay">-∞</span></span>
+          <span>LUFS: <span id="rtLufsDisplay">-∞</span></span>
+        </div>
+      </div>
+      <div style="background:#0d0d15;border-radius:10px;padding:4px 10px;border:1px solid rgba(255,255,255,0.04);">
+        <div style="font-size:7px;color:#6a6a8a;margin-bottom:2px;">NEBULA STATE</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;font-size:8px;">
+          <span>Mode: <span id="nebulaMode" style="color:#b0a0ff;">SUBBURUNA_CORE</span></span>
+          <span>Aethyr: <span id="nebulaAethyr" style="color:#b0a0ff;">47.4</span></span>
+          <span>Fractal D: <span id="nebulaD" style="color:#b0a0ff;">1.682</span></span>
+          <span>Envelope: <span id="nebulaEnv" style="color:#70d0a0;">SAFE</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="log">Load a file to start. Adjust sliders → Process to hear changes.</div>
+  <div class="progress" id="progressContainer">
+    <div class="plbl"><span id="progressStatus">Processing...</span><span id="progressPercent">0%</span></div>
+    <div class="bar"><div class="fill" id="progressFill"></div></div>
+  </div>
+  <div class="status-bar">
+    <span><span class="status-dot" id="statusDot"></span><span id="statusText">ready</span></span>
+    <span id="provenanceInfo">provenance: none</span>
+  </div>
+</div>
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NEBULA MASTER v6.6 — Real-Time Preview Ready + EBU R128
+// Fixes: Playback now uses processed audio. Visuals respond better.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── DOM refs ──
+const canvas = document.getElementById('waveformCanvas');
+const ctx = canvas.getContext('2d');
+const specCanvas = document.getElementById('spectrogramCanvas');
+const specCtx = specCanvas.getContext('2d');
+const sonicFill = document.getElementById('sonicFill');
+const sonicValue = document.getElementById('sonicValue');
+const lufsFill = document.getElementById('lufsFill');
+const lufsVal = document.getElementById('lufsVal');
+const peakFill = document.getElementById('peakFill');
+const peakVal = document.getElementById('peakVal');
+const dynFill = document.getElementById('dynFill');
+const dynVal = document.getElementById('dynVal');
+const gainFill = document.getElementById('gainFill');
+const gainVal = document.getElementById('gainVal');
+const grFill = document.getElementById('grFill');
+const grVal = document.getElementById('grVal');
+const targetLufsSlider = document.getElementById('targetLufs');
+const targetLufsVal = document.getElementById('targetLufsVal');
+const ceilingSlider = document.getElementById('ceiling');
+const ceilingVal = document.getElementById('ceilingVal');
+const driveSlider = document.getElementById('drive');
+const driveVal = document.getElementById('driveVal');
+const widthSlider = document.getElementById('width');
+const widthVal = document.getElementById('widthVal');
+const eqLowSlider = document.getElementById('eqLow');
+const eqLowVal = document.getElementById('eqLowVal');
+const eqMidSlider = document.getElementById('eqMid');
+const eqMidVal = document.getElementById('eqMidVal');
+const eqHighSlider = document.getElementById('eqHigh');
+const eqHighVal = document.getElementById('eqHighVal');
+const attackSlider = document.getElementById('attack');
+const attackVal = document.getElementById('attackVal');
+const freqRangeSlider = document.getElementById('freqRange');
+const freqRangeVal = document.getElementById('freqRangeVal');
+const specDecaySlider = document.getElementById('specDecay');
+const specDecayVal = document.getElementById('specDecayVal');
+const playStatus = document.getElementById('playStatus');
+const timeDisplay = document.getElementById('timeDisplay');
+const playModeBadge = document.getElementById('playModeBadge');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const provenanceInfo = document.getElementById('provenanceInfo');
+const logEl = document.getElementById('log');
+const progressContainer = document.getElementById('progressContainer');
+const progressStatus = document.getElementById('progressStatus');
+const progressPercent = document.getElementById('progressPercent');
+const progressFill = document.getElementById('progressFill');
+const nebulaMode = document.getElementById('nebulaMode');
+const nebulaAethyr = document.getElementById('nebulaAethyr');
+const nebulaD = document.getElementById('nebulaD');
+const nebulaEnv = document.getElementById('nebulaEnv');
+const rmsDisplay = document.getElementById('rmsDisplay');
+const rtPeakDisplay = document.getElementById('rtPeakDisplay');
+const rtLufsDisplay = document.getElementById('rtLufsDisplay');
+const freqInfo = document.getElementById('freqInfo');
+const bufferInfo = document.getElementById('bufferInfo');
+// ── Presets ──
+const PRESETS = {
+  streaming: { targetLufs: -14, ceiling: -1, drive: 4, width: 1.2, eqLow: 1.5, eqMid: 0, eqHigh: 2, attack: 3 },
+  club: { targetLufs: -10, ceiling: -0.5, drive: 8, width: 1.6, eqLow: 4, eqMid: -1, eqHigh: 3, attack: 2 },
+  podcast: { targetLufs: -16, ceiling: -1.5, drive: 2, width: 1.0, eqLow: 2, eqMid: 3, eqHigh: 1, attack: 5 },
+  subburuna: { targetLufs: -12, ceiling: -0.8, drive: 10, width: 2.0, eqLow: 3, eqMid: -2, eqHigh: 5, attack: 1.5 },
+  transparent: { targetLufs: -16, ceiling: -2, drive: 0, width: 1.0, eqLow: 0, eqMid: 0, eqHigh: 0, attack: 5 },
+  ebu_r128: { targetLufs: -23, ceiling: -1, drive: 2, width: 1.1, eqLow: 0, eqMid: 0, eqHigh: 0, attack: 5 }
+};
+let currentPreset = 'streaming';
+// ── Audio State ──
+let audioBuffer = null;        // Original loaded buffer
+let processedData = null;      // Processed result
+let currentPlayBuffer = null;  // What is currently used for playback (original or processed)
+let audioCtx = null;
+let sourceNode = null;
+let analyserNode = null;
+let isPlaying = false;
+let startTime = 0;
+let pauseOffset = 0;
+let meterInterval = null;
+let animFrame = null;
+let loadedFile = null;
+let provenance = [];
+// ── Meter values ──
+let currentLUFS = -70;
+let currentPeak = -70;
+let currentDyn = 0;
+let currentGain = 0;
+let currentGR = 0;
+// ── Spectrogram state ──
+let specHistory = [];
+let specWidth = 0;
+let specHeight = 0;
+// ── Logging ──
+function log(msg, type = '') {
+  const cls = type === 'hl' ? 'hl' : type === 'ok' ? 'ok' : type === 'warn' ? 'warn' : '';
+  logEl.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+// ── Update Play Mode Badge & Buffer Info ──
+function updatePlayModeUI() {
+  if (!currentPlayBuffer) {
+    playModeBadge.textContent = 'ORIGINAL';
+    playModeBadge.className = 'play-mode';
+    bufferInfo.textContent = 'Buffer: Original (no processed version yet)';
+    return;
+  }
+  if (currentPlayBuffer === processedData) {
+    playModeBadge.textContent = 'PROCESSED';
+    playModeBadge.className = 'play-mode processed';
+    bufferInfo.textContent = 'Buffer: PROCESSED (last Process result)';
+  } else {
+    playModeBadge.textContent = 'ORIGINAL';
+    playModeBadge.className = 'play-mode';
+    bufferInfo.textContent = 'Buffer: Original';
+  }
+}
+// ── Apply Preset ──
+function applyPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  currentPreset = name;
+  targetLufsSlider.value = p.targetLufs;
+  targetLufsVal.textContent = p.targetLufs;
+  ceilingSlider.value = p.ceiling;
+  ceilingVal.textContent = p.ceiling;
+  driveSlider.value = p.drive;
+  driveVal.textContent = (p.drive >= 0 ? '+' : '') + p.drive.toFixed(1);
+  widthSlider.value = p.width;
+  widthVal.textContent = p.width.toFixed(2);
+  eqLowSlider.value = p.eqLow;
+  eqLowVal.textContent = (p.eqLow >= 0 ? '+' : '') + p.eqLow.toFixed(1);
+  eqMidSlider.value = p.eqMid;
+  eqMidVal.textContent = (p.eqMid >= 0 ? '+' : '') + p.eqMid.toFixed(1);
+  eqHighSlider.value = p.eqHigh;
+  eqHighVal.textContent = (p.eqHigh >= 0 ? '+' : '') + p.eqHigh.toFixed(1);
+  attackSlider.value = p.attack;
+  attackVal.textContent = p.attack.toFixed(1);
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.preset === name);
+  });
+  log(`Preset: ${name} applied`, 'hl');
+  if (name === 'ebu_r128') {
+    log('📡 EBU R128 mode active: Target -23 LUFS, -1 dBTP ceiling. Process to apply.', 'ok');
+  }
+}
+// ── Waveform (now can show current buffer) ──
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width - 8;
+  canvas.width = w * devicePixelRatio;
+  canvas.height = 90 * devicePixelRatio;
+  canvas.style.width = w + 'px';
+  canvas.style.height = '90px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  drawWaveform();
+  const sr = specCanvas.parentElement.getBoundingClientRect();
+  const sw = sr.width - 8;
+  specCanvas.width = sw * devicePixelRatio;
+  specCanvas.height = 140 * devicePixelRatio;
+  specCanvas.style.width = sw + 'px';
+  specCanvas.style.height = '140px';
+  specCtx.scale(devicePixelRatio, devicePixelRatio);
+  specWidth = sw;
+  specHeight = 140;
+  specHistory = Array(specWidth).fill().map(() => new Float32Array(specHeight).fill(0));
+}
+function drawWaveform() {
+  const w = canvas.width / devicePixelRatio;
+  const h = canvas.height / devicePixelRatio;
+  ctx.clearRect(0, 0, w, h);
+  const bufferToDraw = currentPlayBuffer || audioBuffer;
+  if (!bufferToDraw) {
+    ctx.fillStyle = '#2a2a40';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⬆ Drop or click Load', w/2, h/2 + 4);
+    return;
+  }
+  const data = bufferToDraw.getChannelData(0);
+  const step = Math.max(1, Math.floor(data.length / w));
+  ctx.beginPath();
+  ctx.moveTo(0, h/2);
+  for (let i = 0; i < w; i++) {
+    const idx = Math.min(Math.floor(i * step), data.length - 1);
+    const val = data[idx] || 0;
+    ctx.lineTo(i, h/2 + val * 0.9 * (h/2));
+  }
+  ctx.strokeStyle = currentPlayBuffer === processedData ? '#70d0a0' : '#6a5af0';
+  ctx.lineWidth = 1.2;
+  ctx.shadowColor = currentPlayBuffer === processedData ? 'rgba(80,200,120,0.2)' : 'rgba(100,80,255,0.15)';
+  ctx.shadowBlur = 6;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+// ── Spectrogram & update ──
+function drawSpectrogram() {
+  const w = specWidth;
+  const h = specHeight;
+  specCtx.clearRect(0, 0, w, h);
+  if (specHistory.length < w) return;
+  const imageData = specCtx.createImageData(w, h);
+  const data = imageData.data;
+  for (let x = 0; x < w; x++) {
+    const col = specHistory[x] || new Float32Array(h);
+    for (let y = 0; y < h; y++) {
+      const val = col[y] || 0;
+      const idx = (y * w + x) * 4;
+      const r = Math.min(1, val * 2.5);
+      const g = Math.min(1, val * 1.8);
+      const b = Math.min(1, val * 0.8);
+      data[idx] = r * 255;
+      data[idx+1] = g * 255;
+      data[idx+2] = b * 255;
+      data[idx+3] = 255;
+    }
+  }
+  specCtx.putImageData(imageData, 0, 0);
+}
+function updateSpectrogram(dataArray) {
+  const w = specWidth;
+  const h = specHeight;
+  const decay = parseFloat(specDecaySlider.value) || 0.7;
+  const freqData = new Float32Array(dataArray.length);
+  for (let i = 0; i < dataArray.length; i++) freqData[i] = Math.abs(dataArray[i]);
+  const step = Math.max(1, Math.floor(freqData.length / h));
+  const col = new Float32Array(h);
+  for (let y = 0; y < h; y++) {
+    const idx = Math.min(Math.floor(y * step), freqData.length - 1);
+    col[y] = Math.min(1, freqData[idx] * 4);
+  }
+  specHistory.push(col);
+  if (specHistory.length > w) specHistory.shift();
+  for (let x = 0; x < specHistory.length - 1; x++) {
+    const colData = specHistory[x];
+    for (let y = 0; y < h; y++) colData[y] *= decay;
+  }
+  drawSpectrogram();
+  const maxFreq = parseFloat(freqRangeSlider.value) * 20000 + 20;
+  freqInfo.textContent = `20Hz – ${Math.round(maxFreq/1000)}kHz`;
+}
+// ── Load Audio ──
+async function loadAudio(file) {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    if (!audioCtx) audioCtx = new AudioContext();
+    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    currentPlayBuffer = audioBuffer;
+    loadedFile = file;
+    provenance = [`Loaded: ${file.name}`];
+    provenanceInfo.textContent = `provenance: ${provenance.length} steps`;
+    drawWaveform();
+    statusText.textContent = 'loaded';
+    statusDot.className = 'status-dot';
+    analyzeLoudness();
+    updateMeters();
+    resetPlayback();
+    document.getElementById('processBtn').disabled = false;
+    document.getElementById('exportBtn').disabled = true;
+    updatePlayModeUI();
+    log(`✓ Loaded: ${file.name} (${audioBuffer.duration.toFixed(1)}s)`, 'ok');
+  } catch (e) {
+    log(`✗ Error: ${e.message}`, 'warn');
+    statusDot.className = 'status-dot err';
+  }
+}
+function resetPlayback() {
+  if (sourceNode) { sourceNode.stop(); sourceNode.disconnect(); sourceNode = null; }
+  isPlaying = false; pauseOffset = 0;
+  playStatus.textContent = '⏸ ready';
+  document.getElementById('playBtn').textContent = '▶ Play';
+  timeDisplay.textContent = '0:00';
+  if (meterInterval) clearInterval(meterInterval);
+  if (animFrame) cancelAnimationFrame(animFrame);
+}
+// ── Analyze (on original) ──
+function analyzeLoudness() {
+  if (!audioBuffer) return;
+  const data = audioBuffer.getChannelData(0);
+  let sum = 0, peak = 0;
+  for (let i = 0; i < data.length; i++) {
+    const s = data[i];
+    sum += s*s;
+    if (Math.abs(s) > peak) peak = Math.abs(s);
+  }
+  const rms = Math.sqrt(sum/data.length);
+  currentLUFS = Math.max(-70, Math.min(0, 20*Math.log10(rms+0.0001) - 0.691));
+  currentPeak = Math.max(-70, Math.min(0, 20*Math.log10(peak+0.0001)));
+  currentDyn = Math.max(0, currentPeak - currentLUFS);
+  currentGain = 0;
+  currentGR = 0;
+}
+function updateMeters() {
+  const l = Math.max(-70, Math.min(0, currentLUFS));
+  const p = Math.max(-70, Math.min(0, currentPeak));
+  const d = Math.min(30, currentDyn);
+  const g = Math.max(-24, Math.min(24, currentGain));
+  const gr = Math.max(0, Math.min(30, currentGR));
+  lufsFill.style.width = ((l+70)/70*100) + '%';
+  lufsVal.textContent = l.toFixed(1) + ' LUFS';
+  peakFill.style.width = ((p+70)/70*100) + '%';
+  peakVal.textContent = p.toFixed(1) + ' dBTP';
+  dynFill.style.width = (d/30*100) + '%';
+  dynVal.textContent = d.toFixed(1) + ' dB';
+  gainFill.style.width = ((g+24)/48*100) + '%';
+  gainVal.textContent = (g>=0?'+':'') + g.toFixed(1) + ' dB';
+  grFill.style.width = (gr/30*100) + '%';
+  grVal.textContent = gr.toFixed(1) + ' dB';
+  const sonic = Math.max(0, Math.min(100, (l+70)/70*100));
+  sonicFill.style.width = sonic + '%';
+  sonicValue.textContent = l.toFixed(1) + ' LUFS';
+  if (l > -12) statusDot.className = 'status-dot warn';
+  else if (l > -8) statusDot.className = 'status-dot err';
+  else statusDot.className = 'status-dot';
+}
+function updateFromAnalyser() {
+  if (!analyserNode || !isPlaying) return;
+  const data = new Float32Array(analyserNode.fftSize);
+  analyserNode.getFloatTimeDomainData(data);
+  let sum = 0, peak = 0;
+  for (let i = 0; i < data.length; i++) {
+    const s = data[i];
+    sum += s*s;
+    if (Math.abs(s) > peak) peak = Math.abs(s);
+  }
+  const rms = Math.sqrt(sum/data.length);
+  const lufs = 20*Math.log10(rms+0.0001) - 0.691;
+  currentLUFS = Math.max(-70, Math.min(0, lufs));
+  currentPeak = Math.max(-70, Math.min(0, 20*Math.log10(peak+0.0001)));
+  currentDyn = Math.max(0, currentPeak - currentLUFS);
+  updateMeters();
+  rmsDisplay.textContent = (20*Math.log10(rms+0.0001)).toFixed(1) + ' dB';
+  rtPeakDisplay.textContent = (20*Math.log10(peak+0.0001)).toFixed(1) + ' dB';
+  rtLufsDisplay.textContent = currentLUFS.toFixed(1) + ' LUFS';
+  updateSpectrogram(data);
+}
+// ── Toggle Play (NOW USES currentPlayBuffer) ──
+function togglePlay() {
+  if (!audioBuffer) { log('Load a file first', 'warn'); return; }
+  if (!audioCtx) audioCtx = new AudioContext();
+  const bufferToUse = currentPlayBuffer || audioBuffer;
+  if (isPlaying) {
+    if (sourceNode) {
+      pauseOffset += audioCtx.currentTime - startTime;
+      sourceNode.stop(); sourceNode.disconnect(); sourceNode = null;
+    }
+    isPlaying = false;
+    playStatus.textContent = '⏸ paused';
+    document.getElementById('playBtn').textContent = '▶ Play';
+    if (meterInterval) clearInterval(meterInterval);
+    if (animFrame) cancelAnimationFrame(animFrame);
+    return;
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  sourceNode = audioCtx.createBufferSource();
+  sourceNode.buffer = bufferToUse;
+  analyserNode = audioCtx.createAnalyser();
+  analyserNode.fftSize = 2048;
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 1;
+  sourceNode.connect(gainNode);
+  gainNode.connect(analyserNode);
+  analyserNode.connect(audioCtx.destination);
+  sourceNode.start(0, pauseOffset);
+  startTime = audioCtx.currentTime;
+  isPlaying = true;
+  const mode = (bufferToUse === processedData) ? 'PROCESSED' : 'ORIGINAL';
+  playStatus.textContent = `▶ playing ${mode}`;
+  document.getElementById('playBtn').textContent = '⏹ Stop';
+  const updateTime = () => {
+    if (!isPlaying) return;
+    const elapsed = pauseOffset + (audioCtx.currentTime - startTime);
+    const m = Math.floor(elapsed/60), s = Math.floor(elapsed%60);
+    timeDisplay.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    animFrame = requestAnimationFrame(updateTime);
+  };
+  updateTime();
+  if (meterInterval) clearInterval(meterInterval);
+  meterInterval = setInterval(updateFromAnalyser, 50);
+  sourceNode.onended = () => {
+    isPlaying = false;
+    playStatus.textContent = `⏸ ended (${mode})`;
+    document.getElementById('playBtn').textContent = '▶ Play';
+    pauseOffset = 0;
+    timeDisplay.textContent = '0:00';
+    if (meterInterval) clearInterval(meterInterval);
+    if (animFrame) cancelAnimationFrame(animFrame);
+  };
+}
+// ── Process Audio (improved + auto-switches to processed for playback) ──
+async function processAudio() {
+  if (!audioBuffer) { log('Load a file first', 'warn'); return; }
+  const params = {
+    targetLUFS: parseFloat(targetLufsSlider.value) || -14,
+    ceiling: parseFloat(ceilingSlider.value) || -1,
+    drive: parseFloat(driveSlider.value) || 6,
+    width: parseFloat(widthSlider.value) || 1.2,
+    eqLow: parseFloat(eqLowSlider.value) || 0,
+    eqMid: parseFloat(eqMidSlider.value) || 0,
+    eqHigh: parseFloat(eqHighSlider.value) || 0,
+    attack: parseFloat(attackSlider.value) || 3
+  };
+  progressContainer.classList.add('active');
+  progressStatus.textContent = 'Measuring...';
+  progressPercent.textContent = '0%';
+  progressFill.style.width = '0%';
+  log(`Processing: ${params.targetLUFS} LUFS | EQ L${params.eqLow} M${params.eqMid} H${params.eqHigh}`, 'hl');
+  const inLUFS = currentLUFS;
+  const inTP = currentPeak;
+  log(`Input: ${inLUFS.toFixed(2)} LUFS, ${inTP.toFixed(2)} dBTP`);
+  progressStatus.textContent = 'Processing...';
+  progressPercent.textContent = '30%';
+  progressFill.style.width = '30%';
+  const gainDB = params.targetLUFS - inLUFS;
+  const gainLin = Math.pow(10, gainDB/20);
+  const driveLin = Math.pow(10, params.drive/20);
+  const ctx = new OfflineAudioContext(
+    audioBuffer.numberOfChannels,
+    audioBuffer.length,
+    audioBuffer.sampleRate
+  );
+  const src = ctx.createBufferSource();
+  src.buffer = audioBuffer;
+  // 1. Gain
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = gainLin;
+  // 2. EQ
+  const eqLow = ctx.createBiquadFilter();
+  eqLow.type = 'lowshelf';
+  eqLow.frequency.value = 60;
+  eqLow.gain.value = params.eqLow;
+  const eqMid = ctx.createBiquadFilter();
+  eqMid.type = 'peaking';
+  eqMid.frequency.value = 1000;
+  eqMid.Q.value = 1;
+  eqMid.gain.value = params.eqMid;
+  const eqHigh = ctx.createBiquadFilter();
+  eqHigh.type = 'highshelf';
+  eqHigh.frequency.value = 8000;
+  eqHigh.gain.value = params.eqHigh;
+  // 3. Compressor
+  const compressor = ctx.createDynamicsCompressor();
+  compressor.threshold.value = -20;
+  compressor.ratio.value = 3;
+  compressor.attack.value = params.attack / 1000 * 1.5;
+  compressor.release.value = 100 / 1000;
+  // 4. Saturator
+  const waveshaper = ctx.createWaveShaper();
+  const curve = new Float32Array(4096);
+  for (let i = 0; i < 4096; i++) {
+    const x = (i - 2048) / 2048;
+    curve[i] = Math.tanh(x * driveLin * 0.5) / (driveLin * 0.5 + 0.5);
+  }
+  waveshaper.curve = curve;
+  // 5. Limiter
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = params.ceiling;
+  limiter.knee.value = 3;
+  limiter.ratio.value = 20;
+  limiter.attack.value = params.attack / 1000;
+  limiter.release.value = 50 / 1000;
+  // 6. Widener
+  const splitLR = ctx.createChannelSplitter(2);
+  const mergeLR = ctx.createChannelMerger(2);
+  const pannerL = ctx.createStereoPanner();
+  pannerL.pan.value = -params.width * 0.3;
+  const pannerR = ctx.createStereoPanner();
+  pannerR.pan.value = params.width * 0.3;
+  // FULL CHAIN
+  src.connect(gainNode);
+  gainNode.connect(eqLow);
+  eqLow.connect(eqMid);
+  eqMid.connect(eqHigh);
+  eqHigh.connect(compressor);
+  compressor.connect(waveshaper);
+  waveshaper.connect(limiter);
+  limiter.connect(splitLR);
+  splitLR.connect(pannerL, 0);
+  splitLR.connect(pannerR, 1);
+  pannerL.connect(mergeLR, 0, 0);
+  pannerR.connect(mergeLR, 0, 1);
+  mergeLR.connect(ctx.destination);
+  src.start();
+  progressPercent.textContent = '60%';
+  progressFill.style.width = '60%';
+  let outputBuffer = await ctx.startRendering();
+  progressPercent.textContent = '80%';
+  progressFill.style.width = '80%';
+  // IMPROVED metering
+  const outLUFS = await measureLUFSImproved(outputBuffer);
+  const outTP = getTruePeakImproved(outputBuffer);
+  currentLUFS = outLUFS;
+  currentPeak = outTP;
+  currentDyn = Math.max(0, outTP - outLUFS);
+  currentGain = gainDB;
+  currentGR = Math.max(0, inTP - outTP);
+  updateMeters();
+  progressPercent.textContent = '100%';
+  progressFill.style.width = '100%';
+  progressStatus.textContent = 'Done!';
+  log(`Output: ${outLUFS.toFixed(2)} LUFS, ${outTP.toFixed(2)} dBTP`, 'ok');
+  if (currentPreset === 'ebu_r128') {
+    const tolerance = Math.abs(outLUFS + 23);
+    if (tolerance <= 0.5) {
+      log('✅ EBU R128 COMPLIANT within ±0.5 LU', 'ok');
+    } else {
+      log(`⚠️ ${tolerance.toFixed(2)} LU from -23 target`, 'warn');
+    }
+  }
+  processedData = outputBuffer;
+  currentPlayBuffer = processedData;   // ← KEY FIX: switch playback to processed
+  drawWaveform();                       // redraw waveform in processed color
+  updatePlayModeUI();
+  document.getElementById('exportBtn').disabled = false;
+  provenance.push(`Processed → ${params.targetLUFS} LUFS (EQ L${params.eqLow} M${params.eqMid} H${params.eqHigh})`);
+  provenanceInfo.textContent = `provenance: ${provenance.length} steps`;
+  log('▶ Now playing PROCESSED version. Press Play to hear changes.', 'ok');
+  setTimeout(() => progressContainer.classList.remove('active'), 1500);
+}
+// ── Improved LUFS + True Peak ──
+async function measureLUFSImproved(buffer) {
+  const ctx = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const kHigh = ctx.createBiquadFilter();
+  kHigh.type = 'highshelf';
+  kHigh.frequency.value = 1500;
+  kHigh.gain.value = 4;
+  const kLow = ctx.createBiquadFilter();
+  kLow.type = 'lowshelf';
+  kLow.frequency.value = 150;
+  kLow.gain.value = -6;
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 38;
+  hp.Q.value = 0.5;
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 8192;
+  src.connect(kHigh);
+  kHigh.connect(kLow);
+  kLow.connect(hp);
+  hp.connect(analyser);
+  analyser.connect(ctx.destination);
+  src.start();
+  await ctx.startRendering();
+  const data = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(data);
+  let sum = 0;
+  let count = 0;
+  const gate = -70;
+  for (let i = 0; i < data.length; i++) {
+    const db = 20 * Math.log10(Math.abs(data[i]) + 1e-10);
+    if (db > gate) {
+      sum += data[i] * data[i];
+      count++;
+    }
+  }
+  const rms = count > 0 ? Math.sqrt(sum / count) : 0;
+  return Math.max(-70, -0.691 + 20 * Math.log10(rms + 1e-10));
+}
+function getTruePeakImproved(buffer) {
+  let peak = 0;
+  for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+    const data = buffer.getChannelData(ch);
+    for (let i = 0; i < data.length; i++) {
+      peak = Math.max(peak, Math.abs(data[i]));
+    }
+  }
+  return 20 * Math.log10(peak + 1e-20);
+}
+// ── Export ──
+function exportWAV() {
+  if (!processedData) { log('Process first!', 'warn'); return; }
+  try {
+    const buffer = processedData;
+    const wavData = createWAV(buffer);
+    const blob = new Blob([wavData], { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = loadedFile ? loadedFile.name.replace(/\.[^.]+$/, '') : 'mastered';
+    a.download = `${name}_mastered_${targetLufsSlider.value}LUFS.wav`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    log(`✓ Exported: ${a.download}`, 'ok');
+  } catch (e) {
+    log(`✗ Export error: ${e.message}`, 'warn');
+  }
+}
+function createWAV(buffer) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const length = buffer.length;
+  const bytesPerSample = 3;
+  const blockAlign = numChannels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = length * numChannels * bytesPerSample;
+  const headerSize = 44;
+  const totalSize = headerSize + dataSize;
+  const arrayBuffer = new ArrayBuffer(totalSize);
+  const view = new DataView(arrayBuffer);
+  const writeString = (view, offset, str) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, totalSize - 8, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 24, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+  let offset = 44;
+  for (let i = 0; i < length; i++) {
+    for (let ch = 0; ch < numChannels; ch++) {
+      let sample = Math.max(-1, Math.min(1, buffer.getChannelData(ch)[i]));
+      let int24 = sample < 0 ? Math.round(sample * 0x800000) : Math.round(sample * 0x7FFFFF);
+      int24 = Math.max(-8388608, Math.min(8388607, int24));
+      view.setUint8(offset, int24 & 0xFF);
+      view.setUint8(offset + 1, (int24 >> 8) & 0xFF);
+      view.setUint8(offset + 2, (int24 >> 16) & 0xFF);
+      offset += 3;
+    }
+  }
+  return arrayBuffer;
+}
+// ── Reset ──
+function resetAll() {
+  resetPlayback();
+  if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  audioBuffer = null;
+  processedData = null;
+  currentPlayBuffer = null;
+  document.getElementById('processBtn').disabled = true;
+  document.getElementById('exportBtn').disabled = true;
+  logEl.innerHTML = 'Reset. Load a file to start.';
+  progressContainer.classList.remove('active');
+  currentLUFS = -70; currentPeak = -70; currentDyn = 0; currentGain = 0; currentGR = 0;
+  updateMeters();
+  statusText.textContent = 'reset';
+  statusDot.className = 'status-dot';
+  provenance = [];
+  provenanceInfo.textContent = 'provenance: none';
+  drawWaveform();
+  specHistory = [];
+  drawSpectrogram();
+  updatePlayModeUI();
+  applyPreset('streaming');
+}
+// ── Slider live value updates ──
+targetLufsSlider.oninput = () => targetLufsVal.textContent = targetLufsSlider.value;
+ceilingSlider.oninput = () => ceilingVal.textContent = ceilingSlider.value;
+driveSlider.oninput = () => { const v = parseFloat(driveSlider.value); driveVal.textContent = (v>=0?'+':'') + v.toFixed(1); };
+widthSlider.oninput = () => widthVal.textContent = parseFloat(widthSlider.value).toFixed(2);
+eqLowSlider.oninput = () => { const v = parseFloat(eqLowSlider.value); eqLowVal.textContent = (v>=0?'+':'') + v.toFixed(1); };
+eqMidSlider.oninput = () => { const v = parseFloat(eqMidSlider.value); eqMidVal.textContent = (v>=0?'+':'') + v.toFixed(1); };
+eqHighSlider.oninput = () => { const v = parseFloat(eqHighSlider.value); eqHighVal.textContent = (v>=0?'+':'') + v.toFixed(1); };
+attackSlider.oninput = () => attackVal.textContent = parseFloat(attackSlider.value).toFixed(1);
+freqRangeSlider.oninput = () => {
+  const v = parseFloat(freqRangeSlider.value);
+  freqRangeVal.textContent = Math.round(v * 20000) + 'Hz';
+};
+specDecaySlider.oninput = () => specDecayVal.textContent = parseFloat(specDecaySlider.value).toFixed(2);
+// ── Buttons ──
+document.getElementById('loadBtn').onclick = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.wav,.aiff,.mp3,.m4a,.flac';
+  input.onchange = (e) => { if (e.target.files.length) loadAudio(e.target.files[0]); };
+  input.click();
+};
+document.getElementById('playBtn').onclick = togglePlay;
+document.getElementById('processBtn').onclick = processAudio;
+document.getElementById('exportBtn').onclick = exportWAV;
+document.getElementById('resetBtn').onclick = resetAll;
+// ── Preset clicks ──
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.onclick = () => applyPreset(btn.dataset.preset);
+});
+// ── Drag & Drop ──
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  const files = e.dataTransfer.files;
+  if (files.length && files[0].type.includes('audio')) loadAudio(files[0]);
+});
+// ── Keyboard ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !document.getElementById('processBtn').disabled) processAudio();
+  if (e.key === 'e' && !document.getElementById('exportBtn').disabled) exportWAV();
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+// ── Init ──
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+updateMeters();
+applyPreset('streaming');
+updatePlayModeUI();
+log('NEBULA MASTER v6.6 — Real-Time Preview + EBU R128', 'hl');
+log('Key fix: After Process, Play now uses the PROCESSED audio (green waveform + badge).', 'ok');
+log('Adjust sliders → click Process → Play to hear & see changes.', '');
+</script>
+</body>
+</html>

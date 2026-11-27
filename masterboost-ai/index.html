@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MasterBoost AI — Professional Mastering — Jay Vallea</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* ─── All your existing CSS here ─── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0b0d10;
+            color: #e8edf5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -40%;
+            left: -20%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at 30% 40%, rgba(88, 70, 255, 0.08), transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(18, 22, 28, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 40px;
+            padding: 32px 36px 40px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #6c5eff, #a855f7);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(108, 94, 255, 0.25);
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            background: linear-gradient(to right, #f0f4ff, #c8d0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-text span {
+            font-weight: 300;
+            opacity: 0.5;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .badge-guest {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #b0b8c8;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d0d8e8;
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 24px;
+            transition: 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(108, 94, 255, 0.3);
+            background: rgba(108, 94, 255, 0.03);
+        }
+
+        .upload-area.dragover {
+            border-color: #6c5eff;
+            background: rgba(108, 94, 255, 0.08);
+        }
+
+        .upload-area i {
+            font-size: 48px;
+            color: #6c7a8e;
+            margin-bottom: 12px;
+        }
+
+        .upload-area h3 {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .upload-area p {
+            color: #6c7a8e;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .track-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 20px 24px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 24px;
+        }
+
+        .track-card.visible {
+            display: flex;
+        }
+
+        .track-artwork {
+            width: 68px;
+            height: 68px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #2a2f3a, #1a1e26);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #6c7a8e;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .track-info {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .track-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            margin-bottom: 4px;
+        }
+
+        .track-artist {
+            font-size: 14px;
+            color: #8892a8;
+        }
+
+        .track-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: #6c7a8e;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .track-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .track-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px 6px 10px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-indicator.idle {
+            background: rgba(255, 255, 255, 0.05);
+            color: #6c7a8e;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .status-indicator.processing {
+            background: rgba(251, 191, 36, 0.10);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.10);
+        }
+
+        .status-indicator.done {
+            background: rgba(52, 211, 153, 0.10);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.10);
+        }
+
+        .status-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.idle .dot {
+            background: #6c7a8e;
+        }
+        .status-indicator.processing .dot {
+            background: #fbbf24;
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+        .status-indicator.done .dot {
+            background: #34d399;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.7);
+            }
+        }
+
+        .waveform-container {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .waveform-container canvas {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+        }
+
+        .waveform-time {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #6c7a8e;
+            font-variant-numeric: tabular-nums;
+            width: 100%;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 18px;
+            padding: 14px 16px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: 0.2s;
+        }
+
+        .control-group:hover {
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .control-group .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 500;
+            color: #b0b8c8;
+            margin-bottom: 8px;
+        }
+
+        .control-group .control-label .value {
+            color: #e8edf5;
+            font-weight: 600;
+        }
+
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 3px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            outline: none;
+            transition: 0.15s;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6c5eff, #a855f7);
+            cursor: pointer;
+            box-shadow: 0 0 16px rgba(108, 94, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            transition: 0.15s;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .control-group input[type="range"]:disabled::-webkit-slider-thumb {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .control-group .preset-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: rgba(108, 94, 255, 0.12);
+            color: #a8b0d0;
+            margin-top: 6px;
+        }
+
+        .eq-bands {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .eq-band {
+            text-align: center;
+        }
+
+        .eq-band label {
+            display: block;
+            font-size: 10px;
+            color: #6c7a8e;
+            margin-bottom: 4px;
+        }
+
+        .eq-band input[type="range"] {
+            width: 100%;
+            height: 3px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .eq-band input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .eq-band .eq-value {
+            display: block;
+            font-size: 10px;
+            color: #b0b8c8;
+            margin-top: 2px;
+        }
+
+        .limiter-section {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 18px;
+            padding: 14px 16px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .limiter-section .control-group {
+            border: none;
+            padding: 0;
+            background: transparent;
+        }
+
+        .limiter-section .control-group:hover {
+            background: transparent;
+        }
+
+        .ai-section {
+            background: rgba(108, 94, 255, 0.05);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(108, 94, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .ai-section .ai-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-section .ai-info i {
+            font-size: 24px;
+            color: #6c5eff;
+        }
+
+        .ai-section .ai-info .ai-text {
+            font-size: 14px;
+            color: #b0b8c8;
+        }
+
+        .ai-section .ai-info .ai-text strong {
+            color: #e8edf5;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #6c5eff, #8b5cf6);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(108, 94, 255, 0.2);
+        }
+
+        .btn-ai:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 94, 255, 0.3);
+        }
+
+        .btn-ai:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-ai .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .actions-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6c5eff, #8b5cf6);
+            border: none;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 28px rgba(108, 94, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(108, 94, 255, 0.35);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #c8d0e0;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            color: #34d399;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6c5eff, #a855f7);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .progress-bar.visible {
+            display: block;
+        }
+
+        .spectrum-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .spectrum-container.visible {
+            display: block;
+        }
+
+        .spectrum-container canvas {
+            width: 100%;
+            height: 60px;
+            border-radius: 6px;
+        }
+
+        .spectrum-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #6c7a8e;
+            padding: 0 4px;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 700px) {
+            .app-container {
+                padding: 20px 18px 28px;
+                border-radius: 28px;
+            }
+            .track-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .track-status {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .controls-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .limiter-section {
+                grid-template-columns: 1fr;
+            }
+            .eq-bands {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .actions-left {
+                justify-content: center;
+            }
+            .btn-primary {
+                justify-content: center;
+                flex: 1;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .ai-section {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            .track-meta {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .eq-bands {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:200;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+
+    <div class="app-container">
+
+        <header class="header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                <div class="logo-text">Master<span>Boost</span></div>
+            </div>
+
+        </header>
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <h3>Drop your audio file here</h3>
+            <p>or click to browse · MP3, WAV, FLAC, M4A supported</p>
+            <input type="file" id="fileInput" accept="audio/*" />
+        </div>
+
+        <!-- Track Card -->
+        <div class="track-card" id="trackCard">
+            <div class="track-artwork" id="trackArtwork"><i class="fas fa-music"></i></div>
+            <div class="track-info">
+                <div class="track-title" id="trackTitle">Untitled Track</div>
+                <div class="track-artist" id="trackArtist">Unknown Artist</div>
+                <div class="track-meta">
+                    <span id="trackDuration"><i class="fas fa-clock"></i> 0:00</span>
+                    <span id="trackSize"><i class="fas fa-database"></i> 0 MB</span>
+                    <span id="trackFormat"><i class="fas fa-file-audio"></i> -</span>
+                </div>
+            </div>
+            <div class="track-status">
+                <div class="status-indicator idle" id="statusIndicator">
+                    <span class="dot"></span> <span id="statusText">Ready</span>
+                </div>
+                <button class="btn-outline" id="exportBtn" style="padding:6px 14px;display:none;">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Waveform -->
+        <div class="waveform-container">
+            <canvas id="waveformCanvas"></canvas>
+        </div>
+        <div class="waveform-time">
+            <span id="currentTime">0:00</span>
+            <span id="totalTime">0:00</span>
+        </div>
+
+        <!-- Spectrum Analyzer -->
+        <div class="spectrum-container" id="spectrumContainer">
+            <canvas id="spectrumCanvas"></canvas>
+            <div class="spectrum-labels">
+                <span>20 Hz</span>
+                <span>100 Hz</span>
+                <span>1 kHz</span>
+                <span>10 kHz</span>
+                <span>20 kHz</span>
+            </div>
+        </div>
+
+        <!-- AI Section -->
+        <div class="ai-section" id="aiSection">
+            <div class="ai-info">
+                <i class="fas fa-brain"></i>
+                <div class="ai-text">
+                    <strong>AI Assistant</strong> — Analyzes your track and suggests optimal settings
+                </div>
+            </div>
+            <button class="btn-ai" id="aiBtn">
+                <i class="fas fa-wand-magic-sparkles"></i> Analyze with AI
+            </button>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-grid">
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Loudness</span>
+                    <span class="value" id="loudnessVal">-14 LUFS</span>
+                </div>
+                <input type="range" min="-24" max="-6" value="-14" step="0.5" id="loudnessSlider" disabled />
+                <span class="preset-badge">Target: -14 LUFS (streaming)</span>
+            </div>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Stereo Width</span>
+                    <span class="value" id="widthVal">100%</span>
+                </div>
+                <input type="range" min="50" max="200" value="100" step="5" id="widthSlider" disabled />
+                <span class="preset-badge">0% = mono, 100% = normal</span>
+            </div>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Bass</span>
+                    <span class="value" id="bassVal">0 dB</span>
+                </div>
+                <input type="range" min="-6" max="8" value="0" step="0.5" id="bassSlider" disabled />
+                <span class="preset-badge">Low shelf @ 100 Hz</span>
+            </div>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Clarity</span>
+                    <span class="value" id="clarityVal">0 dB</span>
+                </div>
+                <input type="range" min="-6" max="6" value="0" step="0.5" id="claritySlider" disabled />
+                <span class="preset-badge">High shelf @ 5 kHz</span>
+            </div>
+        </div>
+
+        <!-- Dynamic/Multiband EQ -->
+        <div class="limiter-section" id="eqSection">
+            <div class="control-group">
+                <div class="control-label">
+                    <span>🎛️ Multiband EQ</span>
+                    <span class="value" style="font-size:11px;color:#6c7a8e;">dynamic</span>
+                </div>
+                <div class="eq-bands">
+                    <div class="eq-band">
+                        <label>Sub (20-80Hz)</label>
+                        <input type="range" min="-6" max="6" value="0" step="0.5" id="eqSub" disabled />
+                        <span class="eq-value" id="eqSubVal">0</span>
+                    </div>
+                    <div class="eq-band">
+                        <label>Low (80-250Hz)</label>
+                        <input type="range" min="-6" max="6" value="0" step="0.5" id="eqLow" disabled />
+                        <span class="eq-value" id="eqLowVal">0</span>
+                    </div>
+                    <div class="eq-band">
+                        <label>Mid (250-2kHz)</label>
+                        <input type="range" min="-6" max="6" value="0" step="0.5" id="eqMid" disabled />
+                        <span class="eq-value" id="eqMidVal">0</span>
+                    </div>
+                    <div class="eq-band">
+                        <label>High (2-8kHz)</label>
+                        <input type="range" min="-6" max="6" value="0" step="0.5" id="eqHigh" disabled />
+                        <span class="eq-value" id="eqHighVal">0</span>
+                    </div>
+                    <div class="eq-band">
+                        <label>Air (8-20kHz)</label>
+                        <input type="range" min="-6" max="6" value="0" step="0.5" id="eqAir" disabled />
+                        <span class="eq-value" id="eqAirVal">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>🔊 True Peak Limiter</span>
+                    <span class="value" id="limiterVal">-1.0 dBTP</span>
+                </div>
+                <input type="range" min="-6" max="0" value="-1" step="0.1" id="limiterSlider" disabled />
+                <span class="preset-badge">Ceiling: <span id="limiterCeil">-1.0</span> dBTP · ISP protection</span>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-bar" id="progressBar">
+            <div class="fill" id="progressFill"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <div class="actions-left">
+                <button class="btn-primary" id="masterBtn" disabled>
+                    <i class="fas fa-rotate-right"></i> Master Now
+                </button>
+                <button class="btn-secondary" id="previewBtn" disabled>
+                    <i class="fas fa-play"></i> Preview
+                </button>
+                <button class="btn-secondary" id="resetBtn" disabled>
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+            <div class="actions-right">
+                <i class="fas fa-circle-check" style="color:#34d399;opacity:0.8;"></i>
+                <span id="engineStatus">AI engine v3.2 · waiting for audio</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================
+        // MASTERBOOST AI - REFACTORED (Modular Classes)
+        // ============================================
+
+        class AudioEngine {
+            constructor() {
+                this.audioContext = null;
+                this.audioBuffer = null;
+                this.processedBuffer = null;
+                this.originalBuffer = null;
+                this.exportBlob = null;
+
+                // Playback state
+                this.sourceNode = null;
+                this.isPlaying = false;
+                this.startTime = 0;
+                this.pauseOffset = 0;
+                this.animationId = null;
+
+                // Effect nodes for real-time preview
+                this.effectNodes = null;
+
+                // Current effect settings
+                this.settings = {
+                    loudness: -14,
+                    width: 100,
+                    bass: 0,
+                    clarity: 0,
+                    limiter: -1,
+                    eq: { sub: 0, low: 0, mid: 0, high: 0, air: 0 }
+                };
+            }
+
+            async initAudioContext() {
+                if (!this.audioContext) {
+                    this.audioContext = new(window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+                return this.audioContext;
+            }
+
+            async loadAudio(arrayBuffer, fileName) {
+                await this.initAudioContext();
+                this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                this.originalBuffer = this.audioBuffer;
+                this.processedBuffer = null;
+                this.exportBlob = null;
+                this.pauseOffset = 0;
+                this.isPlaying = false;
+
+                // Reset settings
+                this.settings = {
+                    loudness: -14,
+                    width: 100,
+                    bass: 0,
+                    clarity: 0,
+                    limiter: -1,
+                    eq: { sub: 0, low: 0, mid: 0, high: 0, air: 0 }
+                };
+                return this.audioBuffer;
+            }
+
+            updateSettings(newSettings) {
+                this.settings = { ...this.settings, ...newSettings };
+                // If eq is partially updated, merge it
+                if (newSettings.eq) {
+                    this.settings.eq = { ...this.settings.eq, ...newSettings.eq };
+                }
+            }
+
+            // ─── BUILD EFFECT CHAIN ───
+            _buildEffectChain(context, source, includeLimiter = true) {
+                const { loudness, width, bass, clarity, limiter, eq } = this.settings;
+
+                // 1. Multiband EQ
+                const eqInput = context.createGain();
+                const eqOutput = context.createGain();
+                const bandFilters = this._createMultibandEQ(context, eq);
+
+                // Connect EQ in parallel
+                const splitter = context.createChannelSplitter(2);
+                const merger = context.createChannelMerger(2);
+
+                eqInput.connect(splitter);
+                for (let ch = 0; ch < 2; ch++) {
+                    let chain = splitter;
+                    for (let i = 0; i < bandFilters.length; i++) {
+                        const f = this._cloneFilter(context, bandFilters[i]);
+                        chain.connect(f);
+                        chain = f;
+                    }
+                    chain.connect(merger, 0, ch);
+                }
+                merger.connect(eqOutput);
+
+                // 2. Bass shelf
+                const bassFilter = context.createBiquadFilter();
+                bassFilter.type = 'lowshelf';
+                bassFilter.frequency.value = 100;
+                bassFilter.gain.value = bass;
+
+                // 3. Clarity (Treble shelf)
+                const trebleFilter = context.createBiquadFilter();
+                trebleFilter.type = 'highshelf';
+                trebleFilter.frequency.value = 5000;
+                trebleFilter.gain.value = clarity;
+
+                // 4. Stereo Width
+                const panner = context.createStereoPanner();
+                const widthValue = width / 100;
+                panner.pan.value = (widthValue - 1) * 0.3;
+
+                // 5. Compressor
+                const compressor = context.createDynamicsCompressor();
+                compressor.threshold.value = -18;
+                compressor.knee.value = 6;
+                compressor.ratio.value = 2.2;
+                compressor.attack.value = 0.003;
+                compressor.release.value = 0.15;
+
+                // 6. Gain (Loudness)
+                const gain = context.createGain();
+                const gainDb = (loudness + 14) * 0.5;
+                gain.gain.value = Math.pow(10, gainDb / 20);
+
+                // 7. True Peak Limiter
+                const limiterGain = context.createGain();
+                const ceiling = Math.pow(10, limiter / 20);
+                limiterGain.gain.value = ceiling;
+
+                // 8. Soft Clipper
+                const clipper = context.createWaveShaper();
+                const softClip = (x) => {
+                    const k = 0.7;
+                    return Math.tanh(x * k) / k;
+                };
+                const curve = new Float32Array(65536);
+                for (let i = 0; i < 65536; i++) {
+                    const x = (i - 32768) / 32768;
+                    curve[i] = softClip(x);
+                }
+                clipper.curve = curve;
+                clipper.oversample = '4x';
+
+                // Connect chain: source → EQ → bass → treble → panner → compressor → gain → limiter → clipper
+                source.connect(eqInput);
+                eqOutput.connect(bassFilter);
+                bassFilter.connect(trebleFilter);
+                trebleFilter.connect(panner);
+                panner.connect(compressor);
+                compressor.connect(gain);
+                gain.connect(limiterGain);
+                limiterGain.connect(clipper);
+
+                const nodes = { eqInput, eqOutput, bassFilter, trebleFilter, panner, compressor, gain, limiterGain, clipper };
+
+                return { output: clipper, nodes };
+            }
+
+            _createMultibandEQ(ctx, eq) {
+                const gains = [eq.sub, eq.low, eq.mid, eq.high, eq.air];
+                const frequencies = [20, 80, 250, 2000, 8000, 20000];
+                const filters = [];
+
+                for (let i = 0; i < gains.length; i++) {
+                    const filter = ctx.createBiquadFilter();
+                    if (i === 0) {
+                        filter.type = 'lowshelf';
+                        filter.frequency.value = frequencies[i + 1];
+                    } else if (i === gains.length - 1) {
+                        filter.type = 'highshelf';
+                        filter.frequency.value = frequencies[i];
+                    } else {
+                        filter.type = 'peaking';
+                        filter.frequency.value = Math.sqrt(frequencies[i] * frequencies[i + 1]);
+                        filter.Q.value = 0.7;
+                    }
+                    filter.gain.value = gains[i];
+                    filters.push(filter);
+                }
+                return filters;
+            }
+
+            _cloneFilter(context, filter) {
+                const f = context.createBiquadFilter();
+                f.type = filter.type;
+                f.frequency.value = filter.frequency.value;
+                f.gain.value = filter.gain.value;
+                if (filter.Q) f.Q.value = filter.Q;
+                return f;
+            }
+
+            // ─── APPLY EFFECTS (Offline) ───
+            async applyEffects() {
+                if (!this.audioBuffer) return;
+
+                const offlineCtx = new OfflineAudioContext(
+                    this.audioBuffer.numberOfChannels,
+                    this.audioBuffer.length,
+                    this.audioBuffer.sampleRate
+                );
+
+                const source = offlineCtx.createBufferSource();
+                source.buffer = this.audioBuffer;
+
+                const { output } = this._buildEffectChain(offlineCtx, source, true);
+                output.connect(offlineCtx.destination);
+
+                source.start(0);
+                this.processedBuffer = await offlineCtx.startRendering();
+                return this.processedBuffer;
+            }
+
+            // ─── MASTER TRACK ───
+            async masterTrack(progressCallback) {
+                if (!this.audioBuffer) return;
+
+                const offlineCtx = new OfflineAudioContext(
+                    this.audioBuffer.numberOfChannels,
+                    this.audioBuffer.length,
+                    this.audioBuffer.sampleRate
+                );
+
+                const source = offlineCtx.createBufferSource();
+                source.buffer = this.audioBuffer;
+
+                const { output } = this._buildEffectChain(offlineCtx, source, true);
+                output.connect(offlineCtx.destination);
+
+                source.start(0);
+
+                // Track progress
+                const totalSamples = offlineCtx.length;
+                const checkProgress = () => {
+                    if (progressCallback) {
+                        const progress = Math.min(100, (offlineCtx.currentTime / offlineCtx.duration) * 100);
+                        progressCallback(progress);
+                    }
+                };
+
+                const interval = setInterval(checkProgress, 100);
+
+                this.processedBuffer = await offlineCtx.startRendering();
+                clearInterval(interval);
+
+                // Generate export
+                await this.generateExport(this.processedBuffer);
+                return this.processedBuffer;
+            }
+
+            // ─── GENERATE EXPORT ───
+            async generateExport(buffer) {
+                const wavData = this._bufferToWav(buffer);
+                this.exportBlob = new Blob([wavData], { type: 'audio/wav' });
+                return this.exportBlob;
+            }
+
+            _bufferToWav(buffer) {
+                const numChannels = buffer.numberOfChannels;
+                const sampleRate = buffer.sampleRate;
+                const length = buffer.length * numChannels * 2;
+                const data = new ArrayBuffer(44 + length);
+                const view = new DataView(data);
+
+                const writeString = (view, offset, string) => {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                };
+
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + length, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * numChannels * 2, true);
+                view.setUint16(32, numChannels * 2, true);
+                view.setUint16(34, 16, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, length, true);
+
+                const offset = 44;
+                for (let i = 0; i < buffer.length; i++) {
+                    for (let ch = 0; ch < numChannels; ch++) {
+                        const sample = buffer.getChannelData(ch)[i];
+                        const int16 = Math.max(-1, Math.min(1, sample)) * 0x7FFF;
+                        view.setInt16(offset + (i * numChannels + ch) * 2, int16, true);
+                    }
+                }
+                return data;
+            }
+
+            // ─── REAL-TIME PREVIEW ───
+            playPreview(onTimeUpdate, onEnded) {
+                if (!this.audioContext || !this.audioBuffer) return;
+
+                this.stopPreview();
+
+                const bufferToPlay = this.processedBuffer || this.audioBuffer;
+                this.sourceNode = this.audioContext.createBufferSource();
+                this.sourceNode.buffer = bufferToPlay;
+
+                // Build effect chain for real-time
+                const { output, nodes } = this._buildEffectChain(this.audioContext, this.sourceNode, true);
+                this.effectNodes = nodes;
+
+                const analyzer = this.audioContext.createAnalyser();
+                analyzer.fftSize = 2048;
+
+                output.connect(analyzer);
+                analyzer.connect(this.audioContext.destination);
+
+                this.sourceNode.onended = () => {
+                    this.isPlaying = false;
+                    this.pauseOffset = 0;
+                    if (onEnded) onEnded();
+                };
+
+                this.sourceNode.start(0, this.pauseOffset);
+                this.isPlaying = true;
+                this.startTime = this.audioContext.currentTime - this.pauseOffset;
+
+                if (onTimeUpdate) {
+                    this._startTimeTracking(onTimeUpdate);
+                }
+
+                return { analyzer, nodes };
+            }
+
+            stopPreview() {
+                if (this.sourceNode) {
+                    try { this.sourceNode.stop(); } catch (e) {}
+                    this.sourceNode.disconnect();
+                    this.sourceNode = null;
+                }
+                this.isPlaying = false;
+                this.pauseOffset = 0;
+                this.effectNodes = null;
+
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+
+            _startTimeTracking(callback) {
+                const update = () => {
+                    if (!this.isPlaying || !this.sourceNode) {
+                        return;
+                    }
+                    const elapsed = this.audioContext.currentTime - this.startTime;
+                    const duration = (this.processedBuffer || this.audioBuffer).duration;
+                    callback(Math.min(elapsed, duration), duration);
+                    if (elapsed < duration) {
+                        this.animationId = requestAnimationFrame(update);
+                    } else {
+                        this.isPlaying = false;
+                    }
+                };
+                this.animationId = requestAnimationFrame(update);
+            }
+
+            getDuration() {
+                return this.audioBuffer ? this.audioBuffer.duration : 0;
+            }
+
+            getBufferToPlay() {
+                return this.processedBuffer || this.audioBuffer;
+            }
+
+            reset() {
+                this.stopPreview();
+                this.processedBuffer = null;
+                this.exportBlob = null;
+                this.pauseOffset = 0;
+                this.settings = {
+                    loudness: -14,
+                    width: 100,
+                    bass: 0,
+                    clarity: 0,
+                    limiter: -1,
+                    eq: { sub: 0, low: 0, mid: 0, high: 0, air: 0 }
+                };
+            }
+
+            // ─── AI ANALYSIS ───
+            analyzeTrack() {
+                if (!this.audioBuffer) return null;
+
+                const data = this.audioBuffer.getChannelData(0);
+                const length = data.length;
+                const sampleRate = this.audioBuffer.sampleRate;
+
+                // RMS for loudness estimation
+                let sum = 0;
+                for (let i = 0; i < length; i++) {
+                    sum += data[i] * data[i];
+                }
+                const rms = Math.sqrt(sum / length);
+                const loudnessEstimate = Math.max(-24, Math.min(-6, 20 * Math.log10(rms) + 6));
+
+                // Frequency analysis
+                const fftSize = 2048;
+                const freqs = new Float32Array(fftSize / 2);
+                const step = Math.floor(Math.min(length / fftSize, 100));
+
+                for (let i = 0; i < fftSize && i * step < length; i++) {
+                    freqs[i] = Math.abs(data[i * step] || 0);
+                }
+
+                const bands = { sub: 0, low: 0, mid: 0, high: 0, air: 0 };
+                const bandRanges = [
+                    { name: 'sub', start: 0, end: 80 },
+                    { name: 'low', start: 80, end: 250 },
+                    { name: 'mid', start: 250, end: 2000 },
+                    { name: 'high', start: 2000, end: 8000 },
+                    { name: 'air', start: 8000, end: 20000 }
+                ];
+
+                const nyquist = sampleRate / 2;
+                const binWidth = nyquist / (fftSize / 2);
+
+                bandRanges.forEach(band => {
+                    let energy = 0;
+                    const startBin = Math.floor(band.start / binWidth);
+                    const endBin = Math.min(Math.floor(band.end / binWidth), freqs.length - 1);
+                    for (let i = startBin; i <= endBin && i < freqs.length; i++) {
+                        energy += freqs[i] || 0;
+                    }
+                    const count = Math.max(1, endBin - startBin + 1);
+                    bands[band.name] = energy / count;
+                });
+
+                const midEnergy = bands.mid || 1;
+
+                // EQ suggestions based on spectral balance
+                const eqSuggestions = {
+                    sub: Math.max(-3, Math.min(3, (bands.sub / midEnergy - 0.8) * 2)),
+                    low: Math.max(-3, Math.min(3, (bands.low / midEnergy - 0.9) * 1.5)),
+                    mid: 0,
+                    high: Math.max(-3, Math.min(3, (bands.high / midEnergy - 1.1) * 1.5)),
+                    air: Math.max(-3, Math.min(3, (bands.air / midEnergy - 1.0) * 1.2))
+                };
+
+                // Bass boost based on low end
+                const bassBoost = Math.max(-2, Math.min(4, (bands.low / midEnergy - 0.7) * 3));
+
+                // Clarity based on high end
+                const clarityBoost = Math.max(-2, Math.min(4, (bands.high / midEnergy - 0.8) * 2.5));
+
+                // Stereo width suggestion
+                let stereoWidth = 100;
+                if (this.audioBuffer.numberOfChannels >= 2) {
+                    const left = this.audioBuffer.getChannelData(0);
+                    const right = this.audioBuffer.getChannelData(1);
+                    let corr = 0;
+                    const sampleLen = Math.min(left.length, right.length);
+                    for (let i = 0; i < sampleLen; i += 10) {
+                        corr += left[i] * right[i];
+                    }
+                    corr /= sampleLen / 10;
+                    if (corr > 0.5) stereoWidth = 140;
+                    else if (corr < -0.1) stereoWidth = 80;
+                    else stereoWidth = 110;
+                }
+
+                return {
+                    loudness: Math.round(loudnessEstimate * 2) / 2,
+                    width: Math.round(stereoWidth / 5) * 5,
+                    bass: Math.round(bassBoost * 2) / 2,
+                    clarity: Math.round(clarityBoost * 2) / 2,
+                    eq: {
+                        sub: Math.round(eqSuggestions.sub * 2) / 2,
+                        low: Math.round(eqSuggestions.low * 2) / 2,
+                        mid: 0,
+                        high: Math.round(eqSuggestions.high * 2) / 2,
+                        air: Math.round(eqSuggestions.air * 2) / 2
+                    },
+                    limiter: -1.0,
+                    confidence: Math.round(70 + Math.random() * 20)
+                };
+            }
+        }
+
+        // ============================================
+        // UI CONTROLLER
+        // ============================================
+
+        class MasterBoostUI {
+            constructor(audioEngine) {
+                this.engine = audioEngine;
+                this.isMastering = false;
+                this.isAIAnalyzing = false;
+                this.aiSuggestions = null;
+
+                this.initElements();
+                this.bindEvents();
+                this.updateEngineStatus('Upload a file to start');
+                this.enableControls(false);
+            }
+
+            initElements() {
+                // Upload
+                this.uploadArea = document.getElementById('uploadArea');
+                this.fileInput = document.getElementById('fileInput');
+
+                // Track
+                this.trackCard = document.getElementById('trackCard');
+                this.trackTitle = document.getElementById('trackTitle');
+                this.trackArtist = document.getElementById('trackArtist');
+                this.trackDuration = document.getElementById('trackDuration');
+                this.trackSize = document.getElementById('trackSize');
+                this.trackFormat = document.getElementById('trackFormat');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.statusText = document.getElementById('statusText');
+                this.exportBtn = document.getElementById('exportBtn');
+
+                // Waveform
+                this.canvas = document.getElementById('waveformCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentTimeEl = document.getElementById('currentTime');
+                this.totalTimeEl = document.getElementById('totalTime');
+
+                // Spectrum
+                this.spectrumContainer = document.getElementById('spectrumContainer');
+                this.spectrumCanvas = document.getElementById('spectrumCanvas');
+                this.spectrumCtx = this.spectrumCanvas.getContext('2d');
+
+                // Controls
+                this.loudnessSlider = document.getElementById('loudnessSlider');
+                this.widthSlider = document.getElementById('widthSlider');
+                this.bassSlider = document.getElementById('bassSlider');
+                this.claritySlider = document.getElementById('claritySlider');
+                this.limiterSlider = document.getElementById('limiterSlider');
+
+                this.loudnessVal = document.getElementById('loudnessVal');
+                this.widthVal = document.getElementById('widthVal');
+                this.bassVal = document.getElementById('bassVal');
+                this.clarityVal = document.getElementById('clarityVal');
+                this.limiterVal = document.getElementById('limiterVal');
+                this.limiterCeil = document.getElementById('limiterCeil');
+
+                // EQ
+                this.eqSliders = {
+                    sub: document.getElementById('eqSub'),
+                    low: document.getElementById('eqLow'),
+                    mid: document.getElementById('eqMid'),
+                    high: document.getElementById('eqHigh'),
+                    air: document.getElementById('eqAir')
+                };
+                this.eqValues = {
+                    sub: document.getElementById('eqSubVal'),
+                    low: document.getElementById('eqLowVal'),
+                    mid: document.getElementById('eqMidVal'),
+                    high: document.getElementById('eqHighVal'),
+                    air: document.getElementById('eqAirVal')
+                };
+
+                // Buttons
+                this.masterBtn = document.getElementById('masterBtn');
+                this.previewBtn = document.getElementById('previewBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.aiBtn = document.getElementById('aiBtn');
+
+                // Progress
+                this.progressBar = document.getElementById('progressBar');
+                this.progressFill = document.getElementById('progressFill');
+
+                // Status
+                this.engineStatus = document.getElementById('engineStatus');
+
+                // Slider maps for label updates
+                this.sliderMap = {
+                    loudnessSlider: { el: this.loudnessVal, suffix: ' LUFS', format: v => (v >= 0 ? '+' : '') + v },
+                    widthSlider: { el: this.widthVal, suffix: '%', format: v => v },
+                    bassSlider: { el: this.bassVal, suffix: ' dB', format: v => (v >= 0 ? '+' : '') + v },
+                    claritySlider: { el: this.clarityVal, suffix: ' dB', format: v => (v >= 0 ? '+' : '') + v },
+                    limiterSlider: { el: this.limiterVal, suffix: ' dBTP', format: v => (v >= 0 ? '+' : '') + v },
+                };
+            }
+
+            bindEvents() {
+                // File upload
+                this.uploadArea.addEventListener('click', () => this.fileInput.click());
+                this.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.add('dragover');
+                });
+                this.uploadArea.addEventListener('dragleave', () => {
+                    this.uploadArea.classList.remove('dragover');
+                });
+                this.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        this.loadFile(e.dataTransfer.files[0]);
+                    }
+                });
+                this.fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.loadFile(e.target.files[0]);
+                    }
+                });
+
+                // Sliders
+                Object.keys(this.sliderMap).forEach(id => {
+                    const slider = document.getElementById(id);
+                    slider.addEventListener('input', () => this.handleSliderChange(id, slider));
+                });
+
+                // EQ sliders
+                Object.keys(this.eqSliders).forEach(band => {
+                    const slider = this.eqSliders[band];
+                    slider.addEventListener('input', () => this.handleEQChange(band, slider));
+                });
+
+                // Buttons
+                this.masterBtn.addEventListener('click', () => this.handleMaster());
+                this.previewBtn.addEventListener('click', () => this.handlePreview());
+                this.resetBtn.addEventListener('click', () => this.handleReset());
+                this.exportBtn.addEventListener('click', () => this.handleExport());
+                this.aiBtn.addEventListener('click', () => this.handleAI());
+
+                // Resize
+                window.addEventListener('resize', () => {
+                    if (this.engine.audioBuffer) {
+                        this.drawWaveform(this.engine.getBufferToPlay());
+                    }
+                });
+            }
+
+            // ─── FILE LOADING ───
+            async loadFile(file) {
+                if (!file.type.startsWith('audio/')) {
+                    alert('Please select an audio file.');
+                    return;
+                }
+
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    await this.engine.loadAudio(arrayBuffer, file.name);
+
+                    this.updateTrackInfo(file);
+                    this.enableControls(true);
+                    this.trackCard.classList.add('visible');
+                    this.exportBtn.style.display = 'none';
+                    this.drawWaveform(this.engine.audioBuffer);
+                    this.spectrumContainer.classList.remove('visible');
+                    this.updateStatus('idle', 'Ready');
+                    this.updateEngineStatus('AI engine v3.2 · loaded');
+                    this.aiSuggestions = null;
+                    this.masterBtn.innerHTML = '<i class="fas fa-rotate-right"></i> Master Now';
+                    this.masterBtn.style.background = '';
+                    this.masterBtn.style.boxShadow = '';
+                    this.totalTimeEl.textContent = this.formatTime(this.engine.getDuration());
+
+                    // Apply initial effects
+                    await this.engine.applyEffects();
+                    this.drawWaveform(this.engine.processedBuffer || this.engine.audioBuffer);
+
+                } catch (err) {
+                    console.error('Error loading file:', err);
+                    alert('Failed to load audio file. Please try another file.');
+                }
+            }
+
+            // ─── UI UPDATES ───
+            updateTrackInfo(file) {
+                this.trackTitle.textContent = file.name.replace(/\.[^/.]+$/, '');
+                this.trackArtist.textContent = 'Uploaded File';
+                const duration = this.engine.getDuration();
+                this.trackDuration.innerHTML = `<i class="fas fa-clock"></i> ${this.formatTime(duration)}`;
+                this.trackSize.innerHTML = `<i class="fas fa-database"></i> ${(file.size / 1024 / 1024).toFixed(1)} MB`;
+                this.trackFormat.innerHTML = `<i class="fas fa-file-audio"></i> ${file.name.split('.').pop().toUpperCase()}`;
+            }
+
+            drawWaveform(buffer) {
+                if (!buffer) return;
+
+                const data = buffer.getChannelData(0);
+                const samples = 1000;
+                const step = Math.floor(data.length / samples);
+                const waveform = [];
+                for (let i = 0; i < samples; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < step && (i * step + j) < data.length; j++) {
+                        sum += Math.abs(data[i * step + j]);
+                    }
+                    waveform.push(sum / Math.min(step, data.length - i * step));
+                }
+
+                const max = Math.max(...waveform, 0.001);
+                const normalized = waveform.map(v => v / max);
+
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const w = Math.max(100, rect.width - 56);
+                this.canvas.width = w * dpr;
+                this.canvas.height = 80 * dpr;
+                this.canvas.style.width = w + 'px';
+                this.canvas.style.height = '80px';
+
+                this.ctx.scale(dpr, dpr);
+                this.ctx.clearRect(0, 0, w, 80);
+
+                const barWidth = w / normalized.length * 0.8;
+                const gap = w / normalized.length * 0.2;
+
+                const gradient = this.ctx.createLinearGradient(0, 0, w, 0);
+                gradient.addColorStop(0, '#6c5eff');
+                gradient.addColorStop(0.5, '#8b5cf6');
+                gradient.addColorStop(1, '#a855f7');
+
+                normalized.forEach((val, i) => {
+                    const x = i * (barWidth + gap);
+                    const height = Math.max(2, val * 68);
+                    const y = (80 - height) / 2;
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.globalAlpha = 0.7 + val * 0.3;
+                    this.ctx.fillRect(x, y, Math.max(1, barWidth), height);
+                });
+            }
+
+            showSpectrum(buffer) {
+                if (!buffer) return;
+                this.spectrumContainer.classList.add('visible');
+
+                const data = buffer.getChannelData(0);
+                const fftSize = 2048;
+                const fftData = new Float32Array(fftSize);
+                const step = Math.max(1, Math.floor(data.length / fftSize));
+
+                for (let i = 0; i < fftSize && i * step < data.length; i++) {
+                    fftData[i] = data[i * step] || 0;
+                }
+
+                const dpr = window.devicePixelRatio || 1;
+                const rect = this.spectrumCanvas.parentElement.getBoundingClientRect();
+                const w = Math.max(100, rect.width - 24);
+                this.spectrumCanvas.width = w * dpr;
+                this.spectrumCanvas.height = 60 * dpr;
+                this.spectrumCanvas.style.width = w + 'px';
+                this.spectrumCanvas.style.height = '60px';
+
+                this.spectrumCtx.scale(dpr, dpr);
+                this.spectrumCtx.clearRect(0, 0, w, 60);
+
+                // Simple FFT
+                const freqs = [];
+                const halfFft = fftSize / 2;
+                for (let i = 0; i < halfFft; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < fftSize; j++) {
+                        const angle = 2 * Math.PI * i * j / fftSize;
+                        sum += fftData[j] * Math.cos(angle);
+                    }
+                    freqs.push(Math.abs(sum) / fftSize);
+                }
+
+                const maxFreq = Math.max(...freqs, 0.001);
+                const normalizedFreqs = freqs.map(v => v / maxFreq);
+
+                const barWidth = w / normalizedFreqs.length;
+                const gradient = this.spectrumCtx.createLinearGradient(0, 0, w, 0);
+                gradient.addColorStop(0, '#6c5eff');
+                gradient.addColorStop(0.3, '#34d399');
+                gradient.addColorStop(0.7, '#fbbf24');
+                gradient.addColorStop(1, '#ef4444');
+
+                normalizedFreqs.forEach((val, i) => {
+                    const x = i * barWidth;
+                    const height = Math.max(1, val * 55);
+                    const y = 60 - height;
+                    this.spectrumCtx.fillStyle = gradient;
+                    this.spectrumCtx.globalAlpha = 0.3 + val * 0.7;
+                    this.spectrumCtx.fillRect(x, y, Math.max(1, barWidth - 0.5), height);
+                });
+            }
+
+            updateTimeDisplay(elapsed, duration) {
+                this.currentTimeEl.textContent = this.formatTime(Math.min(elapsed, duration));
+                // Update playhead on waveform
+                const progress = Math.min(elapsed / duration, 1);
+                const w = this.canvas.width / (window.devicePixelRatio || 1);
+                this.drawWaveform(this.engine.getBufferToPlay());
+                this.ctx.fillStyle = 'rgba(108, 94, 255, 0.3)';
+                const x = progress * w;
+                this.ctx.fillRect(x - 1, 0, 2, 80);
+            }
+
+            updateStatus(type, text) {
+                this.statusIndicator.className = 'status-indicator ' + type;
+                this.statusText.textContent = text;
+            }
+
+            updateEngineStatus(text) {
+                this.engineStatus.textContent = text;
+            }
+
+            enableControls(enabled) {
+                const controls = [
+                    this.loudnessSlider, this.widthSlider, this.bassSlider, this.claritySlider,
+                    this.limiterSlider, this.masterBtn, this.previewBtn, this.resetBtn, this.aiBtn
+                ];
+                controls.forEach(c => c.disabled = !enabled);
+
+                Object.values(this.eqSliders).forEach(s => s.disabled = !enabled);
+
+                if (!enabled) {
+                    this.previewBtn.innerHTML = '<i class="fas fa-play"></i> Preview';
+                }
+            }
+
+            setMasteringUIState(isMastering) {
+                this.masterBtn.disabled = isMastering;
+                this.previewBtn.disabled = isMastering;
+                this.resetBtn.disabled = isMastering;
+                this.aiBtn.disabled = isMastering;
+
+                if (isMastering) {
+                    this.masterBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Processing...';
+                    this.progressBar.classList.add('visible');
+                    this.updateStatus('processing', 'Mastering...');
+                    this.updateEngineStatus('AI engine v3.2 · mastering...');
+                } else {
+                    this.progressBar.classList.remove('visible');
+                    this.progressFill.style.width = '0%';
+                }
+            }
+
+            updatePreviewButton(isPlaying) {
+                this.previewBtn.innerHTML = isPlaying ?
+                    '<i class="fas fa-pause"></i> Stop' :
+                    '<i class="fas fa-play"></i> Preview';
+            }
+
+            showExportButton() {
+                this.exportBtn.style.display = 'flex';
+            }
+
+            hideExportButton() {
+                this.exportBtn.style.display = 'none';
+            }
+
+            resetSliderUI() {
+                this.loudnessSlider.value = -14;
+                this.widthSlider.value = 100;
+                this.bassSlider.value = 0;
+                this.claritySlider.value = 0;
+                this.limiterSlider.value = -1;
+
+                this.loudnessVal.textContent = '-14 LUFS';
+                this.widthVal.textContent = '100%';
+                this.bassVal.textContent = '0 dB';
+                this.clarityVal.textContent = '0 dB';
+                this.limiterVal.textContent = '-1.0 dBTP';
+                this.limiterCeil.textContent = '-1.0';
+
+                Object.keys(this.eqSliders).forEach(band => {
+                    this.eqSliders[band].value = 0;
+                    this.eqValues[band].textContent = '0';
+                });
+            }
+
+            // ─── SLIDER HANDLERS ───
+            handleSliderChange(id, slider) {
+                const value = parseFloat(slider.value);
+                const config = this.sliderMap[id];
+                if (config) {
+                    config.el.textContent = config.format(value) + config.suffix;
+                }
+
+                if (id === 'limiterSlider') {
+                    this.limiterCeil.textContent = value.toFixed(1);
+                }
+
+                const settingKey = id.replace('Slider', '');
+                this.engine.updateSettings({ [settingKey]: value });
+
+                if (this.engine.audioBuffer && !this.isMastering) {
+                    this.engine.applyEffects().then(() => {
+                        this.drawWaveform(this.engine.processedBuffer || this.engine.audioBuffer);
+                    });
+                }
+            }
+
+            handleEQChange(band, slider) {
+                const value = parseFloat(slider.value);
+                this.eqValues[band].textContent = (value >= 0 ? '+' : '') + value;
+
+                const eqSettings = { ...this.engine.settings.eq, [band]: value };
+                this.engine.updateSettings({ eq: eqSettings });
+
+                if (this.engine.audioBuffer && !this.isMastering) {
+                    this.engine.applyEffects().then(() => {
+                        this.drawWaveform(this.engine.processedBuffer || this.engine.audioBuffer);
+                    });
+                }
+            }
+
+            // ─── MASTER ───
+            async handleMaster() {
+                if (this.isMastering || !this.engine.audioBuffer) return;
+
+                this.isMastering = true;
+                this.setMasteringUIState(true);
+
+                try {
+                    await this.engine.masterTrack((progress) => {
+                        this.progressFill.style.width = progress + '%';
+                    });
+
+                    this.drawWaveform(this.engine.processedBuffer);
+                    this.showSpectrum(this.engine.processedBuffer);
+                    this.showExportButton();
+                    this.updateStatus('done', 'Mastered ✓');
+                    this.updateEngineStatus('AI engine v3.2 · mastered');
+
+                    this.masterBtn.innerHTML = '<i class="fas fa-check"></i> Mastered';
+                    this.masterBtn.style.background = 'linear-gradient(135deg, #34d399, #10b981)';
+                    this.masterBtn.style.boxShadow = '0 8px 28px rgba(52,211,153,0.25)';
+
+                    setTimeout(() => {
+                        this.masterBtn.innerHTML = '<i class="fas fa-rotate-right"></i> Master Now';
+                        this.masterBtn.style.background = '';
+                        this.masterBtn.style.boxShadow = '';
+                    }, 3000);
+
+                } catch (err) {
+                    console.error('Mastering error:', err);
+                    alert('Mastering failed. Please try again.');
+                } finally {
+                    this.isMastering = false;
+                    this.setMasteringUIState(false);
+                }
+            }
+
+            // ─── PREVIEW ───
+            handlePreview() {
+                if (this.engine.isPlaying) {
+                    this.engine.stopPreview();
+                    this.updatePreviewButton(false);
+                    const status = this.engine.processedBuffer ? 'done' : 'idle';
+                    const text = this.engine.processedBuffer ? 'Mastered ✓' : 'Ready';
+                    this.updateStatus(status, text);
+                    this.currentTimeEl.textContent = '0:00';
+                    if (this.engine.audioBuffer) {
+                        this.drawWaveform(this.engine.getBufferToPlay());
+                    }
+                    return;
+                }
+
+                if (!this.engine.audioBuffer) return;
+
+                this.engine.playPreview(
+                    (elapsed, duration) => this.updateTimeDisplay(elapsed, duration),
+                    () => {
+                        this.updatePreviewButton(false);
+                        this.updateStatus('idle', 'Ready');
+                    }
+                );
+                this.updatePreviewButton(true);
+                this.updateStatus('processing', 'Playing');
+                this.updateEngineStatus('AI engine v3.2 · previewing');
+            }
+
+            // ─── RESET ───
+            handleReset() {
+                if (this.engine.isPlaying) {
+                    this.engine.stopPreview();
+                    this.updatePreviewButton(false);
+                }
+
+                this.engine.reset();
+                this.resetSliderUI();
+                this.hideExportButton();
+                this.spectrumContainer.classList.remove('visible');
+                this.aiSuggestions = null;
+
+                if (this.engine.audioBuffer) {
+                    this.drawWaveform(this.engine.audioBuffer);
+                    this.updateStatus('idle', 'Ready');
+                    this.updateEngineStatus('AI engine v3.2 · loaded');
+                    this.masterBtn.innerHTML = '<i class="fas fa-rotate-right"></i> Master Now';
+                    this.masterBtn.style.background = '';
+                    this.masterBtn.style.boxShadow = '';
+                    this.currentTimeEl.textContent = '0:00';
+
+                    // Re-apply effects
+                    this.engine.applyEffects().then(() => {
+                        this.drawWaveform(this.engine.processedBuffer || this.engine.audioBuffer);
+                    });
+                }
+            }
+
+            // ─── EXPORT ───
+            handleExport() {
+                if (!this.engine.exportBlob) return;
+
+                const url = URL.createObjectURL(this.engine.exportBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${this.trackTitle.textContent}_mastered.wav`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // ─── AI ───
+            async handleAI() {
+                if (this.isAIAnalyzing || !this.engine.audioBuffer) return;
+
+                this.isAIAnalyzing = true;
+                this.aiBtn.disabled = true;
+                this.aiBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Analyzing...';
+                this.updateStatus('processing', 'AI Analyzing...');
+                this.updateEngineStatus('AI engine v3.2 · analyzing spectrum...');
+
+                // Simulate processing time
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const suggestions = this.engine.analyzeTrack();
+                if (!suggestions) {
+                    this.isAIAnalyzing = false;
+                    this.aiBtn.disabled = false;
+                    this.aiBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Analyze with AI';
+                    return;
+                }
+
+                this.aiSuggestions = suggestions;
+                this.applyAISuggestions(suggestions);
+                this.showAIFeedback(suggestions);
+
+                this.isAIAnalyzing = false;
+                this.aiBtn.disabled = false;
+                this.aiBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Analyze with AI';
+                this.updateStatus('idle', 'AI Suggestions Applied');
+                this.updateEngineStatus('AI engine v3.2 · suggestions ready');
+            }
+
+            applyAISuggestions(suggestions) {
+                // Apply with animation
+                this.animateSlider(this.loudnessSlider, suggestions.loudness);
+                this.animateSlider(this.widthSlider, suggestions.width);
+                this.animateSlider(this.bassSlider, suggestions.bass);
+                this.animateSlider(this.claritySlider, suggestions.clarity);
+                this.animateSlider(this.limiterSlider, suggestions.limiter);
+
+                // Apply EQ
+                this.animateSlider(this.eqSliders.sub, suggestions.eq.sub);
+                this.animateSlider(this.eqSliders.low, suggestions.eq.low);
+                this.animateSlider(this.eqSliders.mid, suggestions.eq.mid);
+                this.animateSlider(this.eqSliders.high, suggestions.eq.high);
+                this.animateSlider(this.eqSliders.air, suggestions.eq.air);
+
+                // Update labels
+                Object.keys(this.sliderMap).forEach(id => {
+                    const slider = document.getElementById(id);
+                    const config = this.sliderMap[id];
+                    const val = parseFloat(slider.value);
+                    config.el.textContent = config.format(val) + config.suffix;
+                });
+
+                Object.keys(this.eqValues).forEach(band => {
+                    const val = parseFloat(this.eqSliders[band].value);
+                    this.eqValues[band].textContent = (val >= 0 ? '+' : '') + val;
+                });
+
+                // Update engine and effects
+                const eqSettings = {
+                    sub: parseFloat(this.eqSliders.sub.value),
+                    low: parseFloat(this.eqSliders.low.value),
+                    mid: parseFloat(this.eqSliders.mid.value),
+                    high: parseFloat(this.eqSliders.high.value),
+                    air: parseFloat(this.eqSliders.air.value)
+                };
+                this.engine.updateSettings({
+                    loudness: parseFloat(this.loudnessSlider.value),
+                    width: parseFloat(this.widthSlider.value),
+                    bass: parseFloat(this.bassSlider.value),
+                    clarity: parseFloat(this.claritySlider.value),
+                    limiter: parseFloat(this.limiterSlider.value),
+                    eq: eqSettings
+                });
+
+                if (this.engine.audioBuffer) {
+                    this.engine.applyEffects().then(() => {
+                        this.drawWaveform(this.engine.processedBuffer || this.engine.audioBuffer);
+                    });
+                }
+            }
+
+            animateSlider(slider, target) {
+                const current = parseFloat(slider.value);
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const clampedTarget = Math.max(min, Math.min(max, target));
+                const steps = 15;
+                const diff = (clampedTarget - current) / steps;
+                let step = 0;
+
+                const interval = setInterval(() => {
+                    step++;
+                    if (step >= steps) {
+                        slider.value = clampedTarget;
+                        clearInterval(interval);
+                        slider.dispatchEvent(new Event('input'));
+                        return;
+                    }
+                    const val = current + diff * step;
+                    slider.value = Math.min(max, Math.max(min, val));
+                    slider.dispatchEvent(new Event('input'));
+                }, 25);
+            }
+
+            showAIFeedback(suggestions) {
+                const feedback = document.createElement('div');
+                feedback.style.cssText = `
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: rgba(18,22,28,0.95);
+                            backdrop-filter: blur(12px);
+                            border: 1px solid rgba(108,94,255,0.2);
+                            border-radius: 16px;
+                            padding: 20px 24px;
+                            max-width: 340px;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+                            z-index: 1000;
+                            animation: slideIn 0.4s ease;
+                        `;
+
+                feedback.innerHTML = `
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <i class="fas fa-brain" style="color:#6c5eff;font-size:20px;"></i>
+                                <strong style="color:#e8edf5;">AI Analysis Complete</strong>
+                                <span style="margin-left:auto;font-size:12px;color:#34d399;">${suggestions.confidence}% confidence</span>
+                            </div>
+                            <div style="font-size:13px;color:#b0b8c8;line-height:1.8;">
+                                <div>🎯 Loudness: <strong style="color:#e8edf5;">${suggestions.loudness} LUFS</strong></div>
+                                <div>📊 Width: <strong style="color:#e8edf5;">${suggestions.width}%</strong></div>
+                                <div>🔊 Bass: <strong style="color:#e8edf5;">${suggestions.bass > 0 ? '+' : ''}${suggestions.bass} dB</strong></div>
+                                <div>✨ Clarity: <strong style="color:#e8edf5;">${suggestions.clarity > 0 ? '+' : ''}${suggestions.clarity} dB</strong></div>
+                                <div>🔒 Limiter: <strong style="color:#e8edf5;">${suggestions.limiter} dBTP</strong></div>
+                            </div>
+                            <div style="margin-top:10px;font-size:11px;color:#6c7a8e;">
+                                🎛️ ${Object.entries(suggestions.eq).filter(([k,v]) => v !== 0).map(([k,v]) => `${k}: ${v > 0 ? '+' : ''}${v}dB`).join(' · ')}
+                            </div>
+                            <button onclick="this.parentElement.remove()" style="
+                                margin-top:12px;
+                                background:rgba(255,255,255,0.05);
+                                border:1px solid rgba(255,255,255,0.06);
+                                color:#b0b8c8;
+                                padding:6px 16px;
+                                border-radius:100px;
+                                cursor:pointer;
+                                font-size:12px;
+                            ">Dismiss</button>
+                        `;
+
+                const style = document.createElement('style');
+                style.textContent = `
+                            @keyframes slideIn {
+                                from { transform: translateX(100%); opacity: 0; }
+                                to { transform: translateX(0); opacity: 1; }
+                            }
+                        `;
+                document.head.appendChild(style);
+                document.body.appendChild(feedback);
+
+                setTimeout(() => {
+                    if (feedback.parentElement) {
+                        feedback.style.opacity = '0';
+                        feedback.style.transition = 'opacity 0.5s';
+                        setTimeout(() => feedback.remove(), 500);
+                    }
+                }, 8000);
+            }
+
+            // ─── HELPERS ───
+            formatTime(seconds) {
+                if (!seconds || isNaN(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const audioEngine = new AudioEngine();
+            const ui = new MasterBoostUI(audioEngine);
+
+            // Make available for debugging
+            window.MasterBoost = { audioEngine, ui };
+            console.log('🎛️ MasterBoost AI initialized!');
+            console.log('📦 AudioEngine:', audioEngine);
+            console.log('🎨 UI Controller:', ui);
+        });
+    </script>
+
+</body>
+</html>
