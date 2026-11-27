@@ -78,6 +78,7 @@ h3.sub{margin-top:44px;letter-spacing:.06em}
 
 .local-vid{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;display:flex;flex-direction:column}
 .local-vid video{width:100%;display:block;aspect-ratio:16/9;background:#000;object-fit:contain;max-width:none;height:auto}
+.local-vid audio{width:100%;display:block;padding:16px 12px 8px;background:#000;box-sizing:border-box}
 .local-vid figcaption{padding:8px 14px;font-size:14px;font-weight:600;color:var(--text);background:var(--panel)}
 
 .tracks{list-style:none;padding:0;margin:14px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
