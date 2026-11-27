@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NebulaSystem v4.6.3 — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>NebulaSystem v4.6.3</h1>
+  <p class="subtitle">Real LLM integration and deep active-inference mastering — historical source</p>
+  <p>A local generative mastering/composition script from the NebulaSystem line: motif-style synthesis plus optional OpenAI or Anthropic streaming, with a demo that writes a WAV and a history log under <code>masters_v463/</code>.</p>
+  <p>API keys are read only from <code>OPENAI_API_KEY</code> and <code>ANTHROPIC_API_KEY</code>, with no defaults. If a key or package is missing, the script is meant to warn and continue in a local mode rather than ship a key. The original file called <code>log.warning</code> before the logger existed, so a missing optional package crashed on import; this published copy moves the logger setup above those imports. The inbox original is unchanged.</p>
+  <p>This is source for study and local use, not a hosted service. It was not run against any external API here. <code>python3 -m py_compile</code> succeeds. No keys are included.</p>
+  <div class="row"><a class="btn" href="nebulasystem_v463.py" download>Download the .py</a></div>
+  <div class="src">#!/usr/bin/env python3
+&quot;&quot;&quot;
+NebulaSystem v4.6.3 - Real LLM Integration + Deep Active Inference
+- Real OpenAI/Anthropic streaming
+- Deep Active Inference mastering integration
+- Full token streaming orchestration
+&quot;&quot;&quot;
+
+import numpy as np
+import soundfile as sf
+from pathlib import Path
+import random
+import logging
+from typing import Dict, Any, List, Optional, Tuple, AsyncGenerator
+from dataclasses import dataclass, field
+from collections import deque, defaultdict
+import json
+from scipy import signal
+from scipy.ndimage import gaussian_filter1d
+import hashlib
+from datetime import datetime
+import asyncio
+import aiohttp
+from concurrent.futures import ThreadPoolExecutor
+import os
+
+# ====================== LLM INTEGRATION ======================
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(&quot;nebula_v463&quot;)
+
+try:
+    import openai
+    from openai import AsyncOpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    log.warning(&quot;OpenAI not available. Install: pip install openai&quot;)
+
+try:
+    import anthropic
+    from anthropic import AsyncAnthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+    log.warning(&quot;Anthropic not available. Install: pip install anthropic&quot;)
+
+PHI_INV = 0.618033988749895
+SAMPLE_RATE = 44100
+
+# ====================== REAL LLM CLIENT ======================
+
+class LLMClient:
+    &quot;&quot;&quot;
+    Real LLM client with OpenAI and Anthropic support
+    &quot;&quot;&quot;
+    
+    def __init__(self, provider: str = &quot;openai&quot;, model: str = None):
+        self.provider = provider
+        self.model = model or self._get_default_model()
+        self.client = self._init_client()
+        self.token_buffer = []
+        self.stream_history = []
+        
+        log.info(f&quot;🤖 LLM Client initialized: {provider}/{self.model}&quot;)
+    
+    def _get_default_model(self) -&gt; str:
+        if self.provider == &quot;openai&quot;:
+            return &quot;gpt-4&quot;
+        elif self.provider == &quot;anthropic&quot;:
+            return &quot;claude-3-opus-20240229&quot;
+        return &quot;gpt-4&quot;
+    
+    def _init_client(self):
+        if self.provider == &quot;openai&quot; and OPENAI_AVAILABLE:
+            api_key = os.getenv(&quot;OPENAI_API_KEY&quot;)
+            if not api_key:
+                log.warning(&quot;OPENAI_API_KEY not set. Using simulation mode.&quot;)
+                return None
+            return AsyncOpenAI(api_key=api_key)
+        elif self.provider == &quot;anthropic&quot; and ANTHROPIC_AVAILABLE:
+            api_key = os.getenv(&quot;ANTHROPIC_API_KEY&quot;)
+            if not api_key:
+                log.warning(&quot;ANTHROPIC_API_KEY not set. Using simulation mode.&quot;)
+                return None
+            return AsyncAnthropic(api_key=api_key)
+        return None
+    
+    async def stream_completion(self, prompt: str, agent: str, 
+                                max_tokens: int = 500,
+                                temperature: float = 0.7) -&gt; AsyncGenerator[str, None]:
+        &quot;&quot;&quot;
+        Stream completion with real token generation
+        &quot;&quot;&quot;
+        if not self.client or not (OPENAI_AVAILABLE or ANTHROPIC_AVAILABLE):
+            # Fallback to simulated streaming
+            async for token in self._simulate_stream(prompt, agent):
+                yield token
+            return
+        
+        try:
+            if self.provider == &quot;openai&quot;:
+                async for chunk in await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a music synthesis agent.&quot;},
+                        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}
+                    ],
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    stream=True
+                ):
+                    if chunk.choices[0].delta.content:
+                        token = chunk.choices[0].delta.content
+                        self.token_buffer.append(token)
+                        yield token
+            
+            elif self.provider == &quot;anthropic&quot;:
+                async with self.client.messages.stream(
+                    model=self.model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}]
+                ) as stream:
+                    async for chunk in stream:
+                        if chunk.type == &quot;content_block_delta&quot;:
+                            token = chunk.delta.text
+                            self.token_buffer.append(token)
+                            yield token
+            
+        except Exception as e:
+            log.error(f&quot;LLM streaming error: {e}&quot;)
+            # Fallback to simulation
+            async for token in self._simulate_stream(prompt, agent):
+                yield token
+    
+    async def _simulate_stream(self, prompt: str, agent: str) -&gt; AsyncGenerator[str, None]:
+        &quot;&quot;&quot;Simulated token streaming for fallback&quot;&quot;&quot;
+        responses = {
+            &quot;Synthesist&quot;: &quot;Proposed parameters: FM=6.5, Glitch=0.4, Reverb=0.6, Comp=4.5, Width=1.3. Algorithm: complex. Motif: core_theme variant B.&quot;,
+            &quot;Refiner&quot;: &quot;Parameters need refinement. FM should be reduced to 5.0 for clarity. Glitch could be increased to 0.5 for intensity.&quot;,
+            &quot;Continuity Keeper&quot;: &quot;Motif continuity maintained. Recommend smooth transition at position 0.4.&quot;,
+            &quot;Aesthetic Engine&quot;: &quot;High aesthetic quality. Emotional alignment: 0.85. Coherence: 0.82.&quot;,
+            &quot;Forensic Analyst&quot;: &quot;Technical analysis: Dynamic range: 12dB. Frequency balance: Good.&quot;,
+            &quot;Emotion Mapper&quot;: &quot;Emotional profile matched. Tension rising, release at 0.7.&quot;
+        }
+        
+        text = responses.get(agent, &quot;Proceeding with synthesis.&quot;)
+        
+        # Stream token by token
+        for token in text.split():
+            await asyncio.sleep(0.05)  # Simulate network delay
+            self.token_buffer.append(token)
+            yield token + &quot; &quot;
+    
+    def get_stream_history(self) -&gt; List[str]:
+        &quot;&quot;&quot;Get complete stream history&quot;&quot;&quot;
+        return self.stream_history
+    
+    def clear_buffer(self):
+        &quot;&quot;&quot;Clear token buffer&quot;&quot;&quot;
+        self.token_buffer = []
+        self.stream_history = []
+
+# ====================== DEEP ACTIVE INFERENCE MASTERING ======================
+
+@dataclass
+class DeepActiveInferenceState:
+    &quot;&quot;&quot;Extended state for deep active inference&quot;&quot;&quot;
+    beliefs: Dict[str, float]
+    precision: Dict[str, float]
+    expected_free_energy: float
+    action_selection: Dict[str, float]
+    learning_rate: float
+    exploration_rate: float
+    free_energy_history: List[float]
+    
+    def to_dict(self) -&gt; Dict:
+        return {
+            &quot;beliefs&quot;: self.beliefs,
+            &quot;precision&quot;: self.precision,
+            &quot;expected_free_energy&quot;: self.expected_free_energy,
+            &quot;action_selection&quot;: self.action_selection,
+            &quot;learning_rate&quot;: self.learning_rate,
+            &quot;free_energy_history&quot;: self.free_energy_history[-100:]
+        }
+
+class DeepActiveInferenceMasteringAgent:
+    &quot;&quot;&quot;
+    Deep Active Inference Mastering Agent with real-time adaptation
+    &quot;&quot;&quot;
+    
+    def __init__(self, initial_beliefs: Optional[Dict] = None):
+        # Hierarchical beliefs
+        self.beliefs = {
+            &quot;fm_mod_index&quot;: 4.0,
+            &quot;glitch_amount&quot;: 0.3,
+            &quot;reverb_amount&quot;: 0.5,
+            &quot;compression_ratio&quot;: 4.0,
+            &quot;stereo_width&quot;: 1.2,
+            &quot;eq_low_gain&quot;: 0.0,
+            &quot;eq_mid_gain&quot;: 0.0,
+            &quot;eq_high_gain&quot;: 0.0,
+            &quot;saturation_amount&quot;: 0.2,
+            &quot;limiter_threshold&quot;: -0.5
+        }
+        
+        # Precision estimates (inverse variance)
+        self.precision = {k: 1.0 for k in self.beliefs}
+        
+        # Hierarchical levels
+        self.hierarchy = {
+            &quot;macro&quot;: [&quot;fm_mod_index&quot;, &quot;compression_ratio&quot;, &quot;stereo_width&quot;],
+            &quot;meso&quot;: [&quot;eq_low_gain&quot;, &quot;eq_mid_gain&quot;, &quot;eq_high_gain&quot;],
+            &quot;micro&quot;: [&quot;glitch_amount&quot;, &quot;reverb_amount&quot;, &quot;saturation_amount&quot;, &quot;limiter_threshold&quot;]
+        }
+        
+        # Targets
+        self.targets = self.beliefs.copy()
+        
+        # Expected Free Energy parameters
+        self.efe_params = {
+            &quot;gamma&quot;: 0.5,  # Precision weighting
+            &quot;alpha&quot;: 0.3,  # Learning rate
+            &quot;beta&quot;: 0.2,   # Exploration rate
+            &quot;tau&quot;: 0.1     # Temporal discount
+        }
+        
+        # State history
+        self.state_history = []
+        self.free_energy_history = []
+        self.action_history = []
+        self.observation_history = []
+        
+        # Generative model
+        self.generative_model = self._init_generative_model()
+        
+        log.info(&quot;🧠 Deep Active Inference Mastering Agent initialized&quot;)
+    
+    def _init_generative_model(self) -&gt; Dict:
+        &quot;&quot;&quot;Initialize generative model for parameter relationships&quot;&quot;&quot;
+        return {
+            &quot;fm_mod_index&quot;: {
+                &quot;dependencies&quot;: [&quot;compression_ratio&quot;, &quot;stereo_width&quot;],
+                &quot;effect&quot;: 0.5
+            },
+            &quot;compression_ratio&quot;: {
+                &quot;dependencies&quot;: [&quot;eq_low_gain&quot;, &quot;eq_mid_gain&quot;],
+                &quot;effect&quot;: 0.3
+            },
+            &quot;stereo_width&quot;: {
+                &quot;dependencies&quot;: [&quot;reverb_amount&quot;, &quot;eq_high_gain&quot;],
+                &quot;effect&quot;: 0.4
+            }
+        }
+    
+    def update_targets_from_audio(self, audio: np.ndarray):
+        &quot;&quot;&quot;Extract targets from audio using deep analysis&quot;&quot;&quot;
+        if len(audio) &lt; 1024:
+            return
+        
+        # Multi-scale analysis
+        analysis = self._deep_audio_analysis(audio)
+        
+        # Update targets based on analysis
+        self.targets.update({
+            &quot;eq_low_gain&quot;: analysis[&quot;bass_balance&quot;],
+            &quot;eq_mid_gain&quot;: analysis[&quot;mid_balance&quot;],
+            &quot;eq_high_gain&quot;: analysis[&quot;high_balance&quot;],
+            &quot;compression_ratio&quot;: 2 + 6 * analysis[&quot;dynamic_range&quot;],
+            &quot;stereo_width&quot;: 0.5 + 1.5 * analysis[&quot;stereo_spread&quot;],
+            &quot;saturation_amount&quot;: 0.1 + 0.4 * analysis[&quot;warmth&quot;],
+            &quot;limiter_threshold&quot;: -0.5 - 0.5 * analysis[&quot;peak_energy&quot;]
+        })
+    
+    def _deep_audio_analysis(self, audio: np.ndarray) -&gt; Dict[str, float]:
+        &quot;&quot;&quot;Deep audio analysis for target extraction&quot;&quot;&quot;
+        if len(audio) &gt; 65536:
+            audio = audio[:65536]
+        
+        # Spectral analysis
+        fft = np.fft.rfft(audio)
+        freqs = np.fft.rfftfreq(len(fft), 1/SAMPLE_RATE)
+        magnitudes = np.abs(fft)
+        
+        # Multi-band analysis
+        bands = {
+            &quot;sub&quot;: (0, 60),
+            &quot;bass&quot;: (60, 250),
+            &quot;low_mid&quot;: (250, 500),
+            &quot;mid&quot;: (500, 2000),
+            &quot;high_mid&quot;: (2000, 5000),
+            &quot;presence&quot;: (5000, 8000),
+            &quot;air&quot;: (8000, 20000)
+        }
+        
+        band_energies = {}
+        for name, (low, high) in bands.items():
+            mask = (freqs &gt;= low) &amp; (freqs &lt; high)
+            energy = np.sum(magnitudes[mask]) / (np.sum(magnitudes) + 1e-10)
+            band_energies[name] = float(np.clip(energy * 20, 0, 1))
+        
+        # Calculate balances
+        bass_balance = (band_energies[&quot;bass&quot;] + band_energies[&quot;sub&quot;]) / 2
+        mid_balance = (band_energies[&quot;mid&quot;] + band_energies[&quot;low_mid&quot;]) / 2
+        high_balance = (band_energies[&quot;presence&quot;] + band_energies[&quot;air&quot;]) / 2
+        
+        # Dynamic range
+        envelope = np.abs(audio)
+        envelope = gaussian_filter1d(envelope, sigma=50)
+        dynamic_range = np.std(envelope) / (np.mean(envelope) + 1e-10)
+        dynamic_range = np.clip(dynamic_range * 2, 0, 1)
+        
+        # Stereo spread
+        if len(audio.shape) &gt; 1 and audio.shape[1] &gt;= 2:
+            left = audio[:, 0]
+            right = audio[:, 1]
+            correlation = np.corrcoef(left, right)[0, 1]
+            stereo_spread = 1 - (correlation + 1) / 2
+        else:
+            stereo_spread = 0.3
+        
+        # Warmth (low-mid energy)
+        warmth = (band_energies[&quot;bass&quot;] + band_energies[&quot;low_mid&quot;]) / 2
+        
+        # Peak energy
+        peak_energy = np.max(np.abs(audio))
+        peak_energy = np.clip(20 * np.log10(peak_energy + 1e-10) / -60, 0, 1)
+        
+        return {
+            &quot;bass_balance&quot;: bass_balance,
+            &quot;mid_balance&quot;: mid_balance,
+            &quot;high_balance&quot;: high_balance,
+            &quot;dynamic_range&quot;: dynamic_range,
+            &quot;stereo_spread&quot;: stereo_spread,
+            &quot;warmth&quot;: warmth,
+            &quot;peak_energy&quot;: peak_energy
+        }
+    
+    def compute_free_energy(self, state: Dict, observation: Dict) -&gt; float:
+        &quot;&quot;&quot;Compute variational free energy&quot;&quot;&quot;
+        free_energy = 0.0
+        
+        # 1. Accuracy term (fit to observations)
+        for key, value in observation.items():
+            if key in state:
+                precision = self.precision.get(key, 1.0)
+                free_energy += 0.5 * precision * (state[key] - value) ** 2
+        
+        # 2. Complexity term (KL divergence from prior)
+        for key, value in state.items():
+            if key in self.beliefs:
+                prior = self.beliefs[key]
+                precision = self.precision.get(key, 1.0)
+                free_energy += 0.5 * precision * (value - prior) ** 2
+        
+        # 3. Hierarchical prior term
+        for level, params in self.hierarchy.items():
+            level_mean = np.mean([state.get(p, 0) for p in params])
+            for param in params:
+                if param in state:
+                    free_energy += 0.1 * (state[param] - level_mean) ** 2
+        
+        # 4. Expected Free Energy term
+        efe = self._compute_expected_free_energy(state)
+        free_energy += self.efe_params[&quot;gamma&quot;] * efe
+        
+        return free_energy
+    
+    def _compute_expected_free_energy(self, state: Dict) -&gt; float:
+        &quot;&quot;&quot;Compute Expected Free Energy&quot;&quot;&quot;
+        efe = 0.0
+        
+        # 1. Epistemic value (information gain)
+        for key, value in state.items():
+            if key in self.precision:
+                uncertainty = 1.0 / (self.precision[key] + 1e-10)
+                efe += 0.5 * uncertainty
+        
+        # 2. Pragmatic value (goal attainment)
+        for key, value in state.items():
+            if key in self.targets:
+                target = self.targets[key]
+                efe += 0.5 * (value - target) ** 2
+        
+        # 3. Intrinsic motivation (novelty seeking)
+        if self.state_history:
+            prev_state = self.state_history[-1]
+            for key in state:
+                if key in prev_state:
+                    novelty = (state[key] - prev_state[key]) ** 2
+                    efe += 0.1 * novelty
+        
+        return efe
+    
+    def select_action(self, observation: Dict, 
+                      time_step: float = 0.0) -&gt; Dict[str, float]:
+        &quot;&quot;&quot;
+        Select optimal action using active inference
+        &quot;&quot;&quot;
+        # Generate candidate actions
+        candidates = self._generate_candidates(observation)
+        
+        # Evaluate each candidate
+        best_action = None
+        best_free_energy = float(&#x27;inf&#x27;)
+        
+        for candidate in candidates:
+            free_energy = self.compute_free_energy(candidate, observation)
+            if free_energy &lt; best_free_energy:
+                best_free_energy = free_energy
+                best_action = candidate
+        
+        # Update beliefs
+        if best_action:
+            for key, value in best_action.items():
+                if key in self.beliefs:
+                    alpha = self.efe_params[&quot;alpha&quot;]
+                    self.beliefs[key] = (1 - alpha) * self.beliefs[key] + alpha * value
+        
+        # Update precision
+        for key in observation:
+            if key in self.precision:
+                error = abs(observation[key] - self.beliefs.get(key, 0))
+                self.precision[key] = 1.0 / (error + 0.1)
+        
+        # Store history
+        self.state_history.append(self.beliefs.copy())
+        self.free_energy_history.append(best_free_energy)
+        self.action_history.append(best_action)
+        self.observation_history.append(observation)
+        
+        if len(self.state_history) &gt; 1000:
+            self.state_history = self.state_history[-1000:]
+            self.free_energy_history = self.free_energy_history[-1000:]
+        
+        return self.beliefs.copy()
+    
+    def _generate_candidates(self, observation: Dict) -&gt; List[Dict]:
+        &quot;&quot;&quot;Generate candidate actions&quot;&quot;&quot;
+        candidates = []
+        
+        # 1. Current beliefs
+        candidates.append(self.beliefs.copy())
+        
+        # 2. Gradient descent on free energy
+        for _ in range(5):
+            candidate = {}
+            for key in self.beliefs:
+                if key in observation:
+                    gradient = observation[key] - self.beliefs.get(key, 0)
+                    candidate[key] = self.beliefs.get(key, 0) + 0.1 * gradient
+                else:
+                    candidate[key] = self.beliefs.get(key, 0) + np.random.normal(0, 0.1)
+                # Clamp to valid ranges
+                candidate[key] = self._clamp_parameter(key, candidate[key])
+            candidates.append(candidate)
+        
+        # 3. Random exploration
+        for _ in range(3):
+            candidate = {}
+            for key in self.beliefs:
+                exploration = np.random.normal(0, self.efe_params[&quot;beta&quot;])
+                candidate[key] = self.beliefs.get(key, 0) + exploration
+                candidate[key] = self._clamp_parameter(key, candidate[key])
+            candidates.append(candidate)
+        
+        # 4. Hierarchical proposals
+        for level, params in self.hierarchy.items():
+            candidate = {}
+            for key in self.beliefs:
+                if key in params:
+                    # Adjust based on level mean
+                    level_mean = np.mean([self.beliefs.get(p, 0) for p in params])
+                    candidate[key] = level_mean + np.random.normal(0, 0.1)
+                else:
+                    candidate[key] = self.beliefs.get(key, 0)
+                candidate[key] = self._clamp_parameter(key, candidate[key])
+            candidates.append(candidate)
+        
+        return candidates
+    
+    def _clamp_parameter(self, key: str, value: float) -&gt; float:
+        &quot;&quot;&quot;Clamp parameter to valid range&quot;&quot;&quot;
+        ranges = {
+            &quot;fm_mod_index&quot;: (1.0, 12.0),
+            &quot;glitch_amount&quot;: (0.0, 1.0),
+            &quot;reverb_amount&quot;: (0.0, 1.0),
+            &quot;compression_ratio&quot;: (1.0, 10.0),
+            &quot;stereo_width&quot;: (0.0, 2.0),
+            &quot;eq_low_gain&quot;: (-6.0, 6.0),
+            &quot;eq_mid_gain&quot;: (-6.0, 6.0),
+            &quot;eq_high_gain&quot;: (-6.0, 6.0),
+            &quot;saturation_amount&quot;: (0.0, 1.0),
+            &quot;limiter_threshold&quot;: (-6.0, 0.0)
+        }
+        min_val, max_val = ranges.get(key, (-10, 10))
+        return np.clip(value, min_val, max_val)
+    
+    def get_state(self) -&gt; DeepActiveInferenceState:
+        &quot;&quot;&quot;Get current state&quot;&quot;&quot;
+        return DeepActiveInferenceState(
+            beliefs=self.beliefs.copy(),
+            precision=self.precision.copy(),
+            expected_free_energy=self._compute_expected_free_energy(self.beliefs),
+            action_selection=self.action_history[-1] if self.action_history else {},
+            learning_rate=self.efe_params[&quot;alpha&quot;],
+            exploration_rate=self.efe_params[&quot;beta&quot;],
+            free_energy_history=self.free_energy_history.copy()
+        )
+    
+    def update_learning_rates(self, performance: float):
+        &quot;&quot;&quot;Adapt learning rates based on performance&quot;&quot;&quot;
+        if performance &gt; 0.8:
+            # Reduce learning rate for stability
+            self.efe_params[&quot;alpha&quot;] = max(0.05, self.efe_params[&quot;alpha&quot;] * 0.95)
+            self.efe_params[&quot;beta&quot;] = max(0.05, self.efe_params[&quot;beta&quot;] * 0.95)
+        elif performance &lt; 0.3:
+            # Increase exploration
+            self.efe_params[&quot;beta&quot;] = min(0.5, self.efe_params[&quot;beta&quot;] * 1.1)
+            self.efe_params[&quot;alpha&quot;] = min(0.5, self.efe_params[&quot;alpha&quot;] * 1.1)
+
+# ====================== SYNTHESIS ENGINE WITH REAL LLM ======================
+
+class SynthesisEngineV21:
+    &quot;&quot;&quot;
+    Synthesis Engine v2.1 with real LLM integration
+    &quot;&quot;&quot;
+    
+    def __init__(self, preset_bank, motif_engine, performance_bus, llm_client=None):
+        self.preset_bank = preset_bank
+        self.motif_engine = motif_engine
+        self.performance_bus = performance_bus
+        self.fm_synth = EnhancedFMSynth()
+        self.sample_rate = SAMPLE_RATE
+        
+        # LLM Client
+        self.llm_client = llm_client or LLMClient()
+        
+        # Deep Active Inference
+        self.deep_ai = DeepActiveInferenceMasteringAgent()
+        
+        # State
+        self.context = None
+        self.generation_history = []
+        self.orchestration_rounds = []
+        self.agent_responses = {}
+        self.streaming_history = []
+        
+        # EFE weights
+        self.efe_weights = {
+            &quot;coherence&quot;: 0.3,
+            &quot;novelty&quot;: 0.2,
+            &quot;emotional_alignment&quot;: 0.25,
+            &quot;technical_feasibility&quot;: 0.15,
+            &quot;continuity&quot;: 0.1
+        }
+        
+        log.info(&quot;🧠 SynthesisEngine v2.1 with Real LLM initialized&quot;)
+    
+    async def synthesize_async(self, context: SynthesisContext) -&gt; Dict[str, np.ndarray]:
+        &quot;&quot;&quot;
+        Async synthesis with real LLM streaming
+        &quot;&quot;&quot;
+        self.context = context
+        
+        # 1. Orchestrate with real LLM
+        orchestration = await self._orchestrate_agents_async(context)
+        
+        # 2. Deep Active Inference negotiation
+        negotiated_params = self._deep_negotiate_parameters(orchestration, context)
+        
+        # 3. Generate synthesis plan
+        plan = self._create_synthesis_plan(negotiated_params, orchestration)
+        
+        # 4. Execute synthesis
+        stems = self._execute_synthesis(plan, context)
+        
+        # 5. Update Deep AI with results
+        self._update_deep_ai(stems, context)
+        
+        # 6. Store history
+        self.generation_history.append({
+            &quot;timestamp&quot;: datetime.now().isoformat(),
+            &quot;context&quot;: context,
+            &quot;plan&quot;: plan,
+            &quot;stems&quot;: {k: v.shape for k, v in stems.items()}
+        })
+        
+        return stems
+    
+    async def _orchestrate_agents_async(self, context: SynthesisContext) -&gt; Dict[str, Any]:
+        &quot;&quot;&quot;
+        Orchestrate agents with real LLM streaming
+        &quot;&quot;&quot;
+        agents = [
+            &quot;Synthesist&quot;, &quot;Refiner&quot;, &quot;Continuity Keeper&quot;,
+            &quot;Aesthetic Engine&quot;, &quot;Forensic Analyst&quot;, &quot;Emotion Mapper&quot;
+        ]
+        
+        orchestration = {
+            &quot;rounds&quot;: [],
+            &quot;consensus&quot;: {},
+            &quot;resolutions&quot;: {},
+            &quot;streaming&quot;: []
+        }
+        
+        # Round 1: Initial proposals
+        round1 = await self._orchestrate_round_async(1, agents, context, &quot;initial&quot;)
+        orchestration[&quot;rounds&quot;].append(round1)
+        orchestration[&quot;streaming&quot;].append(round1.get(&quot;streaming&quot;, {}))
+        
+        # Round 2: Refinement
+        round2 = await self._orchestrate_round_async(2, agents, context, &quot;refinement&quot;, round1)
+        orchestration[&quot;rounds&quot;].append(round2)
+        orchestration[&quot;streaming&quot;].append(round2.get(&quot;streaming&quot;, {}))
+        
+        # Round 3: Consensus
+        round3 = await self._orchestrate_round_async(3, agents, context, &quot;consensus&quot;, round2)
+        orchestration[&quot;rounds&quot;].append(round3)
+        orchestration[&quot;streaming&quot;].append(round3.get(&quot;streaming&quot;, {}))
+        
+        # Extract consensus
+        orchestration[&quot;consensus&quot;] = self._extract_consensus(round3)
+        
+        return orchestration
+    
+    async def _orchestrate_round_async(self, round_num: int, agents: List[str],
+                                       context: SynthesisContext, phase: str,
+                                       previous_round: Dict = None) -&gt; Dict[str, Any]:
+        &quot;&quot;&quot;
+        Orchestrate a single round with real token streaming
+        &quot;&quot;&quot;
+        round_data = {
+            &quot;round&quot;: round_num,
+            &quot;phase&quot;: phase,
+            &quot;agent_responses&quot;: {},
+            &quot;timestamp&quot;: datetime.now().isoformat(),
+            &quot;streaming&quot;: {}
+        }
+        
+        # Process each agent in parallel
+        tasks = []
+        for agent in agents:
+            prompt = self._build_agent_prompt(agent, context, phase, previous_round)
+            task = self._stream_agent_response_async(agent, prompt, round_num)
+            tasks.append(task)
+        
+        # Wait for all responses
+        responses = await asyncio.gather(*tasks)
+        
+        # Parse responses
+        for response in responses:
+            agent = response[&quot;agent&quot;]
+            parsed = self._parse_agent_response(response, agent)
+            round_data[&quot;agent_responses&quot;][agent] = parsed
+            round_data[&quot;streaming&quot;][agent] = {
+                &quot;tokens&quot;: response.get(&quot;tokens&quot;, 0),
+                &quot;full_response&quot;: response.get(&quot;response&quot;, &quot;&quot;)
+            }
+            
+            log.info(f&quot;  📡 {agent} response: {len(response.get(&#x27;response&#x27;, &#x27;&#x27;))} chars, &quot;
+                    f&quot;{response.get(&#x27;tokens&#x27;, 0)} tokens&quot;)
+        
+        return round_data
+    
+    async def _stream_agent_response_async(self, agent: str, prompt: str,
+                                          round_num: int) -&gt; Dict[str, Any]:
+        &quot;&quot;&quot;
+        Stream agent response using real LLM
+        &quot;&quot;&quot;
+        log.info(f&quot;📡 Streaming {agent} (Round {round_num})...&quot;)
+        
+        response_parts = []
+        token_count = 0
+        
+        # Stream from LLM
+        async for token in self.llm_client.stream_completion(
+            prompt, agent, 
+            max_tokens=500,
+            temperature=0.7
+        ):
+            response_parts.append(token)
+            token_count += 1
+            
+            # Log token progress
+            if token_count % 20 == 0:
+                log.debug(f&quot;  Token {token_count}: {token[:30]}...&quot;)
+        
+        full_response = &quot;&quot;.join(response_parts)
+        
+        return {
+            &quot;agent&quot;: agent,
+            &quot;round&quot;: round_num,
+            &quot;response&quot;: full_response,
+            &quot;tokens&quot;: token_count,
+            &quot;timestamp&quot;: datetime.now().isoformat()
+        }
+    
+    def _build_agent_prompt(self, agent: str, context: SynthesisContext,
+                           phase: str, previous_round: Dict = None) -&gt; str:
+        &quot;&quot;&quot;Build agent-specific prompt&quot;&quot;&quot;
+        base_prompt = f&quot;&quot;&quot;
+        You are the {agent} agent in a music synthesis system.
+        
+        Context:
+        - User prompt: {context.user_prompt}
+        - Emotional profile: {context.emotional_profile}
+        - Temporal position: {context.temporal_position:.2f}
+        - Current density: {context.current_density:.2f}
+        - Active motifs: {context.active_motifs}
+        - Performance state: {context.performance_state}
+        - Macro profile: {context.macro_profile}
+        
+        Phase: {phase}
+        &quot;&quot;&quot;
+        
+        if previous_round:
+            base_prompt += f&quot;\n\nPrevious round summary:\n&quot;
+            for a, resp in previous_round.get(&quot;agent_responses&quot;, {}).items():
+                base_prompt += f&quot;\n{a}: {resp.get(&#x27;text&#x27;, &#x27;&#x27;)[:200]}...&quot;
+        
+        agent_specific = {
+            &quot;Synthesist&quot;: &quot;&quot;&quot;
+            Propose detailed synthesis parameters:
+            - FM modulation index (1-12)
+            - Glitch amount (0-1)  
+            - Reverb amount (0-1)
+            - Compression ratio (1-10)
+            - Stereo width (0-2)
+            - Algorithm selection (classic/complex/feedback/parallel)
+            - Motif variations and development
+            - Temporal arc planning
+            &quot;&quot;&quot;,
+            
+            &quot;Refiner&quot;: &quot;&quot;&quot;
+            Critically refine the synthesis parameters:
+            - Identify potential issues
+            - Suggest improvements
+            - Balance creativity with musical coherence
+            - Optimize for the emotional profile
+            &quot;&quot;&quot;,
+            
+            &quot;Continuity Keeper&quot;: &quot;&quot;&quot;
+            Ensure musical continuity:
+            - Maintain motif consistency
+            - Plan smooth transitions
+            - Avoid jarring changes
+            - Build coherent narrative arc
+            &quot;&quot;&quot;,
+            
+            &quot;Aesthetic Engine&quot;: &quot;&quot;&quot;
+            Evaluate aesthetic qualities:
+            - Emotional impact and expression
+            - Beauty and interest
+            - Coherence of the whole
+            - Cultural and genre appropriateness
+            &quot;&quot;&quot;,
+            
+            &quot;Forensic Analyst&quot;: &quot;&quot;&quot;
+            Technical analysis and recommendations:
+            - Dynamic range management
+            - Frequency balance optimization
+            - Potential issues (clipping, phase)
+            - Mix and mastering suggestions
+            &quot;&quot;&quot;,
+            
+            &quot;Emotion Mapper&quot;: &quot;&quot;&quot;
+            Map emotional intent to synthesis:
+            - Match emotional profile
+            - Design tension/release arcs
+            - Intensity mapping
+            - Color and texture recommendations
+            &quot;&quot;&quot;
+        }
+        
+        return base_prompt + agent_specific.get(agent, &quot;&quot;)
+    
+    def _parse_agent_response(self, response: Dict, agent: str) -&gt; Dict[str, Any]:
+        &quot;&quot;&quot;Parse agent response into structured format&quot;&quot;&quot;
+        text = response.get(&quot;response&quot;, &quot;&quot;)
+        
+        # Extract numeric parameters
+        import re
+        params = {}
+        param_patterns = {
+            &quot;fm_mod_index&quot;: r&quot;FM[=:]\s*(\d+\.?\d*)&quot;,
+            &quot;glitch_amount&quot;: r&quot;Glitch[=:]\s*(\d+\.?\d*)&quot;,
+            &quot;reverb_amount&quot;: r&quot;Reverb[=:]\s*(\d+\.?\d*)&quot;,
+            &quot;compression_ratio&quot;: r&quot;Comp[=:]\s*(\d+\.?\d*)&quot;,
+            &quot;stereo_width&quot;: r&quot;Width[=:]\s*(\d+\.?\d*)&quot;
+        }
+        
+        for param, pattern in param_patterns.items():
+            match = re.search(pattern, text)
+            if match:
+                params[param] = float(match.group(1))
+        
+        # Extract qualitative judgments
+        judgments = {}
+        judgment_patterns = {
+            &quot;coherence&quot;: r&quot;coherence[:=]\s*(\d+\.?\d*)&quot;,
+            &quot;novelty&quot;: r&quot;novelty[:=]\s*(\d+\.?\d*)&quot;,
+            &quot;emotional_alignment&quot;: r&quot;alignment[:=]\s*(\d+\.?\d*)&quot;
+        }
+        
+        for key, pattern in judgment_patterns.items():
+            match = re.search(pattern, text.lower())
+            if match:
+                judgments[key] = np.clip(float(match.group(1)), 0, 1)
+        
+        return {
+            &quot;agent&quot;: agent,
+            &quot;text&quot;: text,
+            &quot;parameters&quot;: params,
+            &quot;judgments&quot;: judgments
+        }
+    
+    def _deep_negotiate_parameters(self, orchestration: Dict, 
+                                  context: SynthesisContext) -&gt; Dict[str, float]:
+        &quot;&quot;&quot;
+        Negotiate parameters using Deep Active Inference
+        &quot;&quot;&quot;
+        # Collect all proposals
+        proposals = []
+        for round_data in orchestration[&quot;rounds&quot;]:
+            for agent, response in round_data[&quot;agent_responses&quot;].items():
+                if &quot;parameters&quot; in response and response[&quot;parameters&quot;]:
+                    proposals.append({
+                        &quot;agent&quot;: agent,
+                        &quot;params&quot;: response[&quot;parameters&quot;],
+                        &quot;judgments&quot;: response.get(&quot;judgments&quot;, {})
+                    })
+        
+        if not proposals:
+            return self._default_parameters()
+        
+        # Prepare observation for Deep AI
+        observation = {}
+        for prop in proposals:
+            for key, value in prop[&quot;params&quot;].items():
+                if key not in observation:
+                    observation[key] = []
+                observation[key].append(value)
+        
+        # Average proposals for each parameter
+        avg_observation = {}
+        for key, values in observation.items():
+            avg_observation[key] = np.mean(values)
+        
+        # Add context-based observations
+        avg_observation.update({
+            &quot;temporal_position&quot;: context.temporal_position,
+            &quot;current_density&quot;: context.current_density
+        })
+        
+        # Use Deep Active Inference to select optimal parameters
+        optimal_state = self.deep_ai.select_action(avg_observation)
+        
+        # Extract negotiated parameters
+        negotiated = {}
+        for key in [&quot;fm_mod_index&quot;, &quot;glitch_amount&quot;, &quot;reverb_amount&quot;, 
+                   &quot;compression_ratio&quot;, &quot;stereo_width&quot;]:
+            if key in optimal_state:
+                negotiated[key] = optimal_state[key]
+            elif key in avg_observation:
+                negotiated[key] = avg_observation[key]
+            else:
+                negotiated[key] = self._default_parameters().get(key, 0.5)
+        
+        return negotiated
+    
+    def _default_parameters(self) -&gt; Dict[str, float]:
+        return {
+            &quot;fm_mod_index&quot;: 5.0,
+            &quot;glitch_amount&quot;: 0.4,
+            &quot;reverb_amount&quot;: 0.5,
+            &quot;compression_ratio&quot;: 4.0,
+            &quot;stereo_width&quot;: 1.2
+        }
+    
+    def _create_synthesis_plan(self, params: Dict, orchestration: Dict) -&gt; Dict[str, Any]:
+        &quot;&quot;&quot;Create synthesis plan from negotiated parameters&quot;&quot;&quot;
+        return {
+            &quot;parameters&quot;: params,
+            &quot;algorithm&quot;: &quot;complex&quot; if params.get(&quot;fm_mod_index&quot;, 4) &gt; 6 else &quot;classic&quot;,
+            &quot;feedback&quot;: min(0.3, params.get(&quot;glitch_amount&quot;, 0.3) * 0.5),
+            &quot;preset&quot;: self._select_preset(params),
+            &quot;consensus&quot;: orchestration.get(&quot;consensus&quot;, {}),
+            &quot;temporal_arc&quot;: self._plan_temporal_arc()
+        }
+    
+    def _select_preset(self, params: Dict) -&gt; str:
+        fm = params.get(&quot;fm_mod_index&quot;, 4)
+        if fm &gt; 7:
+            return &quot;glitch_core&quot;
+        elif fm &gt; 5:
+            return &quot;crystal_clear&quot;
+        elif fm &gt; 3:
+            return &quot;warm_lead&quot;
+        else:
+            return &quot;ethereal_pad&quot;
+    
+    def _plan_temporal_arc(self) -&gt; Dict[str, Any]:
+        if not self.context:
+            return {}
+        position = self.context.temporal_position
+        return {
+            &quot;intensity&quot;: 0.3 + 0.7 * position,
+            &quot;complexity&quot;: 0.2 + 0.6 * position,
+            &quot;tension&quot;: 0.1 + 0.8 * position if position &lt; 0.7 else 1.0 - (position - 0.7) * 3
+        }
+    
+    def _execute_synthesis(self, plan: Dict, context: SynthesisContext) -&gt; Dict[str, np.ndarray]:
+        &quot;&quot;&quot;Execute synthesis plan&quot;&quot;&quot;
+        params = plan[&quot;parameters&quot;]
+        duration = 10.0
+        
+        # Use Deep AI beliefs if available
+        deep_state = self.deep_ai.get_state()
+        if deep_state.beliefs:
+            for key in params:
+                if key in deep_state.beliefs:
+                    params[key] = deep_state.beliefs[key]
+        
+        length = int(duration * self.sample_rate)
+        stems = self._generate_stems(params, context, length)
+        
+        return stems
+    
+    def _generate_stems(self, params: Dict, context: SynthesisContext, 
+                        length: int) -&gt; Dict[str, np.ndarray]:
+        &quot;&quot;&quot;Generate individual stems&quot;&quot;&quot;
+        stems = {
+            &#x27;melody&#x27;: np.zeros((length, 2), dtype=np.float32),
+            &#x27;bass&#x27;: np.zeros((length, 2), dtype=np.float32),
+            &#x27;pads&#x27;: np.zeros((length, 2), dtype=np.float32),
+            &#x27;percussion&#x27;: np.zeros(length, dtype=np.float32),
+            &#x27;glitch&#x27;: np.zeros((length, 2), dtype=np.float32)
+        }
+        
+        # Get preset
+        preset_name = self._select_preset(params)
+        preset = self.preset_bank.get_preset(preset_name)
+        if not preset:
+            preset = self.preset_bank.get_random_preset()
+        
+        bpm = 128
+        sixteenth = self.sample_rate * 60 / (bpm * 4)
+        
+        # Generate melody
+        if context.active_motifs:
+            motif = self.motif_engine.recall(context.active_motifs[0])
+            if motif:
+                notes = motif[&quot;notes&quot;]
+                rhythm = motif[&quot;rhythm&quot;]
+                for step, (note_offset, dur) in enumerate(zip(notes, rhythm)):
+                    idx = int(step * sixteenth * dur)
+                    if idx &gt;= length:
+                        break
+                    freq = 55 * (2 ** (note_offset / 12.0))
+                    mod_idx = params.get(&quot;fm_mod_index&quot;, 4.0)
+                    note = self.fm_synth.generate_note(
+                        freq, 0.3 * dur,
+                        mod_index=mod_idx,
+                        ratios=preset.ratios,
+                        velocity=0.85,
+                        algorithm=plan.get(&quot;algorithm&quot;, &quot;classic&quot;),
+                        feedback=plan.get(&quot;feedback&quot;, 0.0)
+                    )
+                    end = min(idx + len(note), length)
+                    stems[&#x27;melody&#x27;][idx:end, 0] += note[:end-idx] * 0.85
+                    stems[&#x27;melody&#x27;][idx:end, 1] += note[:end-idx] * 0.65
+        
+        # Additional stems...
+        # (bass, pads, percussion, glitch generation similar to previous versions)
+        
+        return stems
+    
+    def _update_deep_ai(self, stems: Dict, context: SynthesisContext):
+        &quot;&quot;&quot;Update Deep AI with synthesis results&quot;&quot;&quot;
+        # Analyze generated audio
+        if stems and &#x27;melody&#x27; in stems:
+            audio = stems[&#x27;melody&#x27;][:, 0] if len(stems[&#x27;melody&#x27;].shape) &gt; 1 else stems[&#x27;melody&#x27;]
+            if len(audio) &gt; 0:
+                self.deep_ai.update_targets_from_audio(audio)
+        
+        # Update learning rates based on context
+        performance = context.current_density
+        self.deep_ai.update_learning_rates(performance)
+    
+    def _extract_consensus(self, round_data: Dict) -&gt; Dict[str, Any]:
+        &quot;&quot;&quot;Extract consensus from agent round&quot;&quot;&quot;
+        consensus = {&quot;parameters&quot;: {}, &quot;judgments&quot;: {}}
+        
+        # Average parameters
+        param_counts = defaultdict(list)
+        for agent, response in round_data[&quot;agent_responses&quot;].items():
+            if &quot;parameters&quot; in response:
+                for param, value in response[&quot;parameters&quot;].items():
+                    param_counts[param].append(value)
+        
+        for param, values in param_counts.items():
+            consensus[&quot;parameters&quot;][param] = np.mean(values)
+        
+        # Average judgments
+        judgment_counts = defaultdict(list)
+        for agent, response in round_data[&quot;agent_responses&quot;].items():
+            if &quot;judgments&quot; in response:
+                for key, value in response[&quot;judgments&quot;].items():
+                    judgment_counts[key].append(value)
+        
+        for key, values in judgment_counts.items():
+            consensus[&quot;judgments&quot;][key] = np.mean(values)
+        
+        return consensus
+
+# ====================== MAIN SYSTEM ======================
+
+class NebulaSystemV463:
+    &quot;&quot;&quot;
+    NebulaSystem v4.6.3 with real LLM and deep active inference
+    &quot;&quot;&quot;
+    
+    def __init__(self, project, llm_provider: str = &quot;openai&quot;):
+        self.project = project
+        self.preset_bank = project.preset_bank
+        self.motif_engine = project.motif_engine
+        self.spectral_fingerprint = project.spectral_fingerprint
+        self.motif_evolution = MotifEvolution()
+        self.performance_bus = PerformanceBus()
+        
+        # LLM Client
+        self.llm_client = LLMClient(provider=llm_provider)
+        
+        # Synthesis Engine with real LLM
+        self.synthesis_engine = SynthesisEngineV21(
+            self.preset_bank,
+            self.motif_engine,
+            self.performance_bus,
+            self.llm_client
+        )
+        
+        # Mastering chain
+        self.mastering_chain = EnhancedMasteringChain()
+        
+        self.track_history = []
+        self.transition_buffer = []
+        self.synthesis_history = []
+        
+        log.info(f&quot;🌌 NebulaSystem v4.6.3 initialized: {project.name}&quot;)
+    
+    def generate_track(self, spec) -&gt; np.ndarray:
+        &quot;&quot;&quot;Generate track with real LLM and deep active inference&quot;&quot;&quot;
+        log.info(f&quot;🎵 Generating: {spec.title}&quot;)
+        
+        macro = self.project.get_macro(spec.macro_name)
+        segments = []
+        total_duration = sum(arc[&quot;duration&quot;] for scene in spec.scenes for arc in scene.arcs)
+        progress = 0.0
+        
+        # Run async generation
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        try:
+            for scene_idx, scene in enumerate(spec.scenes):
+                if scene_idx &gt; 0:
+                    self._apply_scene_transition(scene, spec.scenes[scene_idx - 1])
+                
+                for arc in scene.arcs:
+                    duration = arc[&quot;duration&quot;]
+                    section_type = arc[&quot;section_type&quot;]
+                    
+                    # Build context
+                    context = SynthesisContext(
+                        user_prompt=spec.concept,
+                        emotional_profile={tag: 0.5 for tag in spec.mood_tags},
+                        technical_constraints={&quot;duration&quot;: duration, &quot;type&quot;: section_type},
+                        temporal_position=progress / total_duration,
+                        current_density=scene.density,
+                        active_motifs=scene.motifs,
+                        performance_state=self.performance_bus.get_state(),
+                        macro_profile={&quot;intensity&quot;: macro.intensity, &quot;clarity&quot;: macro.clarity}
+                    )
+                    
+                    # Synthesize with real LLM
+                    stems = loop.run_until_complete(
+                        self.synthesis_engine.synthesize_async(context)
+                    )
+                    
+                    # Mix stems
+                    mix = self._mix_stems(stems)
+                    segments.append(mix)
+                    
+                    progress += duration
+                    log.info(f&quot;  🎵 {arc[&#x27;arc&#x27;]} - {duration}s&quot;)
+                    
+                    # Store synthesis history
+                    self.synthesis_history.append({
+                        &quot;arc&quot;: arc[&quot;arc&quot;],
+                        &quot;context&quot;: context,
+                        &quot;deep_ai_state&quot;: self.synthesis_engine.deep_ai.get_state().to_dict()
+                    })
+            
+        finally:
+            loop.close()
+        
+        track = self._assemble_track(segments)
+        
+        # Apply mastering with deep active inference
+        log.info(&quot;🎛️ Applying deep active inference mastering...&quot;)
+        mastered = self.mastering_chain.process(
+            track, macro, scene, self.performance_bus.get_state()
+        )
+        
+        # Spectral fingerprinting
+        features = self.spectral_fingerprint.analyze_track(mastered[:, 0], spec.track_id)
+        similarity = self.spectral_fingerprint.get_similarity(features)
+        log.info(f&quot;🔮 Spectral similarity: {similarity:.2f}&quot;)
+        
+        # Register track
+        self.project.history.append(spec.track_id)
+        self.track_history.append(spec.track_id)
+        
+        log.info(f&quot;✅ Track complete: {len(mastered)/SAMPLE_RATE:.1f}s&quot;)
+        return mastered
+    
+    def _apply_scene_transition(self, new_scene, prev_scene):
+        transition = {
+            &quot;from&quot;: prev_scene.name,
+            &quot;to&quot;: new_scene.name,
+            &quot;time&quot;: datetime.now().isoformat()
+        }
+        self.transition_buffer.append(transition)
+    
+    def _mix_stems(self, stems: Dict[str, np.ndarray]) -&gt; np.ndarray:
+        mix = (
+            stems[&#x27;melody&#x27;] * 0.85 +
+            stems[&#x27;bass&#x27;] * 1.15 +
+            stems[&#x27;pads&#x27;] * 0.75 +
+            np.column_stack([stems[&#x27;percussion&#x27;], stems[&#x27;percussion&#x27;]]) * 1.2 +
+            stems[&#x27;glitch&#x27;] * 0.55
+        )
+        mix /= (np.max(np.abs(mix)) + 1e-8)
+        return mix
+    
+    def _assemble_track(self, segments: List[np.ndarray]) -&gt; np.ndarray:
+        if not segments:
+            return np.zeros((SAMPLE_RATE * 10, 2), dtype=np.float32)
+        
+        final = segments[0]
+        fade = int(0.4 * SAMPLE_RATE)
+        
+        for seg in segments[1:]:
+            overlap = min(fade, len(final), len(seg))
+            fade_out = np.linspace(1, 0, overlap)[:, None]
+            fade_in = np.linspace(0, 1, overlap)[:, None]
+            final[-overlap:] = final[-overlap:] * fade_out + seg[:overlap] * fade_in
+            final = np.vstack([final, seg[overlap:]])
+        
+        return final
+    
+    def export(self, audio: np.ndarray, filename: str = None, export_dir: str = &quot;masters_v463&quot;):
+        out_dir = Path(export_dir)
+        out_dir.mkdir(exist_ok=True)
+        
+        if filename is None:
+            filename = f&quot;{self.project.name.lower().replace(&#x27; &#x27;, &#x27;_&#x27;)}.wav&quot;
+        
+        output_path = out_dir / filename
+        sf.write(str(output_path), audio, SAMPLE_RATE, subtype=&#x27;PCM_24&#x27;)
+        log.info(f&quot;💾 Exported: {output_path}&quot;)
+        
+        # Export synthesis history with LLM data
+        history_path = out_dir / f&quot;{output_path.stem}_synthesis_history.json&quot;
+        with open(history_path, &quot;w&quot;) as f:
+            json.dump({
+                &quot;synthesis_history&quot;: self.synthesis_history,
+                &quot;transitions&quot;: self.transition_buffer,
+                &quot;deep_ai_state&quot;: self.synthesis_engine.deep_ai.get_state().to_dict(),
+                &quot;streaming_history&quot;: self.llm_client.get_stream_history()[-100:]
+            }, f, indent=2, default=str)
+        log.info(f&quot;📊 Synthesis history exported: {history_path}&quot;)
+        
+        return output_path
+
+# ====================== DEMONSTRATION ======================
+
+def create_demo_track():
+    &quot;&quot;&quot;Create and generate a demo track with real LLM&quot;&quot;&quot;
+    
+    project = NebulaProject(&quot;Crystal Ascension Project v4.6.3&quot;)
+    
+    spec = MasterNebulaTrackSpecV46(
+        track_id=&quot;crystal_ascension_v463&quot;,
+        title=&quot;CRYSTAL ASCENSION v4.6.3&quot;,
+        concept=&quot;Real LLM orchestration with deep active inference mastering&quot;,
+        mood_tags=[&quot;radiant&quot;, &quot;evolved&quot;, &quot;AI-driven&quot;],
+        macro_name=&quot;cinematic&quot;
+    )
+    
+    system = NebulaSystemV463(project, llm_provider=&quot;openai&quot;)
+    
+    log.info(&quot;\n&quot; + &quot;=&quot;*60)
+    log.info(&quot;🚀 NEBULASYSTEM v4.6.3 - REAL LLM + DEEP ACTIVE INFERENCE&quot;)
+    log.info(&quot;=&quot;*60)
+    log.info(&quot;New Features:&quot;)
+    log.info(&quot;  ✓ Real OpenAI/Anthropic Streaming&quot;)
+    log.info(&quot;  ✓ Deep Active Inference Mastering&quot;)
+    log.info(&quot;  ✓ Token-by-Token LLM Orchestration&quot;)
+    log.info(&quot;  ✓ Hierarchical Belief Updating&quot;)
+    log.info(&quot;  ✓ Expected Free Energy Minimization&quot;)
+    log.info(&quot;=&quot;*60)
+    
+    audio = system.generate_track(spec)
+    system.export(audio, &quot;crystal_ascension_v463.wav&quot;)
+    
+    log.info(&quot;\n&quot; + &quot;=&quot;*60)
+    log.info(&quot;✅ Generation Complete!&quot;)
+    log.info(f&quot;📁 Output: masters_v463/&quot;)
+    log.info(&quot;=&quot;*60)
+    
+    return audio, system
+
+if __name__ == &quot;__main__&quot;:
+    try:
+        print(&quot;\n&quot; + &quot;✦&quot;*40)
+        print(&quot;🌌 NEBULASYSTEM v4.6.3 - REAL LLM + DEEP AI&quot;)
+        print(&quot;✦&quot;*40 + &quot;\n&quot;)
+        
+        audio, system = create_demo_track()
+        
+        print(&quot;\n✅ Complete!&quot;)
+        print(&quot;📁 Check masters_v463/ for output files&quot;)
+        print(&quot;📊 Includes:&quot;)
+        print(&quot;  - Master audio (24-bit WAV)&quot;)
+        print(&quot;  - Synthesis history with LLM data&quot;)
+        print(&quot;  - Deep AI state tracking&quot;)
+        print(&quot;  - Token streaming records&quot;)
+        print(&quot;\n🔑 Set environment variables:&quot;)
+        print(&quot;  export OPENAI_API_KEY=&#x27;your_key&#x27;&quot;)
+        print(&quot;  export ANTHROPIC_API_KEY=&#x27;your_key&#x27;&quot;)
+        
+    except Exception as e:
+        log.error(f&quot;❌ Error: {e}&quot;)
+        import traceback
+        traceback.print_exc()</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>
