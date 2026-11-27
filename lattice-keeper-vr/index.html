@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lattice Keeper VR · Fracture Walker — Jay Vallea</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #05080f;
+      overflow: hidden;
+      font-family: 'Inter', 'Segoe UI', system-ui, monospace;
+      color: #b0e4ff;
+      user-select: none;
+    }
+    #ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 30;
+    }
+    #top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      padding: 16px 24px;
+      background: rgba(4, 12, 28, 0.65);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      font-size: 13px;
+      letter-spacing: 0.4px;
+      align-items: center;
+      pointer-events: auto;
+    }
+    #top-bar .badge { color: #6cf; font-weight: 600; }
+    #top-bar .status-badge {
+      padding: 4px 16px;
+      border-radius: 30px;
+      background: rgba(0, 255, 200, 0.08);
+      border: 1px solid rgba(0, 255, 200, 0.2);
+      font-size: 12px;
+    }
+    #status-text { transition: all 0.3s; min-width: 140px; display: inline-block; }
+    #status-text.online { color: #5fefaf; }
+    #status-text.offline { color: #ff7799; }
+    #status-text.connecting { color: #ffcc66; }
+
+    #control-bar {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: rgba(4, 12, 28, 0.7);
+      backdrop-filter: blur(16px);
+      padding: 12px 20px;
+      border-radius: 60px;
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+    }
+    #control-bar button {
+      padding: 10px 24px;
+      border-radius: 40px;
+      border: 1px solid rgba(0, 200, 255, 0.3);
+      background: rgba(0, 30, 50, 0.6);
+      color: #b0f0ff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-family: inherit;
+      letter-spacing: 0.5px;
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+    #control-bar button:hover {
+      background: rgba(0, 200, 255, 0.2);
+      border-color: #0ff;
+      box-shadow: 0 0 30px rgba(0, 200, 255, 0.2);
+    }
+    #control-bar button.recording {
+      background: #ff2255;
+      border-color: #ff2255;
+      color: #fff;
+      animation: pulse-rec 1s infinite;
+    }
+    @keyframes pulse-rec {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 34, 85, 0.4); }
+      50% { box-shadow: 0 0 60px rgba(255, 34, 85, 0.8); }
+    }
+    #control-bar button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    #rec-timer {
+      color: #ff7799;
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+      min-width: 80px;
+      text-align: center;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 30px;
+      border: 1px solid rgba(255, 100, 150, 0.2);
+    }
+    #corner-info {
+      position: absolute;
+      bottom: 100px;
+      right: 28px;
+      text-align: right;
+      font-size: 11px;
+      opacity: 0.5;
+      letter-spacing: 1px;
+      pointer-events: none;
+      text-shadow: 0 0 20px #0af;
+      line-height: 1.6;
+    }
+    #pulse-indicator {
+      position: absolute;
+      top: 80px;
+      right: 24px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0ff;
+      box-shadow: 0 0 30px #0ff;
+      transition: 0.1s;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    #download-notice {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 255, 100, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 8px 24px;
+      border-radius: 40px;
+      border: 1px solid rgba(0, 255, 100, 0.3);
+      color: #5fefaf;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #download-notice.show { opacity: 1; }
+    @media (max-width: 700px) {
+      #top-bar { font-size: 10px; padding: 10px 14px; gap: 4px 10px; }
+      #control-bar { bottom: 16px; padding: 10px 14px; gap: 6px; border-radius: 30px; }
+      #control-bar button { padding: 6px 14px; font-size: 0.7rem; }
+      #rec-timer { font-size: 0.7rem; min-width: 60px; padding: 4px 8px; }
+      #corner-info { display: none; }
+      #pulse-indicator { top: 60px; right: 14px; width: 6px; height: 6px; }
+      #download-notice { bottom: 80px; font-size: 0.7rem; padding: 4px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div id="ui-layer">
+  <div id="top-bar">
+    <span class="badge">✦ GENESIS</span>
+    <span style="font-family: monospace; opacity:0.8;">fd0adf90...7b940b2</span>
+    <span style="opacity:0.3;">|</span>
+    <span class="badge">⚡ KEEPER</span>
+    <span style="font-weight:300;">Master_Nebula</span>
+    <span style="opacity:0.3;">|</span>
+    <span class="status-badge">
+      <span id="status-text" class="connecting">⟳ CONNECTING</span>
+    </span>
+  </div>
+  <div id="pulse-indicator"></div>
+  <div id="corner-info">FRACTURE WALKER v0.1<br>✦ POLARITY RAW</div>
+  
+  <div id="control-bar">
+    <button id="btn-record">⏺ RECORD</button>
+    <span id="rec-timer">00:00</span>
+    <button id="btn-export" disabled>⬇ EXPORT</button>
+    <button id="btn-vr">⊞ VR</button>
+  </div>
+  
+  <div id="download-notice">✓ Video ready for YouTube!</div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ================================================================
+//  LATTICE KEEPER VR  —  with built-in screen recorder & export
+//  Record your lattice experience, export as WebM for YouTube
+// ================================================================
+
+const GENESIS_HASH = "fd0adf9005622e103f02115a50314d91f83dc705f1d685b16d45f52ad6b940b2";
+let sessionHash = "";
+let ws = null;
+let scene, camera, renderer;
+let latticeGroup = null;
+let polarityPulse = 0;
+let targetPulse = 0;
+let clock = new THREE.Clock();
+let nodes = [];
+let edgeLines = null;
+let coreMesh = null;
+let starField = null;
+let glowLight = null;
+
+// --- Recording ---
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let recordingStartTime = 0;
+let recordingTimerInterval = null;
+let stream = null;
+let canvasElement = null;
+
+// --- UI refs ---
+const statusEl = document.getElementById('status-text');
+const pulseIndicator = document.getElementById('pulse-indicator');
+const btnRecord = document.getElementById('btn-record');
+const btnExport = document.getElementById('btn-export');
+const btnVR = document.getElementById('btn-vr');
+const recTimer = document.getElementById('rec-timer');
+const downloadNotice = document.getElementById('download-notice');
+
+// --- INIT ---
+initScene();
+connectToLattice();
+setupUI();
+
+function initScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x070b14);
+  scene.fog = new THREE.FogExp2(0x070b14, 0.0045);
+
+  camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 200);
+  camera.position.set(0, 1.8, 8);
+  camera.lookAt(0, 0.5, -4);
+
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: "high-performance",
+    preserveDrawingBuffer: true  // needed for recording
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = false;
+  renderer.xr.enabled = true;
+  renderer.xr.setReferenceSpaceType('local');
+  document.body.prepend(renderer.domElement);
+  
+  // Store canvas for recording
+  canvasElement = renderer.domElement;
+
+  // --- Build the Lattice Construct ---
+  latticeGroup = new THREE.Group();
+  scene.add(latticeGroup);
+
+  // 1. Nodes
+  const nodeMat = new THREE.MeshStandardMaterial({
+    color: 0x44ddff,
+    emissive: 0x006688,
+    roughness: 0.25,
+    metalness: 0.6,
+  });
+  const positions = [];
+  const range = 6.5;
+  const step = 1.5;
+  for (let x = -range; x <= range; x += step) {
+    for (let y = -range; y <= range; y += step) {
+      const zBase = -7 + Math.sin(x * 0.7) * 1.8 + Math.cos(y * 0.5) * 1.8;
+      const z = zBase + (Math.random() - 0.5) * 0.8;
+      const pos = new THREE.Vector3(x * 0.85, y * 0.7 + 0.6, z);
+      positions.push(pos);
+
+      const node = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.22, 1),
+        nodeMat.clone()
+      );
+      node.position.copy(pos);
+      node.userData = {
+        basePos: pos.clone(),
+        phase: Math.random() * Math.PI * 2,
+        scaleBase: 0.6 + Math.random() * 0.6
+      };
+      latticeGroup.add(node);
+      nodes.push(node);
+    }
+  }
+
+  // 2. Edges
+  const edgePairs = [];
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const dist = positions[i].distanceTo(positions[j]);
+      if (dist < 3.0 && dist > 0.3) {
+        edgePairs.push(
+          positions[i].x, positions[i].y, positions[i].z,
+          positions[j].x, positions[j].y, positions[j].z
+        );
+      }
+    }
+  }
+  const edgeGeo = new THREE.BufferGeometry();
+  edgeGeo.setAttribute('position', new THREE.Float32BufferAttribute(edgePairs, 3));
+  const edgeMat = new THREE.LineBasicMaterial({
+    color: 0x44aaff,
+    transparent: true,
+    opacity: 0.2,
+    blending: THREE.AdditiveBlending
+  });
+  edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+  latticeGroup.add(edgeLines);
+
+  // 3. Core
+  const coreGeo = new THREE.IcosahedronGeometry(0.9, 2);
+  const coreMat = new THREE.MeshStandardMaterial({
+    color: 0x22ccff,
+    emissive: 0x006688,
+    roughness: 0.1,
+    metalness: 0.2,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.3
+  });
+  coreMesh = new THREE.Mesh(coreGeo, coreMat);
+  coreMesh.position.set(0, 0.6, -5);
+  latticeGroup.add(coreMesh);
+
+  // 4. Stars
+  const starCount = 1200;
+  const starPos = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount * 3; i += 3) {
+    const r = 25 + Math.random() * 70;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    starPos[i] = r * Math.sin(phi) * Math.cos(theta);
+    starPos[i+1] = r * Math.sin(phi) * Math.sin(theta) * 0.4;
+    starPos[i+2] = r * Math.cos(phi) - 40;
+  }
+  const starGeo = new THREE.BufferGeometry();
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({
+    color: 0x88bbff,
+    size: 0.2,
+    transparent: true,
+    opacity: 0.7,
+    blending: THREE.AdditiveBlending
+  });
+  starField = new THREE.Points(starGeo, starMat);
+  scene.add(starField);
+
+  // 5. Lighting
+  const ambient = new THREE.AmbientLight(0x224466, 0.5);
+  scene.add(ambient);
+  const keyLight = new THREE.DirectionalLight(0x88ddff, 1.0);
+  keyLight.position.set(3, 6, 5);
+  scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0xff66aa, 0.3);
+  fillLight.position.set(-4, 1, -3);
+  scene.add(fillLight);
+  glowLight = new THREE.PointLight(0x00ccff, 2, 25);
+  glowLight.position.set(0, 3, -6);
+  scene.add(glowLight);
+
+  // 6. Ground glow
+  const ringGeo = new THREE.RingGeometry(2.8, 4.2, 64);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0x2266aa,
+    transparent: true,
+    opacity: 0.08,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(0, -0.2, -4);
+  latticeGroup.add(ring);
+
+  // Resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // --- Recording setup: capture canvas stream ---
+  setupRecording();
+
+  // --- VR button ---
+  btnVR.addEventListener('click', async () => {
+    if (!navigator.xr) {
+      alert('WebXR not available. Use Chrome, Edge, or Firefox Reality.');
+      return;
+    }
+    try {
+      const session = await navigator.xr.requestSession('immersive-vr', {
+        optionalFeatures: ['local-floor']
+      });
+      renderer.xr.setSession(session);
+    } catch(e) {
+      console.warn('VR session error:', e);
+      alert('VR not available.');
+    }
+  });
+
+  // Start loop
+  renderer.setAnimationLoop(animate);
+}
+
+// --- Recording setup ---
+function setupRecording() {
+  btnRecord.addEventListener('click', toggleRecording);
+  btnExport.addEventListener('click', exportVideo);
+}
+
+async function toggleRecording() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    // Capture the canvas as a stream
+    const canvas = canvasElement;
+    if (!canvas) return;
+    
+    // Use captureStream with framerate
+    stream = canvas.captureStream(30);
+    
+    // Check if audio is available (we'll just do video)
+    const mimeTypes = [
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+      'video/mp4'
+    ];
+    let mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
+    if (!mimeType) {
+      alert('No supported video MIME type found.');
+      return;
+    }
+    
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: mimeType,
+      videoBitsPerSecond: 8000000 // 8 Mbps
+    });
+    
+    recordedChunks = [];
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+    
+    mediaRecorder.onstop = () => {
+      isRecording = false;
+      btnRecord.textContent = '⏺ RECORD';
+      btnRecord.classList.remove('recording');
+      btnExport.disabled = false;
+      clearInterval(recordingTimerInterval);
+      downloadNotice.classList.add('show');
+      setTimeout(() => downloadNotice.classList.remove('show'), 4000);
+    };
+    
+    mediaRecorder.start(1000); // capture in 1s chunks
+    isRecording = true;
+    btnRecord.textContent = '⏹ STOP';
+    btnRecord.classList.add('recording');
+    btnExport.disabled = true;
+    recordingStartTime = Date.now();
+    updateTimer();
+    recordingTimerInterval = setInterval(updateTimer, 1000);
+    
+  } catch (err) {
+    console.error('Recording error:', err);
+    alert('Could not start recording: ' + err.message);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+  isRecording = false;
+  btnRecord.textContent = '⏺ RECORD';
+  btnRecord.classList.remove('recording');
+  clearInterval(recordingTimerInterval);
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+  const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const secs = String(elapsed % 60).padStart(2, '0');
+  recTimer.textContent = `${mins}:${secs}`;
+}
+
+function exportVideo() {
+  if (recordedChunks.length === 0) {
+    alert('No recording to export. Record first!');
+    return;
+  }
+  
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
+  
+  // Create download link
+  const a = document.createElement('a');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  a.download = `lattice-keeper-${timestamp}.webm`;
+  a.href = url;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  
+  // Cleanup
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  
+  // Reset export button state after download
+  btnExport.disabled = true;
+  downloadNotice.textContent = '✓ Video downloaded! Ready for YouTube.';
+  downloadNotice.classList.add('show');
+  setTimeout(() => {
+    downloadNotice.classList.remove('show');
+    downloadNotice.textContent = '✓ Video ready for YouTube!';
+  }, 5000);
+}
+
+// --- WebSocket with simulation ---
+function connectToLattice() {
+  const wsUrl = "ws://localhost:7734/lattice/ws";
+  let useSimulation = false;
+
+  try {
+    ws = new WebSocket(wsUrl);
+  } catch(e) {
+    useSimulation = true;
+    startSimulation();
+    return;
+  }
+
+  ws.onopen = () => {
+    setStatus('online', '✅ ANCHORED');
+    const hash = btoa(GENESIS_HASH + Date.now()).slice(0, 64);
+    sessionHash = hash;
+    ws.send(JSON.stringify({
+      type: 'handshake',
+      keeper: 'Master_Nebula',
+      session_hash: sessionHash,
+      genesis_anchor: GENESIS_HASH,
+      polarity: 'raw'
+    }));
+    heartbeatInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ping', ts: Date.now() }));
+      }
+    }, 7000);
+  };
+
+  ws.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === 'pulse') {
+        const dissonance = msg.dissonance || 0;
+        targetPulse = Math.min(1.2, Math.max(0.05, dissonance * 0.7 + 0.15));
+        pulseIndicator.style.opacity = 0.3 + targetPulse * 0.7;
+        pulseIndicator.style.boxShadow = `0 0 ${20 + targetPulse * 40}px #0ff`;
+      }
+    } catch(e) {}
+  };
+
+  ws.onerror = () => {
+    setStatus('offline', '💀 FRACTURE');
+    if (!useSimulation) {
+      useSimulation = true;
+      startSimulation();
+    }
+  };
+
+  ws.onclose = () => {
+    if (!useSimulation) {
+      setStatus('connecting', '⟳ RECONNECTING');
+      setTimeout(connectToLattice, 2000);
+    }
+  };
+
+  let heartbeatInterval = null;
+}
+
+function startSimulation() {
+  setStatus('online', '⚡ SIMULATION');
+  let simInterval = setInterval(() => {
+    const base = 0.08 + Math.sin(Date.now() / 4000) * 0.05;
+    const spike = Math.random() > 0.85 ? 0.6 + Math.random() * 0.5 : 0;
+    targetPulse = Math.min(1.0, base + spike);
+    pulseIndicator.style.opacity = 0.4 + targetPulse * 0.6;
+    pulseIndicator.style.boxShadow = `0 0 ${20 + targetPulse * 50}px #0ff`;
+  }, 400);
+  window.__simInterval = simInterval;
+}
+
+// --- UI helpers ---
+function setStatus(state, label) {
+  statusEl.textContent = label;
+  statusEl.className = state;
+}
+
+function setupUI() {
+  setStatus('connecting', '⟳ CONNECTING');
+  // Reset timer
+  recTimer.textContent = '00:00';
+}
+
+// --- ANIMATION LOOP ---
+function animate() {
+  const dt = clock.getDelta();
+  const elapsed = clock.getElapsedTime();
+
+  polarityPulse += (targetPulse - polarityPulse) * 0.06;
+  if (Math.abs(polarityPulse - targetPulse) < 0.001) polarityPulse = targetPulse;
+  const p = polarityPulse;
+
+  // Nodes
+  nodes.forEach((node, i) => {
+    const phase = node.userData.phase || 0;
+    const wave = Math.sin(elapsed * 1.1 + phase) * 0.12 + 0.88;
+    const scale = (0.5 + p * 0.9) * (0.8 + Math.sin(elapsed * 0.7 + i) * 0.08);
+    node.scale.setScalar(Math.max(0.3, scale * wave));
+    if (node.material) {
+      const r = 0.15 + p * 0.45;
+      const g = 0.5 + p * 0.4;
+      const b = 0.9 + p * 0.1;
+      node.material.color.setRGB(r, g, b);
+      node.material.emissive.setRGB(r * 0.3, g * 0.2, b * 0.1);
+    }
+  });
+
+  // Edges
+  if (edgeLines) {
+    edgeLines.material.opacity = 0.12 + p * 0.4;
+    edgeLines.material.color.setHSL(0.58 + p * 0.08, 0.9, 0.4 + p * 0.3);
+  }
+
+  // Core
+  if (coreMesh) {
+    const s = 1 + Math.sin(elapsed * 0.5) * 0.08 + p * 0.25;
+    coreMesh.scale.setScalar(s);
+    coreMesh.rotation.x += 0.008;
+    coreMesh.rotation.y += 0.015;
+    coreMesh.material.opacity = 0.2 + p * 0.35;
+    coreMesh.material.color.setHSL(0.58 + p * 0.08, 0.9, 0.5 + p * 0.2);
+  }
+
+  // Light
+  if (glowLight) {
+    glowLight.intensity = 1.2 + p * 3.0;
+    glowLight.color.setHSL(0.55 + p * 0.08, 0.9, 0.5);
+  }
+
+  // Rotation
+  latticeGroup.rotation.y += 0.0012;
+  latticeGroup.rotation.x = Math.sin(elapsed * 0.02) * 0.04;
+  latticeGroup.rotation.z += 0.0003;
+
+  // Stars
+  if (starField) {
+    starField.rotation.y += 0.00008;
+    starField.rotation.x = Math.sin(elapsed * 0.003) * 0.01;
+  }
+
+  renderer.render(scene, camera);
+}
+
+// --- Cleanup ---
+window.addEventListener('beforeunload', () => {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+  if (window.__simInterval) clearInterval(window.__simInterval);
+  if (isRecording) stopRecording();
+  if (renderer) renderer.dispose();
+});
+
+console.log('🌀 LATTICE KEEPER VR · Fracture Walker');
+console.log('📹 Click RECORD to capture your lattice experience.');
+console.log('⬇ After recording, click EXPORT to save as WebM for YouTube.');
+</script>
+</body>
+</html>

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sacred Geometry Synthesizer — Jay Vallea</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #a8e6cf, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            color: #a8e6cf;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(102,126,234,0.1);
+        }
+
+        .upload-area:hover {
+            border-color: #a8e6cf;
+            background: rgba(168,230,207,0.1);
+        }
+
+        .audio-player {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .play-pause-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .timeline {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .timeline-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #a8e6cf, #667eea);
+            border-radius: 2px;
+            width: 0%;
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #a8e6cf;
+        }
+
+        .slider-group {
+            margin-bottom: 15px;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #a8e6cf;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a8e6cf, #667eea);
+            color: #1a1a2e;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a8e6cf, #667eea);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .status.success { background: rgba(76,175,80,0.3); color: #a8e6cf; }
+        .status.error { background: rgba(244,67,54,0.3); color: #ff6b6b; }
+        .status.info { background: rgba(102,126,234,0.3); color: #a8e6cf; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        canvas {
+            width: 100%;
+            height: 80px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .track-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .track-item {
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .track-item:hover {
+            background: rgba(102,126,234,0.3);
+        }
+    </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div class="container">
+        <div class="header">
+            <h1>🎵 Sacred Geometry Synthesizer</h1>
+            <p>Transform audio into living geometric textures</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <h3>📁 1. Upload Audio</h3>
+                <div class="upload-area" id="uploadArea">
+                    <div style="font-size: 48px;">🎧</div>
+                    <p>Click or drag audio file</p>
+                    <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                </div>
+                <div id="playerDiv" style="display: none;">
+                    <div class="audio-player">
+                        <div class="player-controls">
+                            <button class="play-pause-btn" id="playBtn">▶</button>
+                            <div class="timeline" id="timeline">
+                                <div class="timeline-progress" id="timelineProgress"></div>
+                            </div>
+                            <span id="timeDisplay">0:00 / 0:00</span>
+                        </div>
+                    </div>
+                    <canvas id="inputWaveform"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔮 2. Sacred Geometry</h3>
+                <div class="mode-selector" id="modeSelector">
+                    <div class="mode-btn active" data-mode="fibonacci">🌀 Fibonacci</div>
+                    <div class="mode-btn" data-mode="golden">✨ Golden Ratio</div>
+                    <div class="mode-btn" data-mode="platonic">🔷 Platonic</div>
+                    <div class="mode-btn" data-mode="random">🎲 Random</div>
+                </div>
+
+                <div class="slider-group">
+                    <label>🎧 Audio Energy <span id="audioVal">0.70</span></label>
+                    <input type="range" id="audioScore" min="0" max="1" step="0.01" value="0.7">
+                </div>
+                <div class="slider-group">
+                    <label>🔮 Geometry Intensity <span id="geoVal">0.85</span></label>
+                    <input type="range" id="geoScore" min="0" max="1" step="0.01" value="0.85">
+                </div>
+                <div class="slider-group">
+                    <label>🎛️ Grain Density <span id="densityVal">0.50</span></label>
+                    <input type="range" id="density" min="0.1" max="1" step="0.01" value="0.5">
+                </div>
+
+                <button class="btn btn-primary" id="generateBtn">✨ Generate Sacred Texture</button>
+            </div>
+        </div>
+
+        <div class="card" id="outputCard" style="display: none;">
+            <h3>🎵 3. Generated Texture</h3>
+            <div class="audio-player">
+                <div class="player-controls">
+                    <button class="play-pause-btn" id="outputPlayBtn">▶</button>
+                    <div class="timeline" id="outputTimeline">
+                        <div class="timeline-progress" id="outputProgress"></div>
+                    </div>
+                    <span id="outputTimeDisplay">0:00 / 0:00</span>
+                </div>
+            </div>
+            <canvas id="outputWaveform"></canvas>
+            <button class="btn" id="downloadBtn">💾 Download WAV</button>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        <div class="status" id="status"></div>
+
+        <div class="card">
+            <h3>📚 Texture Library</h3>
+            <input type="text" id="searchInput" placeholder="🔍 Search..." style="width: 100%; padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
+            <div id="trackList" class="track-list">
+                <p style="text-align: center; opacity: 0.7;">Generate a texture to see it here</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio context
+        let audioContext = null;
+        let audioBuffer = null;
+        let generatedBuffer = null;
+        let currentSource = null;
+        let isPlaying = false;
+        let isOutputPlaying = false;
+        
+        // Track library
+        let tracks = [];
+        let nextId = 1;
+        let currentMode = 'fibonacci';
+        
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const playerDiv = document.getElementById('playerDiv');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const outputCard = document.getElementById('outputCard');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const statusDiv = document.getElementById('status');
+        const trackListDiv = document.getElementById('trackList');
+        const searchInput = document.getElementById('searchInput');
+        
+        // Sliders
+        const audioScore = document.getElementById('audioScore');
+        const geoScore = document.getElementById('geoScore');
+        const densitySlider = document.getElementById('density');
+        
+        function updateDisplays() {
+            document.getElementById('audioVal').textContent = audioScore.value;
+            document.getElementById('geoVal').textContent = geoScore.value;
+            document.getElementById('densityVal').textContent = densitySlider.value;
+        }
+        
+        audioScore.addEventListener('input', updateDisplays);
+        geoScore.addEventListener('input', updateDisplays);
+        densitySlider.addEventListener('input', updateDisplays);
+        updateDisplays();
+        
+        // Mode selection
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                showStatus(`Mode: ${btn.textContent}`, 'info');
+            });
+        });
+        
+        // File upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => e.preventDefault());
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+        
+        async function handleFile(file) {
+            if (!file.type.startsWith('audio/')) {
+                showStatus('Please upload an audio file', 'error');
+                return;
+            }
+            
+            showStatus('Loading audio...', 'info');
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // Auto-detect energy
+                const data = audioBuffer.getChannelData(0);
+                const energy = Math.min(1, Math.sqrt(data.reduce((s,v)=>s+v*v,0)/data.length)*3);
+                audioScore.value = energy;
+                updateDisplays();
+                
+                playerDiv.style.display = 'block';
+                setupPlayer();
+                drawWaveform(data, 'inputWaveform');
+                showStatus(`Loaded: ${file.name} (${audioBuffer.duration.toFixed(1)}s)`, 'success');
+                
+            } catch(e) {
+                showStatus('Error loading: ' + e.message, 'error');
+            }
+        }
+        
+        // Player
+        let playerSource = null;
+        let playerStartTime = 0;
+        let playerPausedAt = 0;
+        
+        function setupPlayer() {
+            const playBtn = document.getElementById('playBtn');
+            const timeline = document.getElementById('timeline');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const duration = audioBuffer.duration;
+            
+            playBtn.onclick = () => {
+                if (playerSource) {
+                    playerPausedAt = audioContext.currentTime - playerStartTime;
+                    playerSource.stop();
+                    playerSource = null;
+                    playBtn.textContent = '▶';
+                } else {
+                    playerSource = audioContext.createBufferSource();
+                    playerSource.buffer = audioBuffer;
+                    playerSource.connect(audioContext.destination);
+                    playerStartTime = audioContext.currentTime - playerPausedAt;
+                    playerSource.start(0, playerPausedAt);
+                    playerSource.onended = () => {
+                        playerSource = null;
+                        playerPausedAt = 0;
+                        playBtn.textContent = '▶';
+                    };
+                    playBtn.textContent = '⏸';
+                    startTimer();
+                }
+            };
+            
+            timeline.onclick = (e) => {
+                const rect = timeline.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                const newTime = percent * duration;
+                if (playerSource) {
+                    playerSource.stop();
+                    playerSource = null;
+                    playerPausedAt = newTime;
+                    playBtn.click();
+                } else {
+                    playerPausedAt = newTime;
+                }
+            };
+            
+            function startTimer() {
+                function update() {
+                    if (playerSource) {
+                        const current = audioContext.currentTime - playerStartTime;
+                        const percent = (current / duration) * 100;
+                        document.getElementById('timelineProgress').style.width = `${percent}%`;
+                        timeDisplay.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+                        requestAnimationFrame(update);
+                    }
+                }
+                update();
+            }
+        }
+        
+        // Generate texture (FAST version)
+        function generateTexture() {
+            if (!audioBuffer) {
+                showStatus('Please load an audio file first', 'error');
+                return;
+            }
+            
+            generateBtn.disabled = true;
+            generateBtn.textContent = '🌀 Generating...';
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            
+            // Use setTimeout to not block UI
+            setTimeout(() => {
+                try {
+                    const channelData = audioBuffer.getChannelData(0);
+                    const sampleRate = audioBuffer.sampleRate;
+                    const duration = Math.min(15, audioBuffer.duration);
+                    const outputLength = Math.floor(sampleRate * duration);
+                    const output = new Float32Array(outputLength);
+                    
+                    const density = parseFloat(densitySlider.value);
+                    const geometryIntensity = parseFloat(geoScore.value);
+                    const grainDuration = 0.05;
+                    
+                    // Number of grains (reduced for performance)
+                    const numGrains = Math.floor(duration * 20 * density);
+                    let currentPos = 0;
+                    
+                    for (let i = 0; i < numGrains; i++) {
+                        // Update progress
+                        if (i % 100 === 0) {
+                            progressFill.style.width = `${(i / numGrains) * 100}%`;
+                        }
+                        
+                        // Geometry-based parameters
+                        let pitchShift = 1.0;
+                        let grainDur = grainDuration;
+                        
+                        if (currentMode === 'fibonacci') {
+                            const fib = [1, 2, 3, 5, 8, 13];
+                            const idx = i % fib.length;
+                            pitchShift = 0.8 + (fib[idx] / 20) * geometryIntensity;
+                            grainDur = grainDuration + (fib[idx] / 500);
+                        } else if (currentMode === 'golden') {
+                            const phi = 1.618;
+                            const t = i * 0.05;
+                            pitchShift = 0.8 + (Math.sin(t * phi) * 0.5 + 0.5) * geometryIntensity;
+                            grainDur = grainDuration + Math.sin(t) * 0.03;
+                        } else if (currentMode === 'platonic') {
+                            const platonic = [4, 6, 8, 12];
+                            const idx = i % platonic.length;
+                            pitchShift = 0.8 + (platonic[idx] / 30) * geometryIntensity;
+                        } else {
+                            pitchShift = 0.7 + Math.random() * geometryIntensity;
+                            grainDur = grainDuration * (0.5 + Math.random());
+                        }
+                        
+                        grainDur = Math.min(0.15, Math.max(0.03, grainDur));
+                        const grainSamples = Math.floor(grainDur * sampleRate);
+                        let startIdx = Math.floor(currentPos * sampleRate);
+                        
+                        if (startIdx + grainSamples > channelData.length) {
+                            startIdx = 0;
+                            currentPos = 0;
+                        }
+                        
+                        if (startIdx + grainSamples < channelData.length) {
+                            let grain = channelData.slice(startIdx, startIdx + grainSamples);
+                            
+                            // Simple pitch shift (linear interpolation)
+                            if (Math.abs(pitchShift - 1.0) > 0.05 && grain.length > 10) {
+                                const newLen = Math.floor(grain.length / pitchShift);
+                                if (newLen > 5) {
+                                    const step = grain.length / newLen;
+                                    const newGrain = new Float32Array(newLen);
+                                    for (let j = 0; j < newLen; j++) {
+                                        const idx = j * step;
+                                        const i1 = Math.floor(idx);
+                                        const i2 = Math.min(i1 + 1, grain.length - 1);
+                                        const t = idx - i1;
+                                        newGrain[j] = grain[i1] * (1 - t) + grain[i2] * t;
+                                    }
+                                    grain = newGrain;
+                                }
+                            }
+                            
+                            // Apply envelope
+                            for (let j = 0; j < grain.length; j++) {
+                                const env = Math.sin(Math.PI * j / grain.length);
+                                grain[j] = grain[j] * env * 0.6;
+                            }
+                            
+                            // Add to output
+                            const startSample = Math.floor(currentPos * sampleRate);
+                            for (let j = 0; j < grain.length && startSample + j < outputLength; j++) {
+                                output[startSample + j] += grain[j];
+                            }
+                        }
+                        
+                        currentPos += grainDur * (1 - density * 0.5);
+                        if (currentPos > audioBuffer.duration - 1) currentPos = 0;
+                    }
+                    
+                    // Normalize
+                    let maxVal = 0;
+                    for (let i = 0; i < output.length; i++) {
+                        if (Math.abs(output[i]) > maxVal) maxVal = Math.abs(output[i]);
+                    }
+                    if (maxVal > 0) {
+                        for (let i = 0; i < output.length; i++) {
+                            output[i] = output[i] / maxVal;
+                        }
+                    }
+                    
+                    generatedBuffer = output;
+                    
+                    progressFill.style.width = '100%';
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        progressFill.style.width = '0%';
+                    }, 500);
+                    
+                    // Show output
+                    outputCard.style.display = 'block';
+                    drawWaveform(generatedBuffer, 'outputWaveform');
+                    setupOutputPlayer();
+                    addToLibrary();
+                    
+                    showStatus('✅ Sacred geometry texture generated!', 'success');
+                    
+                } catch(e) {
+                    showStatus('Error: ' + e.message, 'error');
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = '✨ Generate Sacred Texture';
+                }
+            }, 50);
+        }
+        
+        // Output player
+        let outputSource = null;
+        let outputStartTime = 0;
+        let outputPausedAt = 0;
+        let outputDuration = 0;
+        
+        function setupOutputPlayer() {
+            if (!generatedBuffer) return;
+            
+            const playBtn = document.getElementById('outputPlayBtn');
+            const timeline = document.getElementById('outputTimeline');
+            const timeDisplay = document.getElementById('outputTimeDisplay');
+            outputDuration = generatedBuffer.length / (audioBuffer.sampleRate || 44100);
+            
+            playBtn.onclick = () => {
+                if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                if (outputSource) {
+                    outputPausedAt = audioContext.currentTime - outputStartTime;
+                    outputSource.stop();
+                    outputSource = null;
+                    playBtn.textContent = '▶';
+                } else {
+                    const buffer = audioContext.createBuffer(1, generatedBuffer.length, audioBuffer.sampleRate);
+                    buffer.copyToChannel(generatedBuffer, 0);
+                    
+                    outputSource = audioContext.createBufferSource();
+                    outputSource.buffer = buffer;
+                    outputSource.connect(audioContext.destination);
+                    outputStartTime = audioContext.currentTime - outputPausedAt;
+                    outputSource.start(0, outputPausedAt);
+                    outputSource.onended = () => {
+                        outputSource = null;
+                        outputPausedAt = 0;
+                        playBtn.textContent = '▶';
+                    };
+                    playBtn.textContent = '⏸';
+                    startOutputTimer();
+                }
+            };
+            
+            timeline.onclick = (e) => {
+                const rect = timeline.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                const newTime = percent * outputDuration;
+                if (outputSource) {
+                    outputSource.stop();
+                    outputSource = null;
+                    outputPausedAt = newTime;
+                    playBtn.click();
+                } else {
+                    outputPausedAt = newTime;
+                }
+            };
+            
+            function startOutputTimer() {
+                function update() {
+                    if (outputSource) {
+                        const current = audioContext.currentTime - outputStartTime;
+                        const percent = (current / outputDuration) * 100;
+                        document.getElementById('outputProgress').style.width = `${percent}%`;
+                        timeDisplay.textContent = `${formatTime(current)} / ${formatTime(outputDuration)}`;
+                        requestAnimationFrame(update);
+                    }
+                }
+                update();
+            }
+        }
+        
+        // Draw waveform
+        function drawWaveform(data, canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.clientWidth;
+            const height = canvas.height = 80;
+            
+            ctx.fillStyle = '#0a0a2a';
+            ctx.fillRect(0, 0, width, height);
+            
+            const step = Math.ceil(data.length / width);
+            ctx.beginPath();
+            ctx.strokeStyle = '#a8e6cf';
+            ctx.lineWidth = 1.5;
+            
+            for (let i = 0; i < width; i++) {
+                const idx = Math.floor(i * step);
+                if (idx < data.length) {
+                    const y = ((data[idx] + 1) / 2) * height;
+                    if (i === 0) ctx.moveTo(i, y);
+                    else ctx.lineTo(i, y);
+                }
+            }
+            ctx.stroke();
+        }
+        
+        // Add to library
+        function addToLibrary() {
+            const trackName = `Texture_${new Date().toLocaleTimeString()}`;
+            tracks.unshift({
+                id: nextId++,
+                name: trackName,
+                timestamp: Date.now(),
+                analysis: {
+                    audio: parseFloat(audioScore.value),
+                    geometry: parseFloat(geoScore.value)
+                },
+                data: generatedBuffer.slice(),
+                mode: currentMode
+            });
+            updateTrackList();
+            showStatus(`Saved: ${trackName}`, 'success');
+        }
+        
+        function updateTrackList() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filtered = tracks.filter(t => t.name.toLowerCase().includes(searchTerm));
+            
+            if (filtered.length === 0) {
+                trackListDiv.innerHTML = '<p style="text-align: center; opacity: 0.7;">No textures yet. Generate one!</p>';
+                return;
+            }
+            
+            trackListDiv.innerHTML = filtered.map(track => `
+                <div class="track-item" onclick="loadTrack(${track.id})">
+                    <div>
+                        <strong>${track.name}</strong>
+                        <small style="opacity: 0.6; margin-left: 8px;">${track.mode}</small>
+                    </div>
+                    <div>
+                        <span style="background: #a8e6cf20; padding: 2px 6px; border-radius: 10px; font-size: 11px;">
+                            🎧 ${Math.round(track.analysis.audio*100)}%
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadTrack(id) {
+            const track = tracks.find(t => t.id === id);
+            if (track && track.data) {
+                generatedBuffer = track.data;
+                drawWaveform(generatedBuffer, 'outputWaveform');
+                setupOutputPlayer();
+                outputCard.style.display = 'block';
+                showStatus(`Loaded: ${track.name}`, 'success');
+            }
+        }
+        
+        function downloadWAV() {
+            if (!generatedBuffer) return;
+            const sampleRate = audioBuffer?.sampleRate || 44100;
+            const wav = encodeWAV(generatedBuffer, sampleRate);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sacred_geometry_${Date.now()}.wav`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('Download started!', 'success');
+        }
+        
+        function encodeWAV(samples, sampleRate) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+            
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+            
+            let offset = 44;
+            for (let i = 0; i < samples.length; i++) {
+                const sample = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(offset, sample * 0x7FFF, true);
+                offset += 2;
+            }
+            return buffer;
+        }
+        
+        function writeString(view, offset, str) {
+            for (let i = 0; i < str.length; i++) {
+                view.setUint8(offset + i, str.charCodeAt(i));
+            }
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type} show`;
+            setTimeout(() => {
+                statusDiv.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Event listeners
+        generateBtn.addEventListener('click', generateTexture);
+        downloadBtn.addEventListener('click', downloadWAV);
+        searchInput.addEventListener('input', updateTrackList);
+        
+        // Add demo texture
+        function addDemoTexture() {
+            const len = 44100 * 3;
+            const demo = new Float32Array(len);
+            for (let i = 0; i < len; i++) {
+                demo[i] = Math.sin(i * 0.01) * Math.exp(-i / len) * 0.5;
+            }
+            tracks.push({
+                id: nextId++,
+                name: "✨ Demo Sacred Texture",
+                timestamp: Date.now(),
+                analysis: { audio: 0.7, geometry: 0.85 },
+                data: demo,
+                mode: "fibonacci"
+            });
+            updateTrackList();
+        }
+        
+        addDemoTexture();
+        window.loadTrack = loadTrack;
+    </script>
+</body>
+</html>
