@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Runs gridmem with the Lattice Keeper venv (has cryptography + liboqs).
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="${GRIDMEM_PYTHON:-/workspace/lattice-keeper/v034/.venv/bin/python}"
+export PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}"
+exec "$PY" -m gridmem.cli "$@"
