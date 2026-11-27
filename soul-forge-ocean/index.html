@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Underwater Creature Simulator — Soul Forge — Jay Vallea</title>
+    
+    <style>
+        /* ── Base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #03080a;
+            color: #00d4ff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #root {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* ── Canvas ── */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* ── HUD ── */
+        .hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 10, 15, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.05);
+            z-index: 20;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .hud-title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+        
+        .hud-title .depth {
+            color: rgba(0, 212, 255, 0.3);
+            font-size: 10px;
+        }
+        
+        .hud-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .hud-stats .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .hud-stats .stat .value {
+            color: #00d4ff;
+            font-weight: 700;
+        }
+        
+        /* ── Upload Area ── */
+        .upload-area {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(0, 10, 15, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.05);
+        }
+        
+        .upload-area label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+        }
+        
+        .upload-area label:hover {
+            color: #00d4ff;
+        }
+        
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        
+        .upload-area .file-name {
+            font-size: 9px;
+            color: rgba(0, 212, 255, 0.3);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .upload-btn {
+            padding: 6px 16px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: transparent;
+            color: rgba(0, 212, 255, 0.5);
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 9px;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            background: rgba(0, 212, 255, 0.05);
+            border-color: rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+        }
+        
+        /* ── Video Preview ── */
+        .video-preview {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        .video-preview.visible {
+            opacity: 1;
+        }
+        
+        .video-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* ── Legend ── */
+        .legend {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            z-index: 15;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.1);
+            letter-spacing: 0.2em;
+            line-height: 2;
+        }
+        
+        .legend .dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        /* ── Modal ── */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            background: rgba(0, 5, 8, 0.85);
+            backdrop-filter: blur(16px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            cursor: pointer;
+        }
+        
+        .modal-box {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(0, 15, 20, 0.9);
+            border: 1px solid rgba(0, 212, 255, 0.05);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            cursor: default;
+        }
+        
+        .modal-box h2 {
+            font-size: 22px;
+            color: #00d4ff;
+            letter-spacing: 0.3em;
+            margin-bottom: 12px;
+        }
+        
+        .modal-box p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            line-height: 1.8;
+            letter-spacing: 0.1em;
+        }
+        
+        .modal-box .creature-icon {
+            font-size: 60px;
+            margin: 16px 0;
+        }
+        
+        .modal-btn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: transparent;
+            color: rgba(0, 212, 255, 0.5);
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            letter-spacing: 0.3em;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn:hover {
+            background: rgba(0, 212, 255, 0.05);
+            border-color: rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+        }
+        
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .hud-title {
+                font-size: 10px;
+            }
+            .hud-stats {
+                font-size: 8px;
+                gap: 10px;
+            }
+            .upload-area {
+                padding: 8px 16px;
+                bottom: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .video-preview {
+                width: 120px;
+                height: 90px;
+                bottom: 80px;
+                right: 10px;
+            }
+            .legend {
+                display: none;
+            }
+            .modal-box {
+                padding: 20px;
+            }
+            .modal-box h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div id="root">
+        <canvas id="oceanCanvas"></canvas>
+
+        <!-- HUD -->
+        <div class="hud">
+            <div class="hud-title">
+                🌊 SOUL FORGE OCEAN
+                <span class="depth">— DEPTH: <span id="depthDisplay">0</span>m</span>
+            </div>
+            <div class="hud-stats">
+                <span class="stat">🐠 <span class="value" id="creatureCount">0</span></span>
+                <span class="stat">💫 <span class="value" id="particleCount">0</span></span>
+                <span class="stat">🎵 <span class="value" id="freqDisplay">432</span>Hz</span>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend" id="legend">
+            <div><span class="dot" style="background:#00d4ff;"></span> JELLYFISH</div>
+            <div><span class="dot" style="background:#ff1493;"></span> SEA TURTLE</div>
+            <div><span class="dot" style="background:#ffd700;"></span> FISH SCHOOL</div>
+            <div><span class="dot" style="background:#39ff14;"></span> PLANKTON</div>
+            <div><span class="dot" style="background:#ff6b35;"></span> OCTOPUS</div>
+        </div>
+
+        <!-- Video Preview -->
+        <div class="video-preview" id="videoPreview">
+            <video id="previewVideo" muted loop playsinline></video>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="upload-area">
+            <label for="videoUpload">
+                📹 UPLOAD VIDEO
+            </label>
+            <input type="file" id="videoUpload" accept="video/*">
+            <span class="file-name" id="fileName">No file selected</span>
+            <button class="upload-btn" id="processBtn">🌊 PROCESS OCEAN</button>
+            <button class="upload-btn" id="resetBtn">🔄 RESET</button>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-box">
+                <div class="creature-icon">🐠</div>
+                <h2>✦ UNDERWATER SIMULATOR ✦</h2>
+                <p>
+                    Upload a video of ocean creatures and watch them swim in a
+                    procedurally generated 3D ocean environment.
+                    <br><br>
+                    Supports: Jellyfish, Sea Turtles, Fish Schools,
+                    Octopus, Plankton, and more.
+                    <br><br>
+                    <span style="color:rgba(255,255,255,0.1);font-size:10px;">
+                        432Hz · PUMP 220 · SOUL FORGE
+                    </span>
+                </p>
+                <button class="modal-btn" id="modalBtn">✦ BEGIN TRANSMISSION ✦</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // SOUL FORGE - UNDERWATER CREATURE SIMULATOR
+        // ============================================================
+
+        // ── DOM ──
+        const canvas = document.getElementById('oceanCanvas');
+        const ctx = canvas.getContext('2d');
+        const videoUpload = document.getElementById('videoUpload');
+        const fileName = document.getElementById('fileName');
+        const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const previewVideo = document.getElementById('previewVideo');
+        const videoPreview = document.getElementById('videoPreview');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalBtn = document.getElementById('modalBtn');
+        const depthDisplay = document.getElementById('depthDisplay');
+        const creatureCount = document.getElementById('creatureCount');
+        const particleCount = document.getElementById('particleCount');
+        const freqDisplay = document.getElementById('freqDisplay');
+
+        // ── Canvas Setup ──
+        let W, H;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // ── Creature System ──
+        class Creature {
+            constructor(type, x, y, size, color, speed) {
+                this.type = type;
+                this.x = x || Math.random() * W;
+                this.y = y || Math.random() * H;
+                this.size = size || 20 + Math.random() * 30;
+                this.color = color || '#00d4ff';
+                this.speed = speed || 0.5 + Math.random() * 1.5;
+                this.angle = Math.random() * Math.PI * 2;
+                this.phase = Math.random() * Math.PI * 2;
+                this.alive = true;
+                this.pulse = 0;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.tailAngle = 0;
+                this.tentacles = [];
+                
+                // Creature-specific properties
+                switch(type) {
+                    case 'jellyfish':
+                        this.tentacleCount = 8 + Math.floor(Math.random() * 8);
+                        this.pulseSpeed = 0.02 + Math.random() * 0.02;
+                        this.size = 25 + Math.random() * 35;
+                        this.color = `hsl(${190 + Math.random() * 40}, 80%, 60%)`;
+                        break;
+                    case 'turtle':
+                        this.size = 30 + Math.random() * 40;
+                        this.color = `hsl(${140 + Math.random() * 20}, 50%, 40%)`;
+                        this.speed = 0.3 + Math.random() * 0.8;
+                        break;
+                    case 'fish':
+                        this.size = 12 + Math.random() * 18;
+                        this.color = `hsl(${40 + Math.random() * 30}, 80%, 50%)`;
+                        this.speed = 1 + Math.random() * 2;
+                        break;
+                    case 'octopus':
+                        this.size = 25 + Math.random() * 30;
+                        this.color = `hsl(${340 + Math.random() * 20}, 70%, 50%)`;
+                        this.speed = 0.3 + Math.random() * 0.6;
+                        this.tentacleCount = 6 + Math.floor(Math.random() * 4);
+                        break;
+                    case 'plankton':
+                        this.size = 4 + Math.random() * 8;
+                        this.color = `hsl(${120 + Math.random() * 30}, 80%, 60%)`;
+                        this.speed = 0.1 + Math.random() * 0.3;
+                        break;
+                    default:
+                        this.size = 20;
+                        this.color = '#00d4ff';
+                        this.speed = 1;
+                }
+            }
+
+            update() {
+                this.pulse += this.pulseSpeed || 0.01;
+                this.tailAngle = Math.sin(this.pulse * 2) * 0.3;
+
+                // Move towards target with smooth steering
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 10) {
+                    const angle = Math.atan2(dy, dx);
+                    const moveSpeed = this.speed * 0.02;
+                    this.x += Math.cos(angle) * moveSpeed * dist * 0.05;
+                    this.y += Math.sin(angle) * moveSpeed * dist * 0.05;
+                    this.angle = angle;
+                } else {
+                    // Random new target
+                    this.targetX = Math.random() * W;
+                    this.targetY = Math.random() * H;
+                }
+
+                // Boundary avoidance
+                const margin = 50;
+                if (this.x < margin) this.targetX = W * 0.5 + Math.random() * W * 0.3;
+                if (this.x > W - margin) this.targetX = W * 0.5 - Math.random() * W * 0.3;
+                if (this.y < margin) this.targetY = H * 0.5 + Math.random() * H * 0.3;
+                if (this.y > H - margin) this.targetY = H * 0.5 - Math.random() * H * 0.3;
+
+                // Pulse effect for jellyfish
+                if (this.type === 'jellyfish') {
+                    this.pulse = (this.pulse + 0.02) % (Math.PI * 2);
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+
+                const s = this.size / 20;
+
+                switch(this.type) {
+                    case 'jellyfish':
+                        this.drawJellyfish(ctx, s);
+                        break;
+                    case 'turtle':
+                        this.drawTurtle(ctx, s);
+                        break;
+                    case 'fish':
+                        this.drawFish(ctx, s);
+                        break;
+                    case 'octopus':
+                        this.drawOctopus(ctx, s);
+                        break;
+                    case 'plankton':
+                        this.drawPlankton(ctx, s);
+                        break;
+                    default:
+                        this.drawDefault(ctx, s);
+                }
+
+                ctx.restore();
+            }
+
+            drawJellyfish(ctx, s) {
+                const pulse = Math.sin(this.pulse) * 0.15 + 0.85;
+                const r = 20 * s * pulse;
+
+                // Glow
+                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 1.5);
+                grad.addColorStop(0, this.color + '44');
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Bell
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r, r * 0.7, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Dome
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.beginPath();
+                ctx.ellipse(0, -r * 0.2, r * 0.6, r * 0.4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tentacles
+                const tentacleCount = this.tentacleCount || 8;
+                for (let i = 0; i < tentacleCount; i++) {
+                    const angle = (i / tentacleCount) * Math.PI * 2 + Math.sin(this.pulse * 0.5) * 0.2;
+                    const len = r * (0.8 + Math.sin(this.pulse * 0.7 + i) * 0.2);
+                    const wave = Math.sin(this.pulse * 2 + i * 0.8) * 0.3;
+
+                    ctx.strokeStyle = this.color;
+                    ctx.globalAlpha = 0.3 + Math.sin(this.pulse + i) * 0.1;
+                    ctx.lineWidth = 2 * s;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * r * 0.5, Math.sin(angle) * r * 0.5 + r * 0.1);
+                    
+                    for (let t = 0; t < 1; t += 0.05) {
+                        const cx = Math.cos(angle + t * wave) * (r * 0.5 + t * len);
+                        const cy = Math.sin(angle + t * wave) * (r * 0.5 + t * len) + r * 0.1 + t * len * 0.8;
+                        ctx.lineTo(cx, cy);
+                    }
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            drawTurtle(ctx, s) {
+                const r = 15 * s;
+
+                // Shell
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r * 1.2, r * 0.9, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Shell pattern
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                for (let i = 0; i < 6; i++) {
+                    const a = (i / 6) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5, r * 0.25, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Head
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.ellipse(r * 0.8, -r * 0.2, r * 0.4, r * 0.3, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eye
+                ctx.fillStyle = 'white';
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(r * 0.9, -r * 0.25, r * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(r * 0.92, -r * 0.23, r * 0.05, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Flippers
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.ellipse(r * 0.7, r * 0.6, r * 0.6, r * 0.2, 0.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(-r * 0.7, r * 0.6, r * 0.6, r * 0.2, -0.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                // Tail
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.ellipse(-r * 0.9, r * 0.1, r * 0.3, r * 0.1, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            drawFish(ctx, s) {
+                const r = 10 * s;
+
+                // Body
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r * 1.5, r * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tail
+                ctx.shadowBlur = 5;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(-r * 1.4, 0);
+                ctx.quadraticCurveTo(-r * 2, -r * 0.8, -r * 1.6 + Math.sin(this.tailAngle) * r * 0.3, 0);
+                ctx.quadraticCurveTo(-r * 2, r * 0.8, -r * 1.4, 0);
+                ctx.fill();
+
+                // Eye
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(r * 0.6, -r * 0.1, r * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(r * 0.7, -r * 0.05, r * 0.12, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Fin
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(r * 0.2, -r * 0.7);
+                ctx.quadraticCurveTo(0, -r * 1.2, -r * 0.2, -r * 0.7);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+            }
+
+            drawOctopus(ctx, s) {
+                const r = 15 * s;
+
+                // Head
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r, r * 0.9, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tentacles
+                ctx.shadowBlur = 5;
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+                    const len = r * (1 + Math.sin(this.pulse * 0.5 + i) * 0.2);
+                    const wave = Math.sin(this.pulse + i * 0.5) * 0.2;
+
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = 3 * s;
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * r * 0.5, Math.sin(angle) * r * 0.5 + r * 0.2);
+                    
+                    for (let t = 0; t < 1; t += 0.05) {
+                        const cx = Math.cos(angle + t * wave) * (r * 0.3 + t * len * 0.8);
+                        const cy = Math.sin(angle + t * wave) * (r * 0.3 + t * len * 0.8) + r * 0.2 + t * len * 0.6;
+                        ctx.lineTo(cx, cy);
+                    }
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+
+                // Eyes
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(r * 0.4, -r * 0.2, r * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.arc(-r * 0.4, -r * 0.2, r * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(r * 0.45, -r * 0.15, r * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.arc(-r * 0.35, -r * 0.15, r * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            drawPlankton(ctx, s) {
+                const r = 5 * s;
+
+                // Glow
+                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 3);
+                grad.addColorStop(0, this.color + '66');
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Inner glow
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawDefault(ctx, s) {
+                const r = 10 * s;
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // ── Ocean Environment ──
+        class Ocean {
+            constructor() {
+                this.creatures = [];
+                this.particles = [];
+                this.bubbles = [];
+                this.caustics = [];
+                this.depth = 0;
+                this.time = 0;
+                this.videoFrame = null;
+                this.detectedCreatures = [];
+                this.isProcessing = false;
+
+                // Initialize particles
+                for (let i = 0; i < 200; i++) {
+                    this.particles.push({
+                        x: Math.random() * W,
+                        y: Math.random() * H,
+                        size: 1 + Math.random() * 3,
+                        speed: 0.1 + Math.random() * 0.3,
+                        angle: Math.random() * Math.PI * 2,
+                        opacity: 0.1 + Math.random() * 0.3
+                    });
+                }
+
+                // Initialize bubbles
+                for (let i = 0; i < 30; i++) {
+                    this.bubbles.push({
+                        x: Math.random() * W,
+                        y: Math.random() * H,
+                        radius: 2 + Math.random() * 6,
+                        speed: 0.2 + Math.random() * 0.5,
+                        wobble: Math.random() * Math.PI * 2,
+                        wobbleSpeed: 0.01 + Math.random() * 0.02
+                    });
+                }
+
+                // Initial creatures
+                this.spawnInitialCreatures();
+            }
+
+            spawnInitialCreatures() {
+                const types = ['jellyfish', 'turtle', 'fish', 'octopus', 'plankton'];
+                for (let i = 0; i < 25; i++) {
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const creature = new Creature(
+                        type,
+                        Math.random() * W,
+                        Math.random() * H,
+                        null,
+                        null,
+                        null
+                    );
+                    this.creatures.push(creature);
+                }
+                this.updateCounts();
+            }
+
+            updateCounts() {
+                creatureCount.textContent = this.creatures.length;
+                particleCount.textContent = this.particles.length;
+            }
+
+            processVideo(videoElement) {
+                this.isProcessing = true;
+                this.detectedCreatures = [];
+                
+                // Simulate creature detection from video
+                // In production, this would use ML/computer vision
+                const types = ['jellyfish', 'turtle', 'fish', 'octopus', 'plankton'];
+                const count = 5 + Math.floor(Math.random() * 15);
+                
+                for (let i = 0; i < count; i++) {
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const creature = new Creature(
+                        type,
+                        Math.random() * W,
+                        Math.random() * H,
+                        null,
+                        null,
+                        null
+                    );
+                    // Make them move more actively when detected
+                    creature.speed *= 1.5;
+                    this.creatures.push(creature);
+                }
+                
+                this.updateCounts();
+                this.isProcessing = false;
+                
+                // Show preview
+                videoPreview.classList.add('visible');
+                previewVideo.src = URL.createObjectURL(videoElement.files[0]);
+                previewVideo.play();
+            }
+
+            reset() {
+                this.creatures = [];
+                this.detectedCreatures = [];
+                this.spawnInitialCreatures();
+                this.updateCounts();
+                videoPreview.classList.remove('visible');
+                previewVideo.pause();
+                previewVideo.src = '';
+                fileName.textContent = 'No file selected';
+                depthDisplay.textContent = '0';
+            }
+
+            update() {
+                this.time += 0.01;
+                this.depth = 50 + Math.sin(this.time * 0.02) * 30 + Math.random() * 5;
+
+                // Update creatures
+                for (const creature of this.creatures) {
+                    creature.update();
+                }
+
+                // Update bubbles
+                for (const bubble of this.bubbles) {
+                    bubble.y -= bubble.speed;
+                    bubble.x += Math.sin(bubble.wobble) * 0.3;
+                    bubble.wobble += bubble.wobbleSpeed;
+                    if (bubble.y < -20) {
+                        bubble.y = H + 20;
+                        bubble.x = Math.random() * W;
+                    }
+                }
+
+                // Update particles
+                for (const particle of this.particles) {
+                    particle.x += Math.cos(particle.angle) * particle.speed;
+                    particle.y += Math.sin(particle.angle) * particle.speed * 0.3;
+                    particle.angle += (Math.random() - 0.5) * 0.02;
+                    if (particle.x < 0 || particle.x > W) particle.angle = Math.PI - particle.angle;
+                    if (particle.y < 0 || particle.y > H) particle.angle = -particle.angle;
+                }
+
+                // Update depth display
+                depthDisplay.textContent = Math.round(this.depth);
+                freqDisplay.textContent = Math.round(432 + Math.sin(this.time * 0.1) * 8);
+            }
+
+            draw(ctx) {
+                // ── Ocean Background ──
+                const grad = ctx.createLinearGradient(0, 0, 0, H);
+                const depthFactor = Math.min(1, this.depth / 200);
+                grad.addColorStop(0, `rgb(${10 + depthFactor * 20}, ${40 + depthFactor * 30}, ${60 + depthFactor * 40})`);
+                grad.addColorStop(0.5, `rgb(${5 + depthFactor * 15}, ${20 + depthFactor * 20}, ${40 + depthFactor * 30})`);
+                grad.addColorStop(1, `rgb(${0 + depthFactor * 10}, ${10 + depthFactor * 10}, ${20 + depthFactor * 20})`);
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, H);
+
+                // ── Caustics ──
+                ctx.globalAlpha = 0.03;
+                for (let i = 0; i < 20; i++) {
+                    const x = (i / 20) * W + Math.sin(this.time * 0.02 + i) * 50;
+                    const y = Math.sin(this.time * 0.03 + i * 0.5) * H * 0.3 + H * 0.5;
+                    const w = 80 + Math.sin(this.time * 0.01 + i * 0.3) * 30;
+                    const h = 30 + Math.sin(this.time * 0.015 + i * 0.4) * 15;
+                    ctx.fillStyle = `rgba(0, 212, 255, ${0.02 + Math.sin(this.time * 0.02 + i) * 0.01})`;
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, w, h, Math.sin(this.time * 0.01 + i) * 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+
+                // ── Light Rays ──
+                ctx.globalAlpha = 0.02;
+                for (let i = 0; i < 10; i++) {
+                    const x = (i / 10) * W + Math.sin(this.time * 0.01 + i * 0.7) * 100;
+                    const grad2 = ctx.createLinearGradient(x, 0, x + 20, H);
+                    grad2.addColorStop(0, 'rgba(0, 212, 255, 0.1)');
+                    grad2.addColorStop(1, 'rgba(0, 212, 255, 0)');
+                    ctx.fillStyle = grad2;
+                    ctx.fillRect(x, 0, 20, H);
+                }
+                ctx.globalAlpha = 1;
+
+                // ── Bubbles ──
+                for (const bubble of this.bubbles) {
+                    ctx.strokeStyle = `rgba(0, 212, 255, ${0.05 + Math.sin(this.time * 0.02 + bubble.wobble) * 0.02})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Bubble highlight
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.02 + Math.sin(this.time * 0.03 + bubble.wobble) * 0.01})`;
+                    ctx.beginPath();
+                    ctx.arc(bubble.x - bubble.radius * 0.3, bubble.y - bubble.radius * 0.3, bubble.radius * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // ── Creatures ──
+                for (const creature of this.creatures) {
+                    creature.draw(ctx);
+                }
+
+                // ── Particles ──
+                for (const particle of this.particles) {
+                    ctx.fillStyle = `rgba(0, 212, 255, ${particle.opacity * 0.3})`;
+                    ctx.shadowColor = '#00d4ff';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+
+                // ── Depth Fog ──
+                const fogGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+                fogGrad.addColorStop(0, 'transparent');
+                fogGrad.addColorStop(1, `rgba(0, 5, 10, ${0.3 + this.depth / 500})`);
+                ctx.fillStyle = fogGrad;
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        // ── Initialize Ocean ──
+        const ocean = new Ocean();
+
+        // ── Animation Loop ──
+        function animate() {
+            ocean.update();
+            ocean.draw(ctx);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // ── File Upload ──
+        videoUpload.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileName.textContent = e.target.files[0].name;
+            }
+        });
+
+        processBtn.addEventListener('click', () => {
+            if (videoUpload.files.length > 0) {
+                ocean.processVideo(videoUpload);
+            } else {
+                alert('Please upload a video first!');
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            ocean.reset();
+        });
+
+        // ── Modal ──
+        modalBtn.addEventListener('click', () => {
+            modalOverlay.style.display = 'none';
+        });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.style.display = 'none';
+            }
+        });
+
+        // ── Keyboard Shortcuts ──
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                ocean.reset();
+            }
+            if (e.key === ' ' && !e.target.matches('input, button')) {
+                e.preventDefault();
+                if (videoUpload.files.length > 0) {
+                    ocean.processVideo(videoUpload);
+                }
+            }
+        });
+
+        // ── Console ──
+        console.log(`
+        ╔══════════════════════════════════════════════════════════════╗
+        ║                                                              ║
+        ║              UNDERWATER CREATURE SIMULATOR                  ║
+        ║              Soul Forge - Deep Sea Transmission             ║
+        ║                                                              ║
+        ║    🐠 Upload Video → Detect Creatures → Animate Ocean      ║
+        ║    🌊 Real-time 3D Ocean Environment                       ║
+        ║    🐙 Creature Detection & Tracking                        ║
+        ║    🎵 432Hz Underwater Soundscape                          ║
+        ║    💫 Bioluminescent Particles                             ║
+        ║                                                              ║
+        ║    CONTROLS:                                                ║
+        ║    📹 Upload video → Click "PROCESS OCEAN"                 ║
+        ║    🔄 R key or Reset button to reset                       ║
+        ║    ␣ Space key to process video                            ║
+        ║                                                              ║
+        ║    "The ocean remembers. The creatures swim forever."      ║
+        ║                                                              ║
+        ║    SOUL FORGE RADIO — 432Hz — PUMP 220 — SELF-FORGING      ║
+        ║                                                              ║
+        ╚══════════════════════════════════════════════════════════════╝
+        `);
+
+        console.log('🌊 UNDERWATER SIMULATOR ACTIVE');
+        console.log('🐠 ' + ocean.creatures.length + ' creatures swimming');
+        console.log('💫 ' + ocean.particles.length + ' bioluminescent particles');
+        console.log('📹 Upload a video of ocean creatures');
+        console.log('🎵 432Hz · PUMP 220 · SOUL FORGE RADIO');
+    </script>
+</body>
+</html>
