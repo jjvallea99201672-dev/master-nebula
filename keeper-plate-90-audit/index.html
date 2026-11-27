@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim Audit: The Brain As Horizon Filter — Jay Vallea</title>
+<meta name="description" content="A claim audit of The Brain As Horizon Filter, later published as Keeper Field Guide Plate 90. Proper time calculations, ten claims, untraced items, and a recommendation.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .paper .draft{border-left:3px solid var(--gold);padding:.4em 1em}
+  .paper .table-wrap{overflow-x:auto;margin:1em 0 1.4em}
+  .paper table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;display:table}
+  .paper th,.paper td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .paper th{color:var(--gold);font-weight:600}
+  .paper tr.ok td:nth-last-child(1),.paper tr.ok td:nth-last-child(3){color:#8ee0a8}
+  .paper tr.warn td:nth-last-child(3){color:#f0c96a}
+  .paper tr.bad td:nth-last-child(3){color:#f0a0a0}
+  .legend span{display:inline-block;margin-right:1em}
+  .legend .ok{color:#8ee0a8}
+  .legend .warn{color:#f0c96a}
+  .legend .bad{color:#f0a0a0}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Claim Audit</h1>
+  <p class="subtitle">The Brain As Horizon Filter · companion to Plate 90</p>
+  <p class="draft">This audit was written when Plate 90 did not yet exist in the materials. It recommended not binding the passage as a plate. Jay has since published <a href="../keeper-plate-90/">Plate 90</a> as a proposal, not a proof. The audit is kept here as a companion record. It has not been rewritten to match the plate, and the plate has not been rewritten to match the audit.</p>
+  <p>The workbook has four sheets: Proper Time, Claim Audit, Untraced Items, and Recommendation. Figures in the tables below are rounded from the spreadsheet; the download keeps the original values.</p>
+  <div class="row">
+    <a class="btn gold" href="../keeper-plate-90/">Open Plate 90</a>
+    <a class="btn" href="plate-90-claim-audit.xlsx">Download the spreadsheet</a>
+  </div>
+  <p class="dim">The spreadsheet will appear here once it has been uploaded to this folder.</p>
+
+  <h2>Proper Time</h2>
+  <p>Maximum proper time from horizon to singularity (Schwarzschild). Formula: τ = π·G·M / c³ (non-rotating, uncharged black hole, infall from the horizon).</p>
+  <div class="table-wrap"><table><thead><tr><th>Constant / input</th><th>Value</th><th>Unit</th><th>Note</th></tr></thead><tbody>
+<tr><td>G (gravitational constant)</td><td>6.674×10⁻¹¹</td><td>m³ kg⁻¹ s⁻²</td><td>Rounded standard value</td></tr>
+<tr><td>c (speed of light)</td><td>2.998×10⁸</td><td>m s⁻¹</td><td>Rounded standard value</td></tr>
+<tr><td>Solar mass</td><td>1.989×10³⁰</td><td>kg</td><td>Rounded standard value</td></tr>
+<tr><td>Megaparsec</td><td>3.0857×10²²</td><td>m</td><td>Rounded standard value</td></tr>
+<tr><td>Hubble constant H₀</td><td>70</td><td>km s⁻¹ Mpc⁻¹</td><td>Assumption: round value; measured values differ by several percent</td></tr>
+<tr><td>Seconds per year</td><td>3.156×10⁷</td><td>s</td><td>Rounded standard value</td></tr>
+<tr><td>H₀ in SI</td><td>2.2685×10⁻¹⁸</td><td>s⁻¹</td><td>Converted from km/s/Mpc</td></tr>
+<tr><td>Passage’s claimed lower bound</td><td>1</td><td>hours</td><td>User-supplied reading of the passage: ‘hours to days’</td></tr>
+<tr><td>Passage’s claimed upper bound</td><td>7</td><td>days</td><td>Assumption: ‘days’ read as up to about a week</td></tr>
+</tbody></table></div>
+  <div class="table-wrap"><table><thead><tr>
+<th>Object</th><th>Mass (solar masses)</th><th>Proper time (s)</th><th>Proper time (hours)</th><th>Proper time (days)</th><th>Proper time (years)</th><th>Within the passage’s ‘hours to days’?</th>
+</tr></thead><tbody>
+<tr class="bad"><td>Sagittarius A* (approx.)</td><td>4.3×10⁶</td><td>66.55</td><td>0.01849</td><td>7.702×10⁻⁴</td><td>2.109×10⁻⁶</td><td>No</td></tr>
+<tr class="ok"><td>Large supermassive black hole</td><td>1×10⁹</td><td>1.548×10⁴</td><td>4.299</td><td>0.1791</td><td>4.904×10⁻⁴</td><td>Yes</td></tr>
+<tr class="ok"><td>Largest known class</td><td>1×10¹⁰</td><td>1.548×10⁵</td><td>42.99</td><td>1.791</td><td>4.904×10⁻³</td><td>Yes</td></tr>
+<tr class="bad"><td>Hubble-radius mass (universe-scale)</td><td>4.474×10²²</td><td>6.924×10¹⁷</td><td>1.923×10¹⁴</td><td>8.014×10¹²</td><td>2.194×10¹⁰</td><td>No</td></tr>
+</tbody></table></div>
+  <p>Cross-check: π / (2·H₀) in years is 2.194×10¹⁰ years, which should equal the Hubble-radius row above (universe-scale case).</p>
+  <p>The passage’s “hours to days” holds only for roughly 10⁹ to 10¹⁰ solar masses. For a universe-scale black hole, the fall already lasts about 2 × 10¹⁰ years, so no perceptual stretching is needed.</p>
+
+  <h2>Claim Audit</h2>
+  <p class="legend dim"><span class="ok">Green: supported or valid</span> <span class="warn">Amber: contested or needs checking</span> <span class="bad">Red: unsupported or wrong</span></p>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Claim (paraphrased)</th><th>Area</th><th>Status</th><th>What the evidence supports</th><th>To verify</th></tr></thead><tbody>
+<tr class="ok"><td>1</td><td>Perception is delayed and constructed, not real-time</td><td>Neuroscience</td><td>Supported (general)</td><td>Well supported as a general statement about perception.</td><td>None</td></tr>
+<tr class="warn"><td>2</td><td>Visual latency is about 80–100 ms and the brain ‘backdates’ it</td><td>Neuroscience</td><td>Partly debated</td><td>Latency is real. ‘Backdating’ is one interpretation of effects like flash-lag and is debated.</td><td>Primary sources on flash-lag and postdiction</td></tr>
+<tr class="warn"><td>3</td><td>10 million bits/s in, 50 bits/s reaching awareness</td><td>Neuroscience</td><td>Contested</td><td>Popular figures from different sources with loose definitions. Newer work puts behavioral throughput nearer 10 bits/s.</td><td>Original sources for each number and what each measures</td></tr>
+<tr class="bad"><td>4</td><td>In danger the brain increases sampling, so more frames means longer-feeling time</td><td>Neuroscience</td><td>Not supported as stated</td><td>As recalled, a free-fall experiment (Stetson, Fiesta, Eagleman 2007) found no increase in temporal resolution; subjects remembered the event as longer, pointing to memory density.</td><td>Confirm the 2007 study and its results</td></tr>
+<tr class="warn"><td>5</td><td>A supermassive fall takes hours to days</td><td>Physics</td><td>Partly wrong</td><td>True only for about 10⁹–10¹⁰ solar masses. Sagittarius A* is about 67 seconds. See the Proper Time table.</td><td>None (computed)</td></tr>
+<tr class="bad"><td>6</td><td>The brain must stretch a short fall into billions of years</td><td>Physics</td><td>Premise undercut</td><td>For a Hubble-radius-mass black hole, the proper time is about 2.2 × 10¹⁰ years. No stretching is needed.</td><td>Whether the universe-as-black-hole picture is physically right is a separate, open question</td></tr>
+<tr class="bad"><td>7</td><td>Camera at 1 frame/year played at 24 fps shows slowing</td><td>Analogy</td><td>Reversed</td><td>That is time-lapse, which speeds motion up. Slowing needs a high frame rate.</td><td>None</td></tr>
+<tr class="bad"><td>8</td><td>Subjective time stretching yields billions of years of history</td><td>Logic</td><td>Not supported</td><td>Perception can change how long an event feels. It cannot create external history. Stars and the CMB are measurements of the outside world.</td><td>None</td></tr>
+<tr class="ok"><td>9</td><td>Why do we all agree on the date? The slowdown cannot be private</td><td>Logic</td><td>Valid objection</td><td>Strongest point in the passage: a shared timeline implies a shared boundary.</td><td>None</td></tr>
+<tr class="bad"><td>10</td><td>Label: [PROPOSAL] The Brain As Horizon Filter</td><td>Status tag</td><td>Proposal on a flawed premise</td><td>The label is honest, but the proposal rests on the incorrect fall-time premise and a reversed analogy.</td><td>Recommendation: do not bind as a plate</td></tr>
+</tbody></table></div>
+
+  <h2>Untraced Items</h2>
+  <p>Items in the passage that, at the time of the audit, did not trace to the auditor’s work.</p>
+  <div class="table-wrap"><table><thead><tr><th>Item</th><th>Problem</th><th>Suggested action</th></tr></thead><tbody>
+<tr><td>‘Your B, C, G’ (boundary, constraint, growth)</td><td>Does not match our schemas (X₀, E(t), R(t), M, G, H, V). Borrowed notation makes the idea look more connected than it is.</td><td>Remove or map explicitly, tagged Analogy</td></tr>
+<tr><td>‘Plate 90’</td><td>No such plate exists in our materials.</td><td>Do not create it from this passage</td></tr>
+<tr><td>‘Paracas’</td><td>No source or context in our conversation.</td><td>Ask for the intended meaning or remove</td></tr>
+<tr><td>‘Principle 6: Informational Persistence’</td><td>The field guide numbers 62 principles; informational persistence appears as the sixth organizing idea in the book draft, not a numbered principle.</td><td>Reconcile numbering before citing</td></tr>
+<tr><td>Opening line: ‘the most Keeper version of the idea you have said yet’</td><td>Flattery, not evidence.</td><td>Drop it</td></tr>
+</tbody></table></div>
+
+  <h2>Recommendation</h2>
+  <p>What to keep, according to the audit.</p>
+  <div class="table-wrap"><table><thead><tr><th>Idea</th><th>Status tag</th><th>Why it holds</th></tr></thead><tbody>
+<tr class="ok"><td>Proper time depends on the observer; clocks along different paths disagree</td><td>Established</td><td>Standard relativity.</td></tr>
+<tr class="ok"><td>Subjective duration and physical duration are different things</td><td>Established</td><td>Documented in time-perception research; mechanisms still debated.</td></tr>
+<tr class="ok"><td>A shared timeline across observers requires a shared boundary or reference</td><td>Derived</td><td>Follows from the ‘why do we agree on the date’ objection.</td></tr>
+<tr class="bad"><td>Brain as horizon filter (full proposal)</td><td>Not recommended</td><td>Rests on a premise the physics undercuts. Revisit only with a corrected premise.</td></tr>
+</tbody></table></div>
+
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Companion record to Plate 90. The spreadsheet is a download; it is not yet live if the upload is still pending.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
