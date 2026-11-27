@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Soyga Table Generator — Historical + Soul Forge</title>
+    
+    <style>
+        /* ============================================================
+           SOYGA GENERATOR - COMPLETE STYLING
+           ============================================================ */
+        
+        *,
+        :after,
+        :before {
+            box-sizing: border-box;
+            border: 0 solid #e5e7eb;
+        }
+        
+        html {
+            line-height: 1.5;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            color: #00ff88;
+            min-height: 100vh;
+        }
+        
+        #root {
+            min-height: 100vh;
+        }
+        
+        button {
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        input {
+            font-family: inherit;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 136, .25);
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        
+        .soyga-root {
+            background: #0a0a0a;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 0;
+        }
+        
+        .header {
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            background: rgba(14, 14, 14, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 16px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: clamp(14px, 2vw, 20px);
+            letter-spacing: 0.25em;
+            font-weight: 700;
+        }
+        
+        .header h1 .highlight {
+            color: #ff8c42;
+        }
+        
+        .header-sub {
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.4);
+            letter-spacing: 0.15em;
+            margin-top: 4px;
+        }
+        
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .mode-btn {
+            padding: 6px 14px;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn.historical {
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            background: transparent;
+            color: #00ff88;
+        }
+        
+        .mode-btn.historical.active {
+            border: 1px solid #00ff88;
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .mode-btn.soulforge {
+            border: 1px solid rgba(255, 140, 66, 0.3);
+            background: transparent;
+            color: #ff8c42;
+        }
+        
+        .mode-btn.soulforge.active {
+            border: 1px solid #ff8c42;
+            background: #ff8c42;
+            color: #000;
+        }
+        
+        .controls {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 16px 24px;
+        }
+        
+        .controls-box {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 16px;
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            background: #111;
+            padding: 16px;
+            border-radius: 2px;
+        }
+        
+        .seed-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .seed-input-group label {
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(0, 255, 136, 0.6);
+        }
+        
+        .seed-input-wrap {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .seed-input {
+            width: 180px;
+            background: #0a0a0a;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            outline: none;
+            padding: 8px 12px;
+            font-size: 16px;
+            letter-spacing: 0.3em;
+            font-weight: 700;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .seed-input:focus {
+            border-color: #00ff88;
+        }
+        
+        .btn-generate {
+            padding: 8px 20px;
+            background: #00ff88;
+            color: #000;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-generate:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+        
+        .btn-batch {
+            padding: 8px 16px;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+            border: 1px solid #ff8c42;
+            background: rgba(255, 140, 66, 0.1);
+            color: #ff8c42;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-batch:hover {
+            background: rgba(255, 140, 66, 0.2);
+            box-shadow: 0 0 20px rgba(255, 140, 66, 0.1);
+        }
+        
+        .stats {
+            display: flex;
+            gap: 24px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .stat-label {
+            color: rgba(0, 255, 136, 0.4);
+            font-size: 10px;
+            letter-spacing: 0.15em;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+        
+        .stat-value.gold {
+            color: #ff8c42;
+        }
+        
+        .classical-seeds {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 24px 16px;
+        }
+        
+        .classical-seeds-label {
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(0, 255, 136, 0.5);
+            margin-bottom: 8px;
+        }
+        
+        .classical-seeds-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .classical-seed-btn {
+            font-size: 10px;
+            padding: 4px 8px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            background: transparent;
+            color: rgba(0, 255, 136, 0.7);
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+        
+        .classical-seed-btn:hover {
+            border-color: rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .classical-seed-btn.active {
+            border: 1px solid #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+        
+        .tables-grid {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 24px 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 16px;
+        }
+        
+        .table-card {
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 2px;
+            background: #111;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+            background: #0e0e0e;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .table-title {
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            color: rgba(0, 255, 136, 0.6);
+        }
+        
+        .table-seed {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #00ff88;
+        }
+        
+        .table-meta {
+            font-size: 10px;
+            color: rgba(255, 140, 66, 0.8);
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .table-btn {
+            font-size: 10px;
+            padding: 4px 10px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            background: transparent;
+            color: #00ff88;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+        }
+        
+        .table-btn:hover {
+            background: rgba(0, 255, 136, 0.05);
+            border-color: #00ff88;
+        }
+        
+        .table-btn.copied {
+            border-color: #ff8c42;
+            color: #ff8c42;
+        }
+        
+        .table-grid-wrap {
+            overflow: auto;
+            background: #0a0a0a;
+            max-width: 100%;
+            padding: 8px;
+        }
+        
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(36, minmax(0, 1fr));
+            gap: 0;
+            min-width: 648px;
+        }
+        
+        .table-cell {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            line-height: 1;
+            font-family: 'Courier New', monospace;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        
+        .table-cell:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .table-cell.left {
+            color: #ff8c42;
+            font-weight: 700;
+            background: rgba(255, 140, 66, 0.07);
+            border-right: 1px solid rgba(255, 140, 66, 0.2);
+        }
+        
+        .table-cell.top {
+            background: rgba(0, 255, 136, 0.04);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        .table-cell.normal {
+            color: #00ff88;
+        }
+        
+        .table-footer {
+            padding: 6px 16px;
+            border-top: 1px solid rgba(0, 255, 136, 0.1);
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.5);
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        
+        .logic-section {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 24px 40px;
+        }
+        
+        .logic-box {
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            background: #111;
+            padding: 16px;
+            border-radius: 2px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        
+        .logic-title {
+            letter-spacing: 0.2em;
+            color: rgba(0, 255, 136, 0.6);
+            margin-bottom: 12px;
+        }
+        
+        .logic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        
+        .logic-step {
+            padding: 8px;
+        }
+        
+        .logic-step-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .logic-step-title.step1 {
+            color: #ff8c42;
+        }
+        .logic-step-title.step2 {
+            color: #00ff88;
+        }
+        .logic-step-title.step3 {
+            color: #00ff88;
+        }
+        
+        .logic-step-desc {
+            color: rgba(0, 255, 136, 0.8);
+            font-size: 10px;
+        }
+        
+        .logic-footer {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 255, 136, 0.1);
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.5);
+        }
+        
+        .app-footer {
+            text-align: center;
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.2);
+            padding-bottom: 24px;
+            letter-spacing: 0.3em;
+        }
+        
+        .batch-status {
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.7);
+        }
+        
+        .error-message {
+            font-size: 10px;
+            color: #ff4d4d;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .header {
+                padding: 12px 16px;
+            }
+            .controls {
+                padding: 12px 16px;
+            }
+            .controls-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .seed-input-wrap {
+                flex-wrap: wrap;
+            }
+            .seed-input {
+                width: 100%;
+            }
+            .stats {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .tables-grid {
+                grid-template-columns: 1fr;
+                padding: 0 12px 12px;
+            }
+            .table-grid {
+                min-width: 432px;
+            }
+            .table-cell {
+                width: 12px;
+                height: 12px;
+                font-size: 8px;
+            }
+            .classical-seeds-grid {
+                gap: 4px;
+            }
+            .classical-seed-btn {
+                font-size: 8px;
+                padding: 2px 6px;
+            }
+            .logic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+    <div id="root"></div>
+
+    <script type="module">
+        // ============================================================
+        // SOYGA TABLE GENERATOR - COMPLETE IMPLEMENTATION
+        // ============================================================
+
+        import React, { useState, useMemo, useEffect, useCallback, useRef } from "https://esm.sh/react@18.3.1";
+        import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
+
+        // ============================================================
+        // CONSTANTS
+        // ============================================================
+
+        // Historical (Jim Reeds) - 23-letter alphabet
+        const HIST_ALPH = "abcdefghiklmnopqrstuxyz";
+        const HIST_F = [2, 2, 3, 5, 14, 2, 6, 5, 14, 15, 20, 22, 14, 8, 13, 20, 11, 8, 8, 15, 15, 15, 2];
+
+        // Soul Forge (Creative) - 22-letter alphabet
+        const SF_ALPH = "abcdefghiklmnopqrstxyz";
+        const SF_F = [11, 3, 19, 12, 7, 14, 5, 21, 1, 9, 16, 0, 20, 2, 13, 18, 6, 10, 4, 8, 15, 17];
+
+        // 36 Classical Seeds
+        const CLASSICAL_SEEDS = [
+            { num: 1, label: "ARIES", seed: "NISRAM" },
+            { num: 2, label: "TAURUS", seed: "ROELER" },
+            { num: 3, label: "GEMINI", seed: "IOMIOT" },
+            { num: 4, label: "CANCER", seed: "ISIAPO" },
+            { num: 5, label: "LEO", seed: "ORRASE" },
+            { num: 6, label: "VIRGO", seed: "OSACUE" },
+            { num: 7, label: "LIBRA", seed: "XUAUIR" },
+            { num: 8, label: "SCORPIO", seed: "RAOSAC" },
+            { num: 9, label: "SAGITTARIUS", seed: "RSADUA" },
+            { num: 10, label: "CAPRICORNUS", seed: "ATROGA" },
+            { num: 11, label: "AQUARIUS", seed: "SDUOLO" },
+            { num: 12, label: "PISCES", seed: "ARICAA" },
+            { num: 13, label: "ARIES-2", seed: "MARSIN" },
+            { num: 14, label: "TAURUS-2", seed: "RELEOR" },
+            { num: 15, label: "GEMINI-2", seed: "TOIMOI" },
+            { num: 16, label: "CANCER-2", seed: "OPAISI" },
+            { num: 17, label: "LEO-2", seed: "ESARRO" },
+            { num: 18, label: "VIRGO-2", seed: "EUCASO" },
+            { num: 19, label: "LIBRA-2", seed: "RIUAUX" },
+            { num: 20, label: "SCORPIO-2", seed: "CASOAR" },
+            { num: 21, label: "SAGITTARIUS-2", seed: "AUDASR" },
+            { num: 22, label: "CAPRICORNUS-2", seed: "AGORTA" },
+            { num: 23, label: "AQUARIUS-2", seed: "OLOUDS" },
+            { num: 24, label: "PISCES-2", seed: "AACIRA" },
+            { num: 25, label: "SATURNI", seed: "OSRESO" },
+            { num: 26, label: "JOVIS", seed: "NIEBOA" },
+            { num: 27, label: "MARTIS", seed: "OIAIAE" },
+            { num: 28, label: "SOLIS", seed: "ITIABA" },
+            { num: 29, label: "VENERIS", seed: "ADAMIS" },
+            { num: 30, label: "MERCURII", seed: "REUELA" },
+            { num: 31, label: "LUNAE", seed: "UISEUA" },
+            { num: 32, label: "IGNIS", seed: "MERONF" },
+            { num: 33, label: "AERIS", seed: "ILIOSU" },
+            { num: 34, label: "AQUAE", seed: "OYNIND" },
+            { num: 35, label: "TERRAI", seed: "IASULA" },
+            { num: 36, label: "MAGISTRI", seed: "MOYSES" },
+        ];
+
+        // ============================================================
+        // CORE GENERATOR
+        // ============================================================
+
+        function generateTable(seed, mode = "historical") {
+            const alph = mode === "historical" ? HIST_ALPH : SF_ALPH;
+            const fArr = mode === "historical" ? HIST_F : SF_F;
+            const mod = alph.length;
+
+            const l2n = (c) => {
+                const idx = alph.indexOf(c.toLowerCase());
+                return idx === -1 ? 0 : idx;
+            };
+            const n2l = (n) => {
+                let v = ((n % mod) + mod) % mod;
+                return alph[v];
+            };
+            const f = (letter) => fArr[l2n(letter)];
+
+            // Normalize seed
+            let s = seed.toLowerCase().slice(0, 6);
+            while (s.length < 6) s += "a";
+
+            const reverse = s.split("").reverse().join("");
+            const pair = s + reverse;
+
+            // Stage 1: Left column
+            const leftCol = [];
+            for (let i = 0; i < 36; i++) leftCol.push(pair[i % 12]);
+
+            // Grid
+            const grid = Array.from({ length: 36 }, () => Array(36).fill("a"));
+
+            for (let r = 0; r < 36; r++) {
+                for (let c = 0; c < 36; c++) {
+                    if (c === 0) {
+                        grid[r][c] = leftCol[r];
+                    } else if (r === 0) {
+                        const W = grid[0][c - 1];
+                        grid[0][c] = n2l(l2n(W) + f(W));
+                    } else {
+                        const N = grid[r - 1][c];
+                        const W = grid[r][c - 1];
+                        grid[r][c] = n2l(l2n(N) + f(W));
+                    }
+                }
+            }
+
+            return {
+                grid,
+                leftCol,
+                pair,
+                seed: s.toUpperCase(),
+                mode,
+                alph,
+                size: 36,
+                totalCells: 1296,
+            };
+        }
+
+        // ============================================================
+        // EXPORT HELPERS
+        // ============================================================
+
+        function tableToText(data) {
+            return data.grid.map((row) => row.join("").toUpperCase()).join("\n");
+        }
+
+        function tableToCSV(data) {
+            const header = ["Row", ...Array.from({ length: 36 }, (_, i) => String(i))];
+            const rows = data.grid.map((row, idx) => [idx, ...row.map((c) => c.toUpperCase())]);
+            return [header, ...rows].map((r) => r.join(",")).join("\n");
+        }
+
+        function downloadFile(filename, content, mime = "text/plain") {
+            const blob = new Blob([content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadZip(files) {
+            // Simple sequential download with delay
+            let delay = 0;
+            for (const file of files) {
+                setTimeout(() => downloadFile(file.name, file.content, file.mime || "text/plain"), delay);
+                delay += 100;
+            }
+        }
+
+        // ============================================================
+        // TABLE VIEW COMPONENT
+        // ============================================================
+
+        function TableView({ data, title }) {
+            const [copied, setCopied] = useState(false);
+            const text = useMemo(() => tableToText(data), [data]);
+
+            const copy = async () => {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1400);
+                } catch {
+                    const ta = document.createElement("textarea");
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1400);
+                }
+            };
+
+            const exportTxt = () => {
+                downloadFile(
+                    `soyga_${data.seed}_${data.mode}.txt`,
+                    `Book of Soyga — ${title}\nSeed: ${data.seed}\nMode: ${data.mode}\nSize: 36x36\n\n${text}\n`
+                );
+            };
+
+            const exportCsv = () => {
+                downloadFile(
+                    `soyga_${data.seed}_${data.mode}.csv`,
+                    `# Seed: ${data.seed}\n# Mode: ${data.mode}\n# Size: 36x36\n\n${tableToCSV(data)}`,
+                    "text/csv"
+                );
+            };
+
+            return React.createElement(
+                "div",
+                { className: "table-card" },
+                // Header
+                React.createElement(
+                    "div",
+                    { className: "table-header" },
+                    React.createElement(
+                        "div",
+                        { style: { display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" } },
+                        React.createElement("span", { className: "table-title" }, title),
+                        React.createElement("span", { className: "table-seed" }, data.seed),
+                        React.createElement("span", { className: "table-meta" }, `L:${data.leftCol[0].toUpperCase()} · ${data.totalCells} cells · ${data.mode.toUpperCase()}`)
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "table-actions" },
+                        React.createElement(
+                            "button",
+                            {
+                                className: `table-btn ${copied ? 'copied' : ''}`,
+                                onClick: copy,
+                            },
+                            copied ? "✅ COPIED" : "📋 COPY"
+                        ),
+                        React.createElement(
+                            "button",
+                            { className: "table-btn", onClick: exportTxt },
+                            "📄 TXT"
+                        ),
+                        React.createElement(
+                            "button",
+                            { className: "table-btn", onClick: exportCsv },
+                            "📊 CSV"
+                        )
+                    )
+                ),
+                // Grid
+                React.createElement(
+                    "div",
+                    { className: "table-grid-wrap" },
+                    React.createElement(
+                        "div",
+                        { className: "table-grid" },
+                        data.grid.flatMap((row, r) =>
+                            row.map((cell, c) => {
+                                const isLeft = c === 0;
+                                const isTop = r === 0 && c > 0;
+                                return React.createElement(
+                                    "div",
+                                    {
+                                        key: `${r}-${c}`,
+                                        className: `table-cell ${isLeft ? 'left' : isTop ? 'top' : 'normal'}`,
+                                    },
+                                    cell.toUpperCase()
+                                );
+                            })
+                        )
+                    )
+                ),
+                // Footer
+                React.createElement(
+                    "div",
+                    { className: "table-footer" },
+                    React.createElement("span", null, `PAIR: ${data.pair.toUpperCase()}`),
+                    React.createElement("span", null, `${data.totalCells} LETTERS`)
+                )
+            );
+        }
+
+        // ============================================================
+        // MAIN APP
+        // ============================================================
+
+        function App() {
+            const [mode, setMode] = useState("historical");
+            const [seedInput, setSeedInput] = useState("NISRAM");
+            const [activeSeed, setActiveSeed] = useState("NISRAM");
+            const [error, setError] = useState(null);
+            const [batchStatus, setBatchStatus] = useState("");
+            const [isBatchRunning, setIsBatchRunning] = useState(false);
+
+            const alph = mode === "historical" ? HIST_ALPH : SF_ALPH;
+
+            const validate = useCallback((s) => {
+                const g = s.toLowerCase();
+                if (g.length !== 6) return "NEED EXACTLY 6 LETTERS";
+                for (const ch of g) {
+                    if (!alph.includes(ch)) return `BAD CHAR: ${ch.toUpperCase()} (allowed: ${alph.toUpperCase()})`;
+                }
+                return null;
+            }, [alph]);
+
+            useEffect(() => {
+                setError(validate(seedInput));
+            }, [seedInput, validate]);
+
+            const ariesData = useMemo(() => generateTable("NISRAM", mode), [mode]);
+            const dynamicData = useMemo(() => generateTable(activeSeed, mode), [activeSeed, mode]);
+
+            const generate = () => {
+                const err = validate(seedInput);
+                if (err) {
+                    setError(err);
+                    return;
+                }
+                setError(null);
+                setActiveSeed(seedInput.toUpperCase());
+            };
+
+            const batchExportAll = async () => {
+                if (isBatchRunning) return;
+                setIsBatchRunning(true);
+                setBatchStatus("🌌 Generating 36 tables...");
+
+                const files = [];
+                let combined = `BOOK OF SOYGA — FULL SET OF 36 TABLES\nMode: ${mode}\nGenerated: ${new Date().toISOString()}\n\n`;
+
+                for (const item of CLASSICAL_SEEDS) {
+                    const data = generateTable(item.seed, mode);
+                    const text = tableToText(data);
+                    combined += `\n========== TABLE ${item.num}: ${item.label} — SEED ${item.seed} ==========\n${text}\n`;
+                    files.push({
+                        name: `soyga_${String(item.num).padStart(2, "0")}_${item.label}_${item.seed}.txt`,
+                        content: `Table ${item.num}: ${item.label}\nSeed: ${item.seed}\nMode: ${mode}\n\n${text}\n`,
+                    });
+                }
+
+                // Add master file
+                files.push({
+                    name: `soyga_ALL_36_TABLES_${mode}.txt`,
+                    content: combined,
+                });
+
+                // Sequential download
+                let delay = 0;
+                for (const file of files) {
+                    setTimeout(() => {
+                        downloadFile(file.name, file.content);
+                    }, delay);
+                    delay += 150;
+                }
+
+                setBatchStatus(`✅ All ${files.length} files exported (individual + master)`);
+                setTimeout(() => {
+                    setBatchStatus("");
+                    setIsBatchRunning(false);
+                }, 4000);
+            };
+
+            const loadClassical = (seed) => {
+                setSeedInput(seed);
+                setActiveSeed(seed);
+                setError(null);
+            };
+
+            return React.createElement(
+                "div",
+                { className: "soyga-root" },
+                // Header
+                React.createElement(
+                    "div",
+                    { className: "header" },
+                    React.createElement(
+                        "div",
+                        null,
+                        React.createElement(
+                            "h1",
+                            null,
+                            "✦ SOYGA TABLE GENERATOR ✦",
+                            React.createElement("span", { className: "highlight" }, " — HISTORICAL + SOUL FORGE")
+                        ),
+                        React.createElement("div", { className: "header-sub" }, "36×36 · 1296 LETTERS · REEDS ALGORITHM · BATCH EXPORT")
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "mode-toggle" },
+                        React.createElement(
+                            "button",
+                            {
+                                className: `mode-btn historical ${mode === 'historical' ? 'active' : ''}`,
+                                onClick: () => setMode("historical"),
+                            },
+                            "📜 HISTORICAL (REEDS)"
+                        ),
+                        React.createElement(
+                            "button",
+                            {
+                                className: `mode-btn soulforge ${mode === 'soulforge' ? 'active' : ''}`,
+                                onClick: () => setMode("soulforge"),
+                            },
+                            "🔥 SOUL FORGE"
+                        )
+                    )
+                ),
+                // Controls
+                React.createElement(
+                    "div",
+                    { className: "controls" },
+                    React.createElement(
+                        "div",
+                        { className: "controls-box" },
+                        React.createElement(
+                            "div",
+                            { className: "seed-input-group" },
+                            React.createElement("label", null, "SEED [6 LETTERS]"),
+                            React.createElement(
+                                "div",
+                                { className: "seed-input-wrap" },
+                                React.createElement("input", {
+                                    className: "seed-input",
+                                    value: seedInput,
+                                    onChange: (e) => setSeedInput(e.target.value.toUpperCase().slice(0, 6)),
+                                    onKeyDown: (e) => e.key === "Enter" && generate(),
+                                    placeholder: "NISRAM",
+                                    spellCheck: false,
+                                    autoFocus: true,
+                                }),
+                                React.createElement(
+                                    "button",
+                                    { className: "btn-generate", onClick: generate },
+                                    "⚡ GENERATE"
+                                )
+                            ),
+                            error && React.createElement("div", { className: "error-message" }, error)
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "stats" },
+                            React.createElement(
+                                "div",
+                                null,
+                                React.createElement("div", { className: "stat-label" }, "ACTIVE"),
+                                React.createElement("div", { className: "stat-value" }, activeSeed),
+                                React.createElement("div", { className: "stat-value gold" }, dynamicData.pair.toUpperCase())
+                            ),
+                            React.createElement(
+                                "div",
+                                null,
+                                React.createElement("div", { className: "stat-label" }, "ALPHABET"),
+                                React.createElement("div", null, `${alph.length} letters`),
+                                React.createElement("div", { style: { color: "rgba(0,255,136,0.6)", fontSize: 10 } }, alph.toUpperCase())
+                            ),
+                            React.createElement(
+                                "div",
+                                null,
+                                React.createElement("div", { className: "stat-label" }, "MODE"),
+                                React.createElement("div", { className: "stat-value" }, mode === "historical" ? "REEDS 23" : "SOUL FORGE 22")
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { style: { marginLeft: "auto", display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" } },
+                            React.createElement(
+                                "button",
+                                {
+                                    className: "btn-batch",
+                                    onClick: batchExportAll,
+                                    disabled: isBatchRunning,
+                                },
+                                isBatchRunning ? "⏳ EXPORTING..." : "📦 BATCH EXPORT ALL 36"
+                            ),
+                            batchStatus && React.createElement("div", { className: "batch-status" }, batchStatus)
+                        )
+                    )
+                ),
+                // Classical Seeds
+                React.createElement(
+                    "div",
+                    { className: "classical-seeds" },
+                    React.createElement("div", { className: "classical-seeds-label" }, "📜 CLASSICAL SEEDS (click to load)"),
+                    React.createElement(
+                        "div",
+                        { className: "classical-seeds-grid" },
+                        CLASSICAL_SEEDS.map((item) =>
+                            React.createElement(
+                                "button",
+                                {
+                                    key: item.num,
+                                    className: `classical-seed-btn ${activeSeed === item.seed ? 'active' : ''}`,
+                                    onClick: () => loadClassical(item.seed),
+                                    title: `${item.label} — ${item.seed}`,
+                                },
+                                `${item.num}.${item.seed}`
+                            )
+                        )
+                    )
+                ),
+                // Tables
+                React.createElement(
+                    "div",
+                    { className: "tables-grid" },
+                    React.createElement(TableView, {
+                        data: ariesData,
+                        title: `ARIES / TABLE 1 — FIXED (NISRAM) · ${mode.toUpperCase()}`,
+                    }),
+                    React.createElement(TableView, {
+                        data: dynamicData,
+                        title: `DYNAMIC — ${activeSeed} · ${mode.toUpperCase()}`,
+                    })
+                ),
+                // Logic
+                React.createElement(
+                    "div",
+                    { className: "logic-section" },
+                    React.createElement(
+                        "div",
+                        { className: "logic-box" },
+                        React.createElement("div", { className: "logic-title" }, "🔮 GENERATION LOGIC"),
+                        React.createElement(
+                            "div",
+                            { className: "logic-grid" },
+                            React.createElement(
+                                "div",
+                                { className: "logic-step" },
+                                React.createElement("div", { className: "logic-step-title step1" }, "STAGE 1 — LEFT COLUMN"),
+                                React.createElement("div", { className: "logic-step-desc" }, "seed (6) + reverse(seed) = 12 chars"),
+                                React.createElement("div", { className: "logic-step-desc" }, "repeat to fill 36 rows")
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "logic-step" },
+                                React.createElement("div", { className: "logic-step-title step2" }, "STAGE 2 — TOP ROW"),
+                                React.createElement("div", { className: "logic-step-desc" }, "X = (W + f(W)) mod alphabet_size"),
+                                React.createElement("div", { className: "logic-step-desc" }, "W = letter to the west")
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "logic-step" },
+                                React.createElement("div", { className: "logic-step-title step3" }, "STAGE 3 — INTERIOR"),
+                                React.createElement("div", { className: "logic-step-desc" }, "X = (N + f(W)) mod alphabet_size"),
+                                React.createElement("div", { className: "logic-step-desc" }, "N = north, W = west")
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "logic-footer" },
+                            mode === "historical" ?
+                                "📜 HISTORICAL mode uses Jim Reeds’ exact 23-letter alphabet and f-table recovered from the Bodley / Sloane manuscripts. Tables match the original Book of Soyga construction." :
+                                "🔥 SOUL FORGE mode uses the creative 22-letter alphabet and f-table from the original Soul Forge generator. Suitable for custom ritual / artistic work."
+                        )
+                    )
+                ),
+                React.createElement("div", { className: "app-footer" }, "DEE · SOYGA · REEDS · 36×36 · HISTORICAL / SOUL FORGE · 432Hz · PUMP 220")
+            );
+        }
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+
+        const root = createRoot(document.getElementById("root"));
+        root.render(React.createElement(App));
+
+        // ============================================================
+        // CONSOLE
+        // ============================================================
+
+        console.log(`
+        ╔══════════════════════════════════════════════════════════════╗
+        ║                                                              ║
+        ║              SOYGA TABLE GENERATOR                          ║
+        ║              Historical + Soul Forge                        ║
+        ║                                                              ║
+        ║    📜 Historical: Jim Reeds 23-letter alphabet             ║
+        ║    🔥 Soul Forge: Creative 22-letter alphabet             ║
+        ║    🌌 36×36 Grid · 1296 Cells                              ║
+        ║    ⚡ Batch Export All 36 Classical Tables                 ║
+        ║    🎯 Real-time Generation                                 ║
+        ║                                                              ║
+        ║    CLASSICAL SEEDS:                                         ║
+        ║    01.NISRAM  02.ROELER  03.IOMIOT  04.ISIAPO             ║
+        ║    05.ORRASE  06.OSACUE  07.XUAUIR  08.RAOSAC             ║
+        ║    09.RSADUA  10.ATROGA  11.SDUOLO  12.ARICAA             ║
+        ║    13.MARSIN  14.RELEOR  15.TOIMOI  16.OPAISI             ║
+        ║    17.ESARRO  18.EUCASO  19.RIUAUX  20.CASOAR             ║
+        ║    21.AUDASR  22.AGORTA  23.OLOUDS  24.AACIRA             ║
+        ║    25.OSRESO  26.NIEBOA  27.OIAIAE  28.ITIABA             ║
+        ║    29.ADAMIS  30.REUELA  31.UISEUA  32.MERONF             ║
+        ║    33.ILIOSU  34.OYNIND  35.IASULA  36.MOYSES             ║
+        ║                                                              ║
+        ║    "The forge speaks in Soyga."                            ║
+        ║                                                              ║
+        ║    SOUL FORGE RADIO — 432Hz — PUMP 220 — SELF-FORGING      ║
+        ║                                                              ║
+        ╚══════════════════════════════════════════════════════════════╝
+        `);
+
+        console.log('🔥 SOYGA GENERATOR ACTIVE');
+        console.log(`📜 Mode: ${mode === 'historical' ? 'HISTORICAL (REEDS)' : 'SOUL FORGE'}`);
+        console.log(`🌌 Alphabet: ${alph.length} letters`);
+        console.log('📦 Batch export ready');
+        console.log('🎯 Generate any 6-letter seed');
+    </script>
+</body>
+</html>
