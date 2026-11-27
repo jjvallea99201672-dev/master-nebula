@@ -11,7 +11,7 @@ import math
 import random
 from PIL import Image, ImageDraw, ImageFilter
 
-random.seed(11)  # peoplelie11
+random.seed(11)
 W = 2000
 img = Image.new("RGB", (W, W), (7, 8, 22))
 glow = Image.new("RGB", (W, W), (0, 0, 0))
