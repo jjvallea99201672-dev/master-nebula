@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ether (live client) — Jay Vallea</title>
+<style>
+  :root{
+    --bg:#0a0c14; --fg:#cfd6e6; --dim:#6b7590; --line:#1d2336;
+    --accent:#8fb4ff; --ok:#7ee2a8; --err:#ff8f8f;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:radial-gradient(ellipse at 50% -20%,#141a2b 0%,var(--bg) 60%);
+    color:var(--fg);font:14px/1.5 var(--mono);
+    display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr auto;
+    grid-template-areas:"head head" "canvas side" "foot foot";height:100vh;
+  }
+  header{grid-area:head;padding:14px 18px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:14px}
+  header h1{margin:0;font-size:15px;font-weight:600;letter-spacing:.02em}
+  header .sub{color:var(--dim);font-size:12px}
+  #status{margin-left:auto;font-size:12px;padding:3px 9px;border-radius:99px;
+    border:1px solid var(--line);color:var(--dim)}
+  #status.on{color:var(--ok);border-color:#23402f;background:#0e1a14}
+  #status.err{color:var(--err);border-color:#402323;background:#1a0e0e}
+  #canvas{grid-area:canvas;display:block;width:100%;height:100%}
+  aside{grid-area:side;border-left:1px solid var(--line);padding:16px;
+    overflow:auto;display:flex;flex-direction:column;gap:14px}
+  aside section{display:flex;flex-direction:column;gap:6px}
+  aside h2{margin:0;font-size:11px;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.08em;font-weight:600}
+  input,textarea,button{font:inherit;color:var(--fg);background:#0f1420;
+    border:1px solid var(--line);border-radius:6px;padding:7px 9px}
+  input:focus,textarea:focus,button:focus{outline:none;border-color:#2c3a5c}
+  textarea{resize:vertical;min-height:52px}
+  button{cursor:pointer;background:#141b2c}
+  button:hover{border-color:#2c3a5c}
+  button:active{background:#0f1420}
+  .row{display:flex;gap:6px}
+  .row>*{flex:1}
+  pre{background:#0b0f19;border:1px solid var(--line);border-radius:8px;
+    padding:10px;overflow:auto;margin:0;font-size:12px;min-height:80px;
+    max-height:260px;white-space:pre-wrap;word-break:break-word}
+  .hits{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+  .hits li{padding:6px 8px;border:1px solid var(--line);border-radius:6px;
+    font-size:12px;display:flex;justify-content:space-between;gap:8px}
+  .hits .d{color:var(--dim)}
+  .meter{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;
+    align-items:center;font-size:12px}
+  .meter b{font-weight:500;color:var(--dim)}
+  .meter .bar{height:6px;background:#0f1420;border-radius:3px;overflow:hidden;
+    border:1px solid var(--line)}
+  .meter .bar i{display:block;height:100%;background:var(--accent);
+    transition:width .3s ease;width:0}
+  footer{grid-area:foot;border-top:1px solid var(--line);padding:8px 18px;
+    color:var(--dim);font-size:11px;display:flex;gap:16px;flex-wrap:wrap}
+  code{background:#0f1420;padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+  <a href="../../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<header>
+  <h1>ether</h1>
+  <span class="sub">four faces · one medium</span>
+  <span id="status">disconnected</span>
+</header>
+
+<canvas id="canvas"></canvas>
+
+<aside>
+  <section>
+    <h2>bridge</h2>
+    <div class="row">
+      <input id="wsurl" value="ws://127.0.0.1:8765" spellcheck="false">
+      <button id="conn" style="flex:0 0 auto">connect</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>transmit</h2>
+    <textarea id="thought" placeholder="Sabaoth">Sabaoth</textarea>
+    <div class="row">
+      <label style="flex:2;display:flex;flex-direction:column;gap:4px">
+        <span style="color:var(--dim);font-size:11px">noise</span>
+        <input id="noise" type="number" min="0" max="1" step="0.05" value="0">
+      </label>
+      <button id="tx" style="flex:1;align-self:flex-end">transmit</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>resonate</h2>
+    <div class="row">
+      <input id="query" placeholder="hosts" spellcheck="false">
+      <button id="rq" style="flex:0 0 auto">query</button>
+    </div>
+    <ul class="hits" id="hits"></ul>
+  </section>
+
+  <section>
+    <h2>state</h2>
+    <div class="meter">
+      <b>records</b><span class="bar"><i id="m-records"></i></span>
+      <b>energy</b><span class="bar"><i id="m-energy"></i></span>
+      <b>spread</b><span class="bar"><i id="m-spread"></i></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>last reply</h2>
+    <pre id="out">—</pre>
+  </section>
+</aside>
+
+<footer>
+  <span>wire: <code>ETHR | u32 len | JSON</code></span>
+  <span>run: <code>python ether.py serve</code></span>
+  <span>bridge: <code>python bridge.py</code></span>
+  <span>meters: <code>log10(1+x) / log10(1+max)</code></span>
+</footer>
+
+<script>
+"use strict";
+
+// ---------------------------------------------------------------
+// Framing (mirrors ether.py)
+// ---------------------------------------------------------------
+const MAGIC = new TextEncoder().encode("ETHR");
+const HEADER = 8;                 // 4 magic + 4 length
+const MAX_PAYLOAD = 1 << 20;
+
+function encodeFrame(obj){
+  const payload = new TextEncoder().encode(JSON.stringify(obj));
+  if (payload.length > MAX_PAYLOAD) throw new Error("payload too large");
+  const buf = new Uint8Array(HEADER + payload.length);
+  buf.set(MAGIC, 0);
+  new DataView(buf.buffer).setUint32(4, payload.length, false);
+  buf.set(payload, HEADER);
+  return buf;
+}
+
+// Stream reassembler: bytes in, frames out.
+class FrameReader {
+  constructor(){ this.buf = new Uint8Array(0); }
+  push(chunk){
+    const merged = new Uint8Array(this.buf.length + chunk.length);
+    merged.set(this.buf, 0); merged.set(chunk, this.buf.length);
+    this.buf = merged;
+    const frames = [];
+    while (this.buf.length >= HEADER){
+      const dv = new DataView(this.buf.buffer, this.buf.byteOffset, HEADER);
+      const magic = this.buf.subarray(0, 4);
+      if (!(magic[0]===69 && magic[1]===84 && magic[2]===72 && magic[3]===82))
+        throw new Error("bad magic");
+      const len = dv.getUint32(4, false);
+      if (len > MAX_PAYLOAD) throw new Error("declared length too large");
+      if (this.buf.length < HEADER + len) break;
+      const payload = this.buf.subarray(HEADER, HEADER + len);
+      try { frames.push(JSON.parse(new TextDecoder().decode(payload))); }
+      catch(e){ throw new Error("bad JSON: " + e.message); }
+      this.buf = this.buf.subarray(HEADER + len);
+    }
+    return frames;
+  }
+}
+
+// ---------------------------------------------------------------
+// Connection
+// ---------------------------------------------------------------
+const $ = s => document.querySelector(s);
+const statusEl = $("#status");
+
+let ws = null;
+let reader = new FrameReader();
+let pending = [];        // resolvers waiting for the next reply
+let userClose = false;   // true only when the user clicked to disconnect
+
+function setStatus(text, cls){
+  statusEl.textContent = text;
+  statusEl.className = cls || "";
+}
+
+function connect(){
+  // Don't start a second handshake if one is already in flight, or open.
+  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN))
+    return;
+  const url = $("#wsurl").value.trim();
+  if (!url) return;
+  setStatus("connecting…");
+  userClose = false;
+  let sock;
+  try { sock = new WebSocket(url); }
+  catch(e){ setStatus("bad url", "err"); return; }
+  ws = sock;
+  sock.binaryType = "arraybuffer";
+
+  // Each handler ignores events if this socket is no longer the current ws,
+  // so an older socket's onclose cannot null (or clobber) a newer one.
+  sock.onopen = () => {
+    if (sock !== ws) return;
+    setStatus("connected", "on");
+    reader = new FrameReader();
+    // State-on-connect lives here (no connect() reassignment, no setInterval).
+    request({op:"state"}).then(s => {
+      if (sock !== ws) return;
+      if (s && s.ok){
+        show(s);
+        updateMeters({records: s.records, energy: s.field_energy, spread: s.nebula_spread});
+      }
+    }).catch(() => {});
+  };
+  sock.onclose = ev => {
+    if (sock !== ws) return;
+    ws = null;
+    pending.splice(0).forEach(p => p.reject(new Error("closed")));
+    if (userClose){
+      setStatus("disconnected");
+    } else {
+      const reason = (ev.reason || "").trim();
+      const detail = reason ? `${ev.code}/${reason}` : String(ev.code);
+      setStatus(`upstream closed (${detail})`, "err");
+    }
+  };
+  sock.onerror = () => {
+    if (sock !== ws) return;
+    setStatus("error", "err");
+  };
+  sock.onmessage = ev => {
+    if (sock !== ws) return;
+    let frames;
+    try { frames = reader.push(new Uint8Array(ev.data)); }
+    catch(e){ setStatus(e.message, "err"); return; }
+    for (const f of frames){
+      const p = pending.shift();
+      if (p) p.resolve(f);
+      else handleUnsolicited(f);
+    }
+  };
+}
+
+function request(obj){
+  return new Promise((resolve, reject) => {
+    if (!ws || ws.readyState !== WebSocket.OPEN){
+      reject(new Error("not connected")); return;
+    }
+    pending.push({resolve, reject});
+    try { ws.send(encodeFrame(obj)); }
+    catch(e){ pending.pop(); reject(e); }
+  });
+}
+
+// ---------------------------------------------------------------
+// UI wiring
+// ---------------------------------------------------------------
+$("#conn").onclick = () => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    userClose = true;          // so onclose reports "disconnected", not upstream
+    ws.close();
+    return;
+  }
+  if (ws && ws.readyState === WebSocket.CONNECTING) return;  // ignore double-click
+  connect();
+};
+
+$("#tx").onclick = async () => {
+  const thought = $("#thought").value;
+  const noise = parseFloat($("#noise").value) || 0;
+  if (!thought) return;
+  try {
+    const r = await request({op:"transmit", thought, noise});
+    show(r);
+    if (r && r.ok){
+      pulse(r.field_energy);
+      updateMeters({energy: r.field_energy, spread: r.nebula_spread});
+      // Transmit doesn't return a record count; ask state so the meter stays current.
+      // Keep the transmit reply in the panel (don't show() the state).
+      try {
+        const s = await request({op:"state"});
+        if (s && s.ok) updateMeters({
+          records: s.records, energy: s.field_energy, spread: s.nebula_spread
+        });
+      } catch(_){}
+    }
+  } catch(e){ show({error: e.message}); }
+};
+
+$("#rq").onclick = async () => {
+  const query = $("#query").value;
+  if (!query) return;
+  try {
+    const r = await request({op:"resonate", query});
+    show(r);
+    renderHits(r && r.hits || []);
+  } catch(e){ show({error: e.message}); }
+};
+
+function show(obj){
+  $("#out").textContent = JSON.stringify(obj, null, 2);
+}
+
+function renderHits(hits){
+  const ul = $("#hits");
+  ul.innerHTML = "";
+  if (!hits.length){
+    const li = document.createElement("li");
+    li.textContent = "no matches";
+    li.style.color = "var(--dim)";
+    li.style.justifyContent = "center";
+    ul.appendChild(li);
+    return;
+  }
+  for (const h of hits){
+    const li = document.createElement("li");
+    const s = document.createElement("span");
+    s.textContent = h.impression;
+    const d = document.createElement("span");
+    d.className = "d";
+    d.textContent = h.digest;
+    li.append(s, d);
+    ul.appendChild(li);
+  }
+}
+
+// Logarithmic bars: log10(1+x) / log10(1+max), so small values stay visible.
+// Caps: records 1000, energy 50, spread 2 (same ranges as before, new mapping).
+function meterPct(value, max){
+  const x = Math.max(0, Number(value) || 0);
+  const denom = Math.log10(1 + max);
+  if (!(denom > 0)) return 0;
+  return Math.max(0, Math.min(100, Math.log10(1 + x) / denom * 100));
+}
+
+function updateMeters({records, energy, spread}){
+  if (records !== undefined){
+    $("#m-records").style.width = meterPct(records, 1000) + "%";
+  }
+  if (energy !== undefined){
+    $("#m-energy").style.width = meterPct(energy, 50) + "%";
+  }
+  if (spread !== undefined){
+    $("#m-spread").style.width = meterPct(spread, 2) + "%";
+  }
+}
+
+// Unsolicited frames (shouldn't happen from ether.py, but be honest).
+function handleUnsolicited(f){
+  show({unsolicited: f});
+}
+
+// ---------------------------------------------------------------
+// Canvas: a nebula that responds to transmit()
+// ---------------------------------------------------------------
+const canvas = $("#canvas");
+const ctx = canvas.getContext("2d");
+let particles = [];
+let dpr = 1;
+
+function resize(){
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  const r = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.floor(r.width * dpr));
+  canvas.height = Math.max(1, Math.floor(r.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!particles.length) seedParticles();
+}
+
+function seedParticles(){
+  const n = 200;
+  const r = canvas.getBoundingClientRect();
+  particles = Array.from({length:n}, () => ({
+    x: Math.random() * r.width,
+    y: Math.random() * r.height,
+    vx: 0, vy: 0,
+  }));
+}
+
+function step(){
+  const r = canvas.getBoundingClientRect();
+  const W = r.width, H = r.height;
+  // gentle drift + wrap
+  for (const p of particles){
+    p.vx *= 0.98; p.vy *= 0.98;
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x += W; if (p.x > W) p.x -= W;
+    if (p.y < 0) p.y += H; if (p.y > H) p.y -= H;
+  }
+  // draw
+  ctx.clearRect(0, 0, W, H);
+  // links
+  ctx.strokeStyle = "rgba(143,180,255,0.06)";
+  ctx.lineWidth = 1;
+  for (let i = 0; i < particles.length; i++){
+    for (let j = i + 1; j < particles.length; j++){
+      const a = particles[i], b = particles[j];
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const d2 = dx*dx + dy*dy;
+      if (d2 < 90*90){
+        const t = 1 - Math.sqrt(d2)/90;
+        ctx.globalAlpha = t * 0.35;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+  // points
+  for (const p of particles){
+    const sp = Math.hypot(p.vx, p.vy);
+    const g = Math.min(1, sp / 4);
+    ctx.fillStyle = `rgba(${143 + 80*g},${180 + 40*g},255,${0.35 + 0.55*g})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 1.2 + g * 1.6, 0, Math.PI*2);
+    ctx.fill();
+  }
+  requestAnimationFrame(step);
+}
+
+function pulse(energy){
+  // Push outward proportional to field energy; keeps the canvas alive.
+  const r = canvas.getBoundingClientRect();
+  const cx = r.width / 2, cy = r.height / 2;
+  const strength = Math.min(8, 1 + (energy || 0) * 0.4);
+  for (const p of particles){
+    const dx = p.x - cx, dy = p.y - cy;
+    const d = Math.hypot(dx, dy) || 1;
+    p.vx += (dx / d) * strength * (0.5 + Math.random() * 0.5);
+    p.vy += (dy / d) * strength * (0.5 + Math.random() * 0.5);
+  }
+}
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame(step);
+
+// Keyboard: Ctrl/Cmd+Enter submits the transmit box.
+$("#thought").addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") $("#tx").click();
+});
+$("#query").addEventListener("keydown", e => {
+  if (e.key === "Enter") $("#rq").click();
+});
+</script>
+</body>
+</html>
