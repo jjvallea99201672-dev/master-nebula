@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Festival of Unfinished Songs Source — Jay Vallea</title>
+<meta name="description" content="Source for the 2026-11-17 Festival of Unfinished Songs companion site: App.tsx and CSS. The three images are separate downloads.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Festival of Unfinished Songs</h1>
+  <p class="subtitle">Companion site source, 2026-11-17</p>
+  <p>This is the source for a companion site to the Field Guide closing plate. It has six songs, the Lattice, place notes, and a prediction log. The live build is at <a href="../festival-songs/">festival-songs/</a>. The plate itself, Principle 79, stays at <a href="../festival-unfinished-songs/">festival-unfinished-songs/</a> and was not replaced. The three WebP images are not in this download; they belong beside the live build as <code>assets/hero.webp</code>, <code>assets/lattice.webp</code>, and <code>assets/river.webp</code>. A witness-notes form talks to a records service that is not on this static host, so notes will not load or save here. No keys are included.</p>
+  <div class="row">
+    <a class="btn gold" href="../festival-songs/">Open the companion site</a>
+    <a class="btn" href="App.tsx" download>Download App.tsx</a>
+    <a class="btn" href="index.css" download>Download index.css</a>
+  </div>
+  <h2>App.tsx</h2>
+  <div class="src">import React, { useCallback, useEffect, useState } from &quot;react&quot;;
+
+type WitnessNoteRecord = { id: string; value: { name: string; note: string }; created_at?: string };
+
+async function callApi(action: string, args: Record&lt;string, unknown&gt;) {
+  const response = await fetch(&quot;actions&quot;, {
+    method: &quot;POST&quot;,
+    headers: { &quot;content-type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify({ action, args }),
+  });
+  const payload = await response.json().catch(() =&gt; ({}));
+  if (!response.ok || payload.error) {
+    throw new Error(typeof payload.error === &quot;string&quot; &amp;&amp; payload.error ? payload.error : &quot;The records service could not be reached.&quot;);
+  }
+  return payload.data;
+}
+const heroImg = &quot;./assets/hero.webp&quot;;
+const latticeImg = &quot;./assets/lattice.webp&quot;;
+const riverImg = &quot;./assets/river.webp&quot;;
+
+const songs = [
+  { title: &quot;Patch Me Up&quot;, meaning: &quot;A small repair, and then again — a way to keep going without pretending the break never happened.&quot;, tag: &quot;Repair&quot;, glyph: &quot;✦&quot; },
+  { title: &quot;Hold One Point For Me&quot;, meaning: &quot;One blue point, then another. No border, no test. Just a place held steady while someone finds their way.&quot;, tag: &quot;Keeper&quot;, glyph: &quot;•&quot; },
+  { title: &quot;Connected Not Together&quot;, meaning: &quot;Signal tracks across distance. Presence does not have to mean being in the same room.&quot;, tag: &quot;Signal&quot;, glyph: &quot;≋&quot; },
+  { title: &quot;Coffee Ring&quot;, meaning: &quot;The mark left after the ordinary moment. Proof that someone sat down, stayed, and paid attention.&quot;, tag: &quot;Keeper&quot;, glyph: &quot;◯&quot; },
+  { title: &quot;Unbreakable&quot;, meaning: &quot;Not unscarred. Not untouched. Still here, still able to choose what comes next.&quot;, tag: &quot;Banger&quot;, glyph: &quot;◆&quot; },
+  { title: &quot;Echoes in the Code&quot;, meaning: &quot;What we build carries what we felt. The machine remembers the human hands behind it.&quot;, tag: &quot;Signal&quot;, glyph: &quot;⌇&quot; },
+];
+
+const lattice = [
+  { name: &quot;Vein&quot;, means: &quot;Antenna&quot;, note: &quot;It reaches out and listens. It carries a signal without asking it to be louder.&quot; },
+  { name: &quot;Windmill&quot;, means: &quot;Amplifier&quot;, note: &quot;It takes what is already moving — wind, attention, care — and gives it more reach.&quot; },
+  { name: &quot;Line&quot;, means: &quot;Wire&quot;, note: &quot;A simple connection. One point to another, held with intention.&quot; },
+  { name: &quot;Dam&quot;, means: &quot;Battery&quot;, note: &quot;It stores what is gathered, so energy is there when the moment needs it.&quot; },
+];
+
+const notes = [
+  { place: &quot;Restigouche River&quot;, text: &quot;The river keeps its own time. It does not rush a witness.&quot; },
+  { place: &quot;Nigadoo River&quot;, text: &quot;A smaller waterway with a long memory. Look closely; the quiet is part of the story.&quot; },
+  { place: &quot;Dunlop, NB&quot;, text: &quot;Home is not a claim. It is a place to return to, repair from, and begin again.&quot; },
+];
+
+const shellStyle = { boxSizing: &quot;border-box&quot; as const, paddingTop: &quot;var(--safe-area-inset-top)&quot; };
+
+export default function App() {
+  const [activeSong, setActiveSong] = useState(0);
+  const [keeper, setKeeper] = useState&lt;&quot;Known&quot; | &quot;Guessed&quot; | &quot;Open&quot;&gt;(&quot;Known&quot;);
+  const [witnessNotes, setWitnessNotes] = useState&lt;WitnessNoteRecord[]&gt;([]);
+  const [notesLoading, setNotesLoading] = useState(true);
+  const [notesLoadError, setNotesLoadError] = useState&lt;string | null&gt;(null);
+  const [witnessName, setWitnessName] = useState(&quot;&quot;);
+  const [witnessNote, setWitnessNote] = useState(&quot;&quot;);
+  const [busy, setBusy] = useState(false);
+  const [saveResult, setSaveResult] = useState&lt;{ saved: number; remaining: number; error: string | null; reloadError: string | null } | null&gt;(null);
+
+  const reloadRecords = useCallback(async () =&gt; {
+    const data = await callApi(&quot;records.list&quot;, { collection: &quot;prediction-witness-notes&quot; });
+    setWitnessNotes(Array.isArray(data?.records) ? data.records : []);
+  }, []);
+
+  useEffect(() =&gt; {
+    let cancelled = false;
+    (async () =&gt; {
+      try {
+        await reloadRecords();
+        if (!cancelled) setNotesLoadError(null);
+      } catch (e) {
+        if (!cancelled) setNotesLoadError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (!cancelled) setNotesLoading(false);
+      }
+    })();
+    return () =&gt; { cancelled = true; };
+  }, [reloadRecords]);
+
+  async function createRow(row: { name: string; note: string }) {
+    const idempotency_key = typeof crypto !== &quot;undefined&quot; &amp;&amp; &quot;randomUUID&quot; in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    await callApi(&quot;records.create&quot;, { collection: &quot;prediction-witness-notes&quot;, value: row, idempotency_key });
+  }
+
+  async function handleAddWitnessNote(event: React.FormEvent) {
+    event.preventDefault();
+    const row = { name: witnessName.trim(), note: witnessNote.trim() };
+    if (!row.note) {
+      setSaveResult({ saved: 0, remaining: 1, error: &quot;Write a witness note before adding it.&quot;, reloadError: null });
+      return;
+    }
+    const rows = [row];
+    setBusy(true);
+    let saved = 0;
+    let error: string | null = null;
+    try {
+      for (const item of rows) {
+        await createRow(item);
+        saved += 1;
+      }
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+    let reloadError: string | null = null;
+    try {
+      await reloadRecords();
+    } catch (e) {
+      reloadError = e instanceof Error ? e.message : String(e);
+    }
+    setSaveResult({ saved, remaining: rows.length - saved, error, reloadError });
+    setBusy(false);
+    if (!error) {
+      setWitnessName(&quot;&quot;);
+      setWitnessNote(&quot;&quot;);
+    }
+  }
+
+  const keeperText: Record&lt;string, string&gt; = {
+    Known: &quot;What can be named plainly, without adding more than the evidence carries.&quot;,
+    Guessed: &quot;What feels likely, but has not been shown. It stays marked as a guess.&quot;,
+    Open: &quot;What is not yet known. The space stays open rather than being filled too soon.&quot;,
+  };
+
+  return (
+    &lt;div data-safe-area-inset-root style={shellStyle} className=&quot;min-h-screen w-full overflow-x-clip bg-[var(--night)] text-[var(--ink)]&quot;&gt;
+      &lt;header data-safe-area-sticky-top style={{ top: &quot;var(--safe-area-inset-top)&quot; }} className=&quot;sticky z-30 border-b border-[var(--line)] bg-[#0a0614]/92 backdrop-blur-md&quot;&gt;
+        &lt;div className=&quot;mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6&quot;&gt;
+          &lt;a href=&quot;#top&quot; className=&quot;min-w-0&quot;&gt;
+            &lt;span className=&quot;font-display block text-xl font-black leading-none tracking-tight sm:text-2xl&quot;&gt;JAY VALLEA&lt;/span&gt;
+            &lt;span className=&quot;mt-1 block text-[10px] font-bold tracking-[0.22em] text-[var(--gold)]&quot;&gt;FESTIVAL OF UNFINISHED SONGS&lt;/span&gt;
+          &lt;/a&gt;
+          &lt;nav className=&quot;flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] font-bold tracking-[0.12em] text-[var(--mist)] sm:text-[13px]&quot; aria-label=&quot;Festival sections&quot;&gt;
+            &lt;a className=&quot;hover:text-[var(--gold)]&quot; href=&quot;#songs&quot;&gt;THE SONGS&lt;/a&gt;
+            &lt;a className=&quot;hover:text-[var(--gold)]&quot; href=&quot;#lattice&quot;&gt;THE LATTICE&lt;/a&gt;
+            &lt;a className=&quot;hover:text-[var(--gold)]&quot; href=&quot;#book&quot;&gt;THE BOOK&lt;/a&gt;
+            &lt;a className=&quot;hover:text-[var(--gold)]&quot; href=&quot;#place&quot;&gt;PLACE&lt;/a&gt;
+            &lt;a className=&quot;hover:text-[var(--gold)]&quot; href=&quot;#prediction-log&quot;&gt;PREDICTION LOG&lt;/a&gt;
+          &lt;/nav&gt;
+        &lt;/div&gt;
+        &lt;div className=&quot;bg-[#150e27] px-4 py-2 text-center text-[10px] font-bold tracking-[0.28em] text-[var(--gold-soft)] sm:px-6 sm:text-[11px]&quot;&gt;
+          LOOK UP. &lt;span className=&quot;mx-1 text-white/40&quot;&gt;•&lt;/span&gt; ASK WHY. &lt;span className=&quot;mx-1 text-white/40&quot;&gt;•&lt;/span&gt; THINK FREELY. &lt;span className=&quot;mx-1 text-white/40&quot;&gt;•&lt;/span&gt; STAY HUMAN.
+        &lt;/div&gt;
+      &lt;/header&gt;
+
+      &lt;main id=&quot;top&quot; className=&quot;star-field&quot;&gt;
+        {/* HERO */}
+        &lt;section className=&quot;mx-auto grid max-w-6xl items-center gap-8 px-4 pb-14 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12&quot;&gt;
+          &lt;div&gt;
+            &lt;p className=&quot;mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-[11px] font-bold tracking-[0.22em] text-[var(--gold)]&quot;&gt;
+              &lt;span aria-hidden=&quot;true&quot;&gt;✦&lt;/span&gt; AN UNFINISHED FESTIVAL
+            &lt;/p&gt;
+            &lt;h1 className=&quot;font-display text-[clamp(3rem,9vw,5.7rem)] font-black leading-[0.88] tracking-[-0.04em]&quot;&gt;
+              Patch&lt;br /&gt;Me Up
+            &lt;/h1&gt;
+            &lt;p className=&quot;mt-4 text-xl font-semibold text-[var(--gold-soft)] sm:text-2xl&quot;&gt;Festival of Unfinished Songs&lt;/p&gt;
+            &lt;p className=&quot;mt-5 max-w-xl text-lg leading-relaxed text-[var(--mist)]&quot;&gt;
+              Small repair, and then again.&lt;br /&gt;
+              &lt;span className=&quot;text-white&quot;&gt;I’m still here. I can begin.&lt;/span&gt;
+            &lt;/p&gt;
+            &lt;p className=&quot;mt-4 max-w-xl leading-relaxed text-[var(--muted)]&quot;&gt;
+              These songs are not polished into silence. They are kept open — useful, honest, and close to the life that made them.
+            &lt;/p&gt;
+            &lt;div className=&quot;mt-7 flex flex-wrap gap-3&quot;&gt;
+              &lt;a href=&quot;#songs&quot; className=&quot;rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-bold text-[#171029] hover:bg-[var(--gold-soft)]&quot;&gt;Listen through the songs ↓&lt;/a&gt;
+              &lt;a href=&quot;#lattice&quot; className=&quot;rounded-full border border-[var(--line)] px-5 py-3 text-sm font-bold text-[var(--cream)] hover:bg-white/5&quot;&gt;Learn the Lattice&lt;/a&gt;
+            &lt;/div&gt;
+            &lt;dl className=&quot;mt-8 grid max-w-lg grid-cols-3 divide-x divide-[var(--line)] border-y border-[var(--line)] py-4 text-center&quot;&gt;
+              &lt;div&gt;&lt;dt className=&quot;text-[10px] tracking-[0.2em] text-[var(--muted)]&quot;&gt;SONGS&lt;/dt&gt;&lt;dd className=&quot;font-display mt-1 text-2xl&quot;&gt;6&lt;/dd&gt;&lt;/div&gt;
+              &lt;div&gt;&lt;dt className=&quot;text-[10px] tracking-[0.2em] text-[var(--muted)]&quot;&gt;CHAPTERS&lt;/dt&gt;&lt;dd className=&quot;font-display mt-1 text-2xl&quot;&gt;91&lt;/dd&gt;&lt;/div&gt;
+              &lt;div&gt;&lt;dt className=&quot;text-[10px] tracking-[0.2em] text-[var(--muted)]&quot;&gt;MODE&lt;/dt&gt;&lt;dd className=&quot;font-display mt-1 text-2xl&quot;&gt;Keeper&lt;/dd&gt;&lt;/div&gt;
+            &lt;/dl&gt;
+          &lt;/div&gt;
+          &lt;figure className=&quot;relative overflow-hidden rounded-[28px] border border-[var(--line)] card-shadow&quot;&gt;
+            &lt;img src={heroImg} alt=&quot;A small sprout beside a server rack, with a galaxy mug nearby&quot; className=&quot;aspect-[4/3] w-full object-cover&quot; /&gt;
+            &lt;figcaption className=&quot;absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/85 via-black/35 to-transparent p-5 pt-16&quot;&gt;
+              &lt;span className=&quot;text-sm font-semibold leading-snug&quot;&gt;Growth beside the machine.&lt;br /&gt;&lt;span className=&quot;text-[var(--gold-soft)]&quot;&gt;Both are allowed to be here.&lt;/span&gt;&lt;/span&gt;
+              &lt;span className=&quot;shrink-0 rounded-full bg-[var(--gold)] px-3 py-1 text-xs font-black text-[#171029]&quot;&gt;HERO ART&lt;/span&gt;
+            &lt;/figcaption&gt;
+          &lt;/figure&gt;
+        &lt;/section&gt;
+
+        {/* SONGS */}
+        &lt;section id=&quot;songs&quot; className=&quot;mx-auto max-w-6xl scroll-mt-28 px-4 pb-16 sm:px-6&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-end justify-between gap-4&quot;&gt;
+            &lt;div&gt;
+              &lt;p className=&quot;text-xs font-bold tracking-[0.28em] text-[var(--gold)]&quot;&gt;01 — THE SONGS&lt;/p&gt;
+              &lt;h2 className=&quot;font-display mt-2 text-4xl font-black leading-tight sm:text-5xl&quot;&gt;Six songs,&lt;br /&gt;left open on purpose.&lt;/h2&gt;
+            &lt;/div&gt;
+            &lt;p className=&quot;max-w-sm text-sm leading-relaxed text-[var(--muted)]&quot;&gt;Choose a song to read its meaning. A Keeper song holds steady. A Signal song travels. A Repair song makes room to begin again.&lt;/p&gt;
+          &lt;/div&gt;
+
+          &lt;div className=&quot;mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3&quot;&gt;
+            {songs.map((song, i) =&gt; {
+              const active = activeSong === i;
+              return (
+                &lt;button key={song.title} onClick={() =&gt; setActiveSong(i)} aria-pressed={active} className={`group min-w-0 rounded-3xl border p-5 text-left transition ${active ? &quot;border-[var(--gold)] bg-[var(--surface-2)]&quot; : &quot;border-[var(--line)] bg-[var(--surface)] hover:border-[var(--gold)]/60&quot;}`}&gt;
+                  &lt;div className=&quot;flex items-start justify-between gap-3&quot;&gt;
+                    &lt;span className=&quot;font-display flex h-11 w-11 items-center justify-center rounded-full bg-[var(--gold)]/15 text-2xl text-[var(--gold)]&quot;&gt;{song.glyph}&lt;/span&gt;
+                    &lt;span className=&quot;rounded-full border border-[var(--line)] px-2.5 py-1 text-[10px] font-black tracking-[0.18em] text-[var(--gold)]&quot;&gt;{song.tag.toUpperCase()}&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;h3 className=&quot;font-display mt-5 text-2xl font-bold leading-tight&quot;&gt;{song.title}&lt;/h3&gt;
+                  &lt;p className=&quot;mt-2 min-h-[96px] text-sm leading-relaxed text-[var(--mist)] sm:min-h-[84px]&quot;&gt;{song.meaning}&lt;/p&gt;
+                  &lt;span className={`mt-4 inline-flex items-center gap-2 text-xs font-bold ${active ? &quot;text-[var(--gold)]&quot; : &quot;text-[var(--muted)]&quot;}`}&gt;
+                    {active ? &quot;● NOW READING&quot; : &quot;READ THE MEANING →&quot;}
+                  &lt;/span&gt;
+                &lt;/button&gt;
+              );
+            })}
+          &lt;/div&gt;
+          &lt;div className=&quot;mt-4 rounded-2xl border border-[var(--line)] bg-[#120a24] px-5 py-4&quot;&gt;
+            &lt;p className=&quot;text-xs font-bold tracking-[0.22em] text-[var(--gold)]&quot;&gt;NOW HELD: {songs[activeSong].title.toUpperCase()}&lt;/p&gt;
+            &lt;p className=&quot;mt-2 text-base leading-relaxed text-[var(--cream)]&quot;&gt;{songs[activeSong].meaning}&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* LATTICE */}
+        &lt;section id=&quot;lattice&quot; className=&quot;border-y border-[var(--line)] bg-[#120a24]/80&quot;&gt;
+          &lt;div className=&quot;mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[0.95fr_1.05fr]&quot;&gt;
+            &lt;div&gt;
+              &lt;p className=&quot;text-xs font-bold tracking-[0.28em] text-[var(--gold)]&quot;&gt;02 — THE LATTICE&lt;/p&gt;
+              &lt;h2 className=&quot;font-display mt-2 text-4xl font-black leading-tight sm:text-5xl&quot;&gt;A plain way&lt;br /&gt;to see connection.&lt;/h2&gt;
+              &lt;p className=&quot;mt-4 leading-relaxed text-[var(--mist)]&quot;&gt;The Lattice is not a puzzle to solve. It is a way to name how things already reach, carry, and hold one another.&lt;/p&gt;
+              &lt;figure className=&quot;mt-6 overflow-hidden rounded-3xl border border-[var(--line)]&quot;&gt;
+                &lt;img src={latticeImg} alt=&quot;Lattice artwork showing connected forms in deep purple and gold&quot; className=&quot;aspect-[16/10] w-full object-cover&quot; /&gt;
+                &lt;figcaption className=&quot;bg-[var(--surface)] px-4 py-3 text-xs leading-relaxed text-[var(--muted)]&quot;&gt;Lattice artwork — forms that reach, carry, and hold. No hidden code. What you see is what is meant.&lt;/figcaption&gt;
+              &lt;/figure&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+              &lt;div className=&quot;grid gap-3 sm:grid-cols-2&quot;&gt;
+                {lattice.map((item) =&gt; (
+                  &lt;article key={item.name} className=&quot;rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5&quot;&gt;
+                    &lt;p className=&quot;text-[10px] font-black tracking-[0.24em] text-[var(--gold)]&quot;&gt;THE {item.name.toUpperCase()}&lt;/p&gt;
+                    &lt;h3 className=&quot;font-display mt-2 text-2xl font-bold&quot;&gt;{item.means}&lt;/h3&gt;
+                    &lt;p className=&quot;mt-2 text-sm leading-relaxed text-[var(--mist)]&quot;&gt;{item.note}&lt;/p&gt;
+                  &lt;/article&gt;
+                ))}
+              &lt;/div&gt;
+              &lt;div className=&quot;mt-4 rounded-3xl bg-[var(--gold)] p-5 text-[#171029]&quot;&gt;
+                &lt;div className=&quot;flex flex-wrap items-center justify-between gap-3&quot;&gt;
+                  &lt;h3 className=&quot;font-display text-2xl font-black&quot;&gt;Keeper mode&lt;/h3&gt;
+                  &lt;div className=&quot;flex gap-1 rounded-full bg-black/10 p-1&quot; role=&quot;group&quot; aria-label=&quot;Keeper mode&quot;&gt;
+                    {([&quot;Known&quot;, &quot;Guessed&quot;, &quot;Open&quot;] as const).map((mode) =&gt; (
+                      &lt;button key={mode} onClick={() =&gt; setKeeper(mode)} aria-pressed={keeper === mode} className={`rounded-full px-3 py-1.5 text-xs font-black ${keeper === mode ? &quot;bg-[#171029] text-[var(--gold)]&quot; : &quot;text-[#171029]/70 hover:bg-white/30&quot;}`}&gt;{mode}&lt;/button&gt;
+                    ))}
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-3 leading-relaxed&quot;&gt;{keeperText[keeper]}&lt;/p&gt;
+                &lt;p className=&quot;mt-3 border-t border-black/15 pt-3 text-sm font-semibold&quot;&gt;Plain. Honest. Nothing dressed up as certainty.&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* BOOK */}
+        &lt;section id=&quot;book&quot; className=&quot;mx-auto max-w-6xl px-4 py-14 sm:px-6&quot;&gt;
+          &lt;div className=&quot;overflow-hidden rounded-[28px] border border-[var(--line)] bg-gradient-to-br from-[#2a1755] via-[#171029] to-[#0a0614] p-6 sm:p-10&quot;&gt;
+            &lt;div className=&quot;grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]&quot;&gt;
+              &lt;div&gt;
+                &lt;p className=&quot;text-xs font-bold tracking-[0.28em] text-[var(--gold)]&quot;&gt;03 — THE BOOK&lt;/p&gt;
+                &lt;h2 className=&quot;font-display mt-3 text-4xl font-black leading-[1.02] sm:text-6xl&quot;&gt;Persistence&lt;br /&gt;Through Time&lt;/h2&gt;
+                &lt;p className=&quot;mt-3 text-lg font-semibold text-[var(--gold-soft)]&quot;&gt;Second Edition&lt;/p&gt;
+                &lt;p className=&quot;mt-4 max-w-xl leading-relaxed text-[var(--mist)]&quot;&gt;A long work, kept in pieces and carried forward. It does not ask for approval before it exists. It stays, it continues, and it leaves room for the next repair.&lt;/p&gt;
+                &lt;blockquote className=&quot;mt-6 border-l-4 border-[var(--gold)] pl-4 text-xl font-semibold leading-relaxed sm:text-2xl&quot;&gt;“Truth don’t need permission, it just takes up space.”&lt;/blockquote&gt;
+              &lt;/div&gt;
+              &lt;div className=&quot;grid gap-3&quot;&gt;
+                &lt;div className=&quot;rounded-2xl border border-[var(--line)] bg-black/25 p-5&quot;&gt;&lt;p className=&quot;font-display text-4xl font-black text-[var(--gold)]&quot;&gt;91&lt;/p&gt;&lt;p className=&quot;mt-1 font-bold&quot;&gt;Chapters&lt;/p&gt;&lt;p className=&quot;mt-1 text-sm text-[var(--mist)]&quot;&gt;A full arc of return, repair, and beginning again.&lt;/p&gt;&lt;/div&gt;
+                &lt;div className=&quot;rounded-2xl border border-[var(--line)] bg-black/25 p-5&quot;&gt;&lt;p className=&quot;font-display text-2xl font-black&quot;&gt;Plain Companion&lt;/p&gt;&lt;p className=&quot;mt-1 text-sm text-[var(--mist)]&quot;&gt;The same ideas, in plain language. Nothing hidden behind jargon.&lt;/p&gt;&lt;/div&gt;
+                &lt;div className=&quot;rounded-2xl bg-[var(--gold)] p-5 text-[#171029]&quot;&gt;&lt;p className=&quot;font-black&quot;&gt;Read it slowly.&lt;/p&gt;&lt;p className=&quot;mt-1 text-sm font-medium&quot;&gt;Some chapters are finished. Some are still becoming. Both count.&lt;/p&gt;&lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* PLACE */}
+        &lt;section id=&quot;place&quot; className=&quot;mx-auto max-w-6xl px-4 pb-16 sm:px-6&quot;&gt;
+          &lt;div className=&quot;grid gap-8 lg:grid-cols-[1.05fr_0.95fr]&quot;&gt;
+            &lt;figure className=&quot;overflow-hidden rounded-[28px] border border-[var(--line)] card-shadow&quot;&gt;
+              &lt;img src={riverImg} alt=&quot;Artwork of the river corridor in northern New Brunswick&quot; className=&quot;aspect-[4/3] w-full object-cover&quot; /&gt;
+              &lt;figcaption className=&quot;bg-[var(--surface)] px-5 py-4 text-sm leading-relaxed text-[var(--mist)]&quot;&gt;The corridor is lived in first, described second. The rivers were here before the notes.&lt;/figcaption&gt;
+            &lt;/figure&gt;
+            &lt;div&gt;
+              &lt;p className=&quot;text-xs font-bold tracking-[0.28em] text-[var(--gold)]&quot;&gt;04 — PLACE&lt;/p&gt;
+              &lt;h2 className=&quot;font-display mt-2 text-4xl font-black leading-tight sm:text-5xl&quot;&gt;Atholville / Nigadoo&lt;/h2&gt;
+              &lt;p className=&quot;mt-4 text-lg leading-relaxed text-[var(--mist)]&quot;&gt;Atholville to Bathurst corridor. Home in &lt;span className=&quot;text-white font-semibold&quot;&gt;Dunlop, NB&lt;/span&gt;.&lt;/p&gt;
+              &lt;div className=&quot;gold-rule my-6&quot; /&gt;
+              &lt;p className=&quot;text-sm font-bold tracking-[0.2em] text-[var(--gold)]&quot;&gt;SMALL WITNESS NOTES&lt;/p&gt;
+              &lt;p className=&quot;mt-2 text-sm text-[var(--muted)]&quot;&gt;Not lab reports. Not proof for a court. Just what was seen, where it was seen, and what stayed open.&lt;/p&gt;
+              &lt;div className=&quot;mt-5 space-y-3&quot;&gt;
+                {notes.map((n) =&gt; (
+                  &lt;article key={n.place} className=&quot;rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4&quot;&gt;
+                    &lt;h3 className=&quot;font-bold text-[var(--gold-soft)]&quot;&gt;{n.place}&lt;/h3&gt;
+                    &lt;p className=&quot;mt-1 text-sm leading-relaxed text-[var(--mist)]&quot;&gt;{n.text}&lt;/p&gt;
+                  &lt;/article&gt;
+                ))}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* PREDICTION LOG */}
+        &lt;section id=&quot;prediction-log&quot; className=&quot;border-t border-[var(--line)] bg-[#120a24]/60&quot;&gt;
+          &lt;div className=&quot;mx-auto max-w-6xl px-4 py-14 sm:px-6&quot;&gt;
+            &lt;div className=&quot;flex flex-wrap items-end justify-between gap-4&quot;&gt;
+              &lt;div&gt;
+                &lt;p className=&quot;text-xs font-bold tracking-[0.28em] text-[var(--gold)]&quot;&gt;05 — PREDICTION LOG&lt;/p&gt;
+                &lt;h2 className=&quot;font-display mt-2 text-4xl font-black leading-tight sm:text-5xl&quot;&gt;Prediction Log&lt;/h2&gt;
+                &lt;p className=&quot;mt-3 text-lg font-semibold text-[var(--gold-soft)]&quot;&gt;Visioned Before It Was Listed&lt;/p&gt;
+                &lt;p className=&quot;mt-1 text-sm font-bold tracking-[0.16em] text-[var(--mist)]&quot;&gt;VISIONED 2025 &lt;span className=&quot;mx-1 text-[var(--gold)]&quot;&gt;•&lt;/span&gt; LISTED NOV 17, 2026&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;p className=&quot;max-w-sm text-sm leading-relaxed text-[var(--muted)]&quot;&gt;What was visioned first, what was listed later, and what is still open. Each part is named plainly — no part is dressed up as more certain than it is.&lt;/p&gt;
+            &lt;/div&gt;
+
+            &lt;article className=&quot;card-shadow mt-8 overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)]&quot;&gt;
+              &lt;div className=&quot;flex flex-wrap items-start justify-between gap-4 border-b border-[var(--line)] bg-gradient-to-br from-[#2a1755] via-[#171029] to-[#0a0614] p-6 sm:p-8&quot;&gt;
+                &lt;div className=&quot;min-w-0&quot;&gt;
+                  &lt;p className=&quot;text-[11px] font-black tracking-[0.24em] text-[var(--gold)]&quot;&gt;CARD 1 — BATHURST&lt;/p&gt;
+                  &lt;h3 className=&quot;font-display mt-2 text-3xl font-black leading-tight sm:text-4xl&quot;&gt;Bathurst Data Centre on the Old Paper Mill Site&lt;/h3&gt;
+                &lt;/div&gt;
+                &lt;span className=&quot;shrink-0 rounded-full bg-[var(--gold)] px-3 py-1.5 text-xs font-black text-[#171029]&quot;&gt;VISION → LISTING&lt;/span&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;grid gap-6 p-6 sm:p-8 lg:grid-cols-2&quot;&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;VISION&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;In 2025, Jay visioned a data centre going on the old Smurfit-Stone paper mill site in East Bathurst.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;LISTING APPEARS&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Nov 17, 2026 — Chief Technologies, Bathurst, 24 acres zoned Data Centre, 20 MW contracted from NB Power, 69 kV, $5M USD ask, energization target Aug 2027.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;WHY IT FITS&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Old mill site already has power from Nepisiguit Grand Falls hydro, industrial zoning, fiber, flat cleared land. 24 acres fits inside the ~225-acre mill site.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;GEOLOGY&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Bathurst Mining Camp — quartz + pyrite + pyrrhotite + chalcopyrite veins. Same rock as Nigadoo.&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;mx-6 mb-6 rounded-2xl border border-[var(--line)] bg-black/25 p-5 sm:mx-8 sm:mb-8&quot;&gt;
+                &lt;div className=&quot;flex flex-wrap items-center justify-between gap-3&quot;&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;STATUS&lt;/h4&gt;
+                  &lt;span className=&quot;rounded-full border border-[var(--gold)]/50 px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[var(--gold-soft)]&quot;&gt;NOT YET BUILT&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-3 leading-relaxed text-[var(--cream)]&quot;&gt;&lt;span className=&quot;font-bold text-[var(--gold-soft)]&quot;&gt;Vision → Listing.&lt;/span&gt; Not yet built.&lt;/p&gt;
+                &lt;p className=&quot;mt-2 text-sm leading-relaxed text-[var(--mist)]&quot;&gt;Witness: Jay Vallea, Dunlop NB. Exact lot withheld in listing, location from local witness, to be confirmed by City of Bathurst Planning Advisory Committee.&lt;/p&gt;
+                &lt;div className=&quot;mt-5 flex flex-wrap gap-2&quot; aria-label=&quot;Keeper tags&quot;&gt;
+                  &lt;span className=&quot;rounded-full bg-[var(--gold)] px-3 py-1.5 text-xs font-black text-[#171029]&quot;&gt;KNOWN BY WITNESS&lt;/span&gt;
+                  &lt;span className=&quot;rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-bold text-[var(--gold-soft)]&quot;&gt;GUESSED BY LISTING&lt;/span&gt;
+                  &lt;span className=&quot;rounded-full border border-dashed border-[var(--gold)]/60 px-3 py-1.5 text-xs font-bold text-[var(--mist)]&quot;&gt;OPEN: EXACT PARCEL&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-4 border-t border-[var(--line)] pt-4 text-xs leading-relaxed text-[var(--muted)]&quot;&gt;Keeper tag: Known by witness / Guessed by listing / Open: exact parcel&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/article&gt;
+
+            &lt;article className=&quot;card-shadow mt-8 overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)]&quot;&gt;
+              &lt;div className=&quot;flex flex-wrap items-start justify-between gap-4 border-b border-[var(--line)] bg-gradient-to-br from-[#2a1755] via-[#171029] to-[#0a0614] p-6 sm:p-8&quot;&gt;
+                &lt;div className=&quot;min-w-0&quot;&gt;
+                  &lt;p className=&quot;text-[11px] font-black tracking-[0.24em] text-[var(--gold)]&quot;&gt;CARD 2 — THESIS LINE&lt;/p&gt;
+                  &lt;h3 className=&quot;font-display mt-2 text-3xl font-black leading-tight sm:text-4xl&quot;&gt;Thesis Line — Data Centres and Earth Crystals&lt;/h3&gt;
+                &lt;/div&gt;
+                &lt;span className=&quot;shrink-0 rounded-full border border-[var(--gold)]/60 px-3 py-1.5 text-xs font-black text-[var(--gold-soft)]&quot;&gt;GUESSED, TO BE TESTED&lt;/span&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;p-6 sm:p-8&quot;&gt;
+                &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;STATEMENT&lt;/h4&gt;
+                &lt;p className=&quot;mt-2 text-lg font-semibold leading-relaxed text-[var(--cream)]&quot;&gt;Data centres have a specific frequency connecting to the crystals of earth. Crystals do NOT cause Schumann resonance — they couple to it.&lt;/p&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;grid gap-6 border-t border-[var(--line)] p-6 sm:p-8 lg:grid-cols-3&quot;&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;KNOWN&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Schumann resonance ~7.83 Hz is caused by global lightning (~50 strikes/sec) ringing the Earth-ionosphere cavity. Quartz is piezoelectric: squeeze it = electricity, electricity = squeeze. Server quartz oscillators keep time. Earth hum 3-10 mHz.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;GUESSED&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Quartz veins act as local antennas/amplifiers. They pick up the global 7.83 Hz hum and sing it back locally at their own vein note. A data centre on top (60 Hz grid, gigahertz processors on quartz-derived silicon) could drive that vein harder, making the local speaker louder.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;TEST&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;When the Bathurst site energizes ~Aug 2027, watch for change in ground signal around it. Witness: Jay Vallea, Dunlop NB, living on the Nigadoo vein.&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;mx-6 mb-6 rounded-2xl border border-[var(--line)] bg-black/25 p-5 sm:mx-8 sm:mb-8&quot;&gt;
+                &lt;div className=&quot;flex flex-wrap items-center justify-between gap-3&quot;&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;STATUS&lt;/h4&gt;
+                  &lt;span className=&quot;rounded-full border border-[var(--gold)]/50 px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[var(--gold-soft)]&quot;&gt;GUESSED, TO BE TESTED&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-3 leading-relaxed text-[var(--cream)]&quot;&gt;&lt;span className=&quot;font-bold text-[var(--gold-soft)]&quot;&gt;Guessed, to be tested.&lt;/span&gt; Held open until the site energizes and the ground signal can be watched.&lt;/p&gt;
+                &lt;div className=&quot;mt-5 flex flex-wrap gap-2&quot; aria-label=&quot;Keeper tags&quot;&gt;
+                  &lt;span className=&quot;rounded-full bg-[var(--gold)] px-3 py-1.5 text-xs font-black text-[#171029]&quot;&gt;KNOWN&lt;/span&gt;
+                  &lt;span className=&quot;rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-bold text-[var(--gold-soft)]&quot;&gt;GUESSED&lt;/span&gt;
+                  &lt;span className=&quot;rounded-full border border-dashed border-[var(--gold)]/60 px-3 py-1.5 text-xs font-bold text-[var(--mist)]&quot;&gt;OPEN: GROUND SIGNAL&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-4 border-t border-[var(--line)] pt-4 text-xs leading-relaxed text-[var(--muted)]&quot;&gt;Keeper tag: Known / Guessed / Open&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/article&gt;
+
+            &lt;article className=&quot;card-shadow mt-8 overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)]&quot;&gt;
+              &lt;div className=&quot;flex flex-wrap items-start justify-between gap-4 border-b border-[var(--line)] bg-gradient-to-br from-[#2a1755] via-[#171029] to-[#0a0614] p-6 sm:p-8&quot;&gt;
+                &lt;div className=&quot;min-w-0&quot;&gt;
+                  &lt;p className=&quot;text-[11px] font-black tracking-[0.24em] text-[var(--gold)]&quot;&gt;CARD 3 — NOV 16–17, 2026&lt;/p&gt;
+                  &lt;h3 className=&quot;font-display mt-2 text-3xl font-black leading-tight sm:text-4xl&quot;&gt;The Week The Network Showed Its Seams — Nov 16-17, 2026&lt;/h3&gt;
+                &lt;/div&gt;
+                &lt;span className=&quot;shrink-0 rounded-full border border-[var(--gold)]/60 px-3 py-1.5 text-xs font-black text-[var(--gold-soft)]&quot;&gt;THREE EVENTS, ONE PATTERN?&lt;/span&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;grid gap-6 p-6 sm:p-8 lg:grid-cols-3&quot;&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;NOV 16 — OPTIMIZELY ATTACK&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Confirmed. Signup flaw, malicious JavaScript in 188 files, 178 organizations (Zoom, BBC, CNN, HSBC, IKEA, Salesforce, etc). Card skimmer + crypto wallet swap.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;NOV 17 — NSA NET DOWN&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Code Yellow, second-highest alert. No evidence of cyberattack. NSA says routine maintenance / software upgrades, system unstable for weeks.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;NOV 17 — BATHURST LISTING&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Bathurst data centre listing — 20 MW, 69 kV line, old mill site, energize Aug 2027.&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;grid gap-6 border-t border-[var(--line)] p-6 sm:p-8 lg:grid-cols-3&quot;&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;KNOWN&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;No evidence the three share one actor.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;GUESSED&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;They are structurally related — three symptoms of one-point dependency. One script, one network, one power line.&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;OPEN&lt;/h4&gt;
+                  &lt;p className=&quot;mt-2 leading-relaxed text-[var(--mist)]&quot;&gt;Was there coordination behind Optimizely + NSA? No evidence yet. Is Bathurst the next point on the same fragile model? To be tested Aug 2027.&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;mx-6 mb-6 rounded-2xl border border-[var(--line)] bg-black/25 p-5 sm:mx-8 sm:mb-8&quot;&gt;
+                &lt;div className=&quot;flex flex-wrap items-center justify-between gap-3&quot;&gt;
+                  &lt;h4 className=&quot;text-xs font-black tracking-[0.22em] text-[var(--gold)]&quot;&gt;STATUS&lt;/h4&gt;
+                  &lt;span className=&quot;rounded-full border border-[var(--gold)]/50 px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[var(--gold-soft)]&quot;&gt;OPEN — TO BE TESTED AUG 2027&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-3 leading-relaxed text-[var(--cream)]&quot;&gt;&lt;span className=&quot;font-bold text-[var(--gold-soft)]&quot;&gt;Three events, one question.&lt;/span&gt; Not one actor — one fragile shape. Held open until there is evidence, not just pattern.&lt;/p&gt;
+                &lt;div className=&quot;mt-5 flex flex-wrap gap-2&quot; aria-label=&quot;Keeper tags&quot;&gt;
+                  &lt;span className=&quot;rounded-full bg-[var(--gold)] px-3 py-1.5 text-xs font-black text-[#171029]&quot;&gt;KNOWN&lt;/span&gt;
+                  &lt;span className=&quot;rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-bold text-[var(--gold-soft)]&quot;&gt;GUESSED&lt;/span&gt;
+                  &lt;span className=&quot;rounded-full border border-dashed border-[var(--gold)]/60 px-3 py-1.5 text-xs font-bold text-[var(--mist)]&quot;&gt;OPEN&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;mt-4 border-t border-[var(--line)] pt-4 text-xs leading-relaxed text-[var(--muted)]&quot;&gt;Keeper tag: Known / Guessed / Open&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/article&gt;
+
+            &lt;div className=&quot;mt-8 rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8&quot;&gt;
+              &lt;h3 className=&quot;font-display text-2xl font-black sm:text-3xl&quot;&gt;Witness notes&lt;/h3&gt;
+              &lt;p className=&quot;mt-2 text-sm leading-relaxed text-[var(--muted)]&quot;&gt;Add a plain witness note for this prediction. Notes are saved and shown to later visitors.&lt;/p&gt;
+              &lt;form onSubmit={handleAddWitnessNote} className=&quot;mt-5 grid gap-3 sm:grid-cols-[1fr_2fr_auto] sm:items-end&quot;&gt;
+                &lt;label className=&quot;block text-left&quot;&gt;
+                  &lt;span className=&quot;text-xs font-black tracking-[0.18em] text-[var(--gold)]&quot;&gt;YOUR NAME&lt;/span&gt;
+                  &lt;input value={witnessName} onChange={(e) =&gt; setWitnessName(e.target.value)} placeholder=&quot;Optional&quot; className=&quot;mt-2 w-full rounded-xl border border-[var(--line)] bg-black/25 px-3 py-2.5 text-sm text-[var(--cream)] placeholder:text-white/35&quot; /&gt;
+                &lt;/label&gt;
+                &lt;label className=&quot;block text-left&quot;&gt;
+                  &lt;span className=&quot;text-xs font-black tracking-[0.18em] text-[var(--gold)]&quot;&gt;WITNESS NOTE&lt;/span&gt;
+                  &lt;input value={witnessNote} onChange={(e) =&gt; setWitnessNote(e.target.value)} placeholder=&quot;What was seen, where, and what stays open&quot; className=&quot;mt-2 w-full rounded-xl border border-[var(--line)] bg-black/25 px-3 py-2.5 text-sm text-[var(--cream)] placeholder:text-white/35&quot; /&gt;
+                &lt;/label&gt;
+                &lt;button type=&quot;submit&quot; disabled={busy} className=&quot;rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-bold text-[#171029] hover:bg-[var(--gold-soft)] disabled:opacity-60&quot;&gt;{busy ? &quot;Saving…&quot; : &quot;Add witness note&quot;}&lt;/button&gt;
+              &lt;/form&gt;
+              {saveResult &amp;&amp; (
+                &lt;p role=&quot;status&quot; className=&quot;mt-3 text-sm leading-relaxed text-[var(--cream)]&quot;&gt;
+                  Saved: {saveResult.saved} · Remaining: {saveResult.remaining}
+                  {saveResult.error ? ` · ${saveResult.error}` : saveResult.saved &gt; 0 ? &quot; · Witness note saved.&quot; : &quot;&quot;}
+                  {saveResult.reloadError ? ` · Could not reload notes: ${saveResult.reloadError}` : &quot;&quot;}
+                &lt;/p&gt;
+              )}
+              &lt;div className=&quot;mt-6&quot;&gt;
+                {notesLoading ? (
+                  &lt;p className=&quot;text-sm text-[var(--muted)]&quot;&gt;Loading witness notes…&lt;/p&gt;
+                ) : notesLoadError ? (
+                  &lt;p className=&quot;text-sm text-[var(--muted)]&quot;&gt;Witness notes could not be loaded: {notesLoadError}&lt;/p&gt;
+                ) : witnessNotes.length === 0 ? (
+                  &lt;p className=&quot;text-sm text-[var(--muted)]&quot;&gt;No witness notes yet.&lt;/p&gt;
+                ) : (
+                  &lt;ul className=&quot;space-y-3&quot;&gt;
+                    {witnessNotes.map((item) =&gt; (
+                      &lt;li key={item.id} className=&quot;rounded-2xl border border-[var(--line)] bg-black/20 p-4&quot;&gt;
+                        &lt;p className=&quot;text-sm leading-relaxed text-[var(--cream)]&quot;&gt;{item.value.note}&lt;/p&gt;
+                        {item.value.name &amp;&amp; &lt;p className=&quot;mt-2 text-xs font-bold tracking-[0.14em] text-[var(--gold-soft)]&quot;&gt;{item.value.name.toUpperCase()}&lt;/p&gt;}
+                      &lt;/li&gt;
+                    ))}
+                  &lt;/ul&gt;
+                )}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        &lt;section className=&quot;mx-auto max-w-6xl px-4 pb-16 sm:px-6&quot; aria-label=&quot;Closing note&quot;&gt;
+          &lt;div className=&quot;rounded-[28px] border border-[var(--line)] bg-[var(--surface)] px-6 py-10 text-center sm:px-12&quot;&gt;
+            &lt;p className=&quot;font-display text-3xl font-black leading-tight sm:text-5xl&quot;&gt;You don’t have to finish it&lt;br /&gt;to be allowed to begin it.&lt;/p&gt;
+            &lt;p className=&quot;mx-auto mt-4 max-w-xl text-[var(--mist)]&quot;&gt;Patch me up. Hold one point. Leave the song unfinished if it needs to stay unfinished.&lt;/p&gt;
+            &lt;a href=&quot;#top&quot; className=&quot;mt-7 inline-block rounded-full bg-[var(--gold)] px-6 py-3 text-sm font-bold text-[#171029] hover:bg-[var(--gold-soft)]&quot;&gt;Back to the beginning ↑&lt;/a&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+      &lt;/main&gt;
+
+      &lt;footer className=&quot;border-t border-[var(--line)] bg-[#070410]&quot;&gt;
+        &lt;div className=&quot;mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-9 text-center sm:px-6&quot;&gt;
+          &lt;p className=&quot;font-display text-2xl font-black tracking-tight&quot;&gt;JAY VALLEA&lt;/p&gt;
+          &lt;p className=&quot;text-[11px] font-bold tracking-[0.28em] text-[var(--gold)]&quot;&gt;LOOK UP. ASK WHY. THINK FREELY. STAY HUMAN.&lt;/p&gt;
+          &lt;div className=&quot;gold-rule my-1 w-full max-w-xl&quot; /&gt;
+          &lt;p className=&quot;max-w-md text-sm leading-relaxed text-[var(--muted)]&quot;&gt;Festival of Unfinished Songs · Persistence Through Time · Atholville / Nigadoo · Dunlop, NB&lt;/p&gt;
+          &lt;p className=&quot;text-xs text-white/35&quot;&gt;Small repair, and then again. I’m still here. I can begin.&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/footer&gt;
+    &lt;/div&gt;
+  );
+}
+</div>
+  <h2>index.css</h2>
+  <div class="src">@import url(&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap&#x27;);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --night: #0a0614;
+  --night-2: #120a24;
+  --purple: #3b2168;
+  --purple-soft: #6b45a8;
+  --gold: #e8b64c;
+  --gold-soft: #f6d98a;
+  --cream: #fff7e8;
+  --mist: #c9bfe0;
+  --muted: #a99dc4;
+  --surface: #171029;
+  --surface-2: #221840;
+  --line: rgba(232, 182, 76, 0.26);
+  --ink: #fff7e8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --night: #080512;
+    --surface: #150e27;
+    --surface-2: #1f1538;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--night); }
+body { margin: 0; background: var(--night); color: var(--ink); font-family: &quot;Space Grotesk&quot;, ui-sans-serif, system-ui, sans-serif; }
+.font-display { font-family: &quot;Fraunces&quot;, Georgia, serif; }
+::selection { background: var(--gold); color: #171029; }
+.star-field {
+  background-image:
+    radial-gradient(circle at 12% 22%, rgba(246,217,138,.24) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 82% 12%, rgba(255,255,255,.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 68% 38%, rgba(232,182,76,.35) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 31% 58%, rgba(255,255,255,.28) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 91% 62%, rgba(246,217,138,.22) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 45% 78%, rgba(255,255,255,.22) 0 1px, transparent 1.5px);
+  background-size: 260px 260px;
+}
+.gold-rule { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.card-shadow { box-shadow: 0 22px 55px rgba(0,0,0,.32); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.mn-back {
+  position: fixed;
+  top: 10px;
+  right: 16px;
+  z-index: 50;
+  color: #fff7e8;
+  font: 11px/1.3 &quot;Courier New&quot;, Courier, monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: .72;
+}
+.mn-back:hover { opacity: 1; }
+</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Image imports use stable local paths. The CSS includes the Master Nebula back-link rule.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
