@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lattice Keeper boot fragment — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Lattice Keeper boot fragment</h1>
+  <p class="subtitle">A short init snippet, not a complete program</p>
+  <p>A 394-byte fragment that loads a genesis resonance, boots a nonce, and starts a keeper “with Icecast signing from v0.61.” It is not a runnable script on its own: <code>LatticeKeeper</code> and <code>get_lattice_client</code> are not defined or imported here. A comment says the vault token is already revoked; no token or key is in the file.</p>
+  <div class="row"><a class="btn" href="lattice_keeper_boot.py" download>Download the .py</a></div>
+  <div class="src">from src.lattice_keeper.secrets import load_genesis_resonance, boot_nonce
+
+nonce = boot_nonce()
+secret = load_genesis_resonance()  # already revoked Vault token
+keeper = LatticeKeeper(client=get_lattice_client(), namespace=&quot;{lattice}&quot;)
+secret.use(lambda mv: keeper.init_from_seed(bytes(mv)))  # bytes(mv) if keeper wants bytes
+secret.wipe()
+keeper.start()  # now with Icecast signing from v0.61</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
