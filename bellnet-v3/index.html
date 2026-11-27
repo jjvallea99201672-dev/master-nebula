@@ -2682,7 +2682,7 @@ footer span{
 /* v3 addition: USGS event links in the table */
 .place a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .place a:hover{color:#E8C86A}
-/* v3 fix: the "Ring My Valley" button must NOT carry class "home-ring".
+/* v3 fix: the "Ring the Bell" button must NOT carry class "home-ring".
    The reused stylesheet has TWO .home-ring rules — margin-top:16px for the
    button, and position:absolute + 90px circle for the decorative rings in
    .home-right — and both applied to the button, turning it into a small
@@ -2711,7 +2711,7 @@ footer span{
       <div class="hero-stats">
         <div><b id="stat-events">5</b><span>Events in view</span></div>
         <div><b id="stat-largest">M9.1</b><span>Largest shown</span></div>
-        <div><b id="stat-peaks">7</b><span>Peak + home instruments</span></div>
+        <div><b id="stat-peaks">7</b><span>Peak + reference instruments</span></div>
         <div><b><span id="stat-speed">120</span>×</b><span>Bell spacing</span></div>
       </div>
       <div class="now-playing" aria-live="polite">
@@ -2831,21 +2831,21 @@ footer span{
       <p class="century-foot"><span class="icon" data-icon="globe" data-size="15"></span> Ring of Fire: longitude drives stereo pan, so the Pacific rim sounds as a persistent left–right pattern. Headphones recommended. Stop cuts every voice immediately.</p>
     </section>
 
-    <section class="home-section" aria-label="Jay Valley home bell">
+    <section class="home-section" aria-label="Northern New Brunswick bell">
       <div class="home-card">
         <div class="home-left">
-          <span class="home-badge"><span class="icon" data-icon="pin" data-size="15"></span> YOUR VALLEY</span>
-          <h2>Jay Valley — Home Bell</h2>
-          <p class="home-place">Dunlop, NB · Belle-Baie, New Brunswick, Canada</p>
-          <p class="home-coords">47.69° N, −65.73° W · Base note E2 · 82 Hz · warm deep bell</p>
-          <p class="home-desc">A warm, deep bell for home — long, patient, and close. When a USGS event lands within 1,000 km of Dunlop, it is highlighted below and this bell rings on its own with a “Near home” message.</p>
-          <button class="btn gold" id="btn-home-ring"><span class="icon" data-icon="music" data-size="18"></span> Ring My Valley</button>
-          <span class="home-rang" id="home-rang" hidden>Home bell has rung.</span>
+          <span class="home-badge"><span class="icon" data-icon="pin" data-size="15"></span> REFERENCE BELL</span>
+          <h2>Northern New Brunswick</h2>
+          <p class="home-place">Northern New Brunswick, Canada</p>
+          <p class="home-coords">47.62° N, −65.65° W · Base note E2 · 82 Hz · warm deep bell</p>
+          <p class="home-desc">A warm, deep bell for northern New Brunswick — long, patient, and close. When a USGS event lands within 1,000 km of this point, it is highlighted below and this bell rings on its own.</p>
+          <button class="btn gold" id="btn-home-ring"><span class="icon" data-icon="music" data-size="18"></span> Ring the Bell</button>
+          <span class="home-rang" id="home-rang" hidden>The bell has rung.</span>
         </div>
         <div class="home-right" aria-hidden="true"><span class="icon" data-icon="bell" data-size="62"></span><div class="home-ring r1"></div><div class="home-ring r2"></div><strong>E2</strong><small>82 Hz</small></div>
       </div>
-      <div class="near-banner" id="near-banner" role="status" hidden><span class="icon" data-icon="pin" data-size="19"></span><div><strong id="near-banner-title">Near home</strong><span id="near-banner-list"></span></div><button class="btn gold" id="btn-home-ring-again">Ring Home Bell Again</button></div>
-      <p class="near-none" id="near-none">No event in the current list is within 1,000 km of Jay Valley. Fetch the live feed to check again.</p>
+      <div class="near-banner" id="near-banner" role="status" hidden><span class="icon" data-icon="pin" data-size="19"></span><div><strong id="near-banner-title">Nearby</strong><span id="near-banner-list"></span></div><button class="btn gold" id="btn-home-ring-again">Ring the Bell Again</button></div>
+      <p class="near-none" id="near-none">No event in the current list is within 1,000 km of this point. Fetch the live feed to check again.</p>
     </section>
 
     <section class="data-section" id="quakes">
@@ -2907,7 +2907,7 @@ footer span{
    Same design (__2's CSS reused verbatim), same copy except the corrected lines.
    Kept from __2: Night Mode + auto-ring largest 5, Record Mode (.webm),
    Century Mode (FDSN M6+ 1900-now, decluster, 10-minute playback, shuffle test,
-   Principle 56 warning), Home Bell + near-home 1,000 km, Earth Rings teaser,
+   Principle 56 warning), a reference bell + nearby 1,000 km, Earth Rings teaser,
    stop counter + AudioContext suspend on stop.
    Fixes vs __2 (plus the v2 fixes it never got): (1) pitch remap 0.72 -> 0.42
    (M9.1 was 12 Hz, now 53 Hz); (2) live feed really auto-refreshes every 60 s;
@@ -2915,8 +2915,7 @@ footer span{
    (the Century piece IS time-compressed, and keeps that label); (4) null-mag
    events omitted instead of shown as M0.0 (live) or defaulted to M6.0 (century);
    (5) Nepal sample time 06:11:25 -> 06:11:26 UTC; (6) place names link to USGS;
-   (7) HOME MOVED Atholville (47.99, -66.32) -> Dunlop (47.69, -65.73), per the
-   user's own confirmed home — the file's Atholville is ~55 km off;
+   (7) reference bell set to a generic northern New Brunswick point (47.62, -65.65);
    (8) century copy: 1900-now is 127 years, ~4.0 billion seconds, not "a century,
    3.15 billion"; (9) Stop now also stops an active recording, so it cannot
    keep capturing silence; (10) step icons use div wrappers (the v2 lesson:
@@ -2981,10 +2980,9 @@ const PEAKS = [
   { name: "Fuji", range: "Honshu · Japan", elevation: "3,776 m", note: "A2", freq: "0.8 mHz concept", mode: "Volcanic bell", timbre: "Soft ash, long tail" }
 ];
 
-/* Home Bell — Dunlop, NB (geocoded district point 47.6851, -65.7327; shown rounded).
-   __2 placed home in Atholville (47.99, -66.32), ~55 km from Dunlop; corrected here. */
-const HOME = { name: "Jay Valley — Home Bell", place: "Dunlop, NB", region: "Dunlop, Belle-Baie, New Brunswick, Canada", lat: 47.6851, lon: -65.7327, note: "E2", freq: "82 Hz · warm deep bell", decay: 6.5 };
-const HOME_EVENT = { id: "home-valley", place: "Jay Valley — Dunlop, NB", mag: 5.5, time: Date.now(), depth: 12, lat: HOME.lat, lon: HOME.lon };
+/* Reference bell — generic northern New Brunswick point (47.62, -65.65). */
+const HOME = { name: "Northern New Brunswick", place: "Northern New Brunswick", region: "Northern New Brunswick, Canada", lat: 47.62, lon: -65.65, note: "E2", freq: "82 Hz · warm deep bell", decay: 6.5 };
+const HOME_EVENT = { id: "home-valley", place: "Northern New Brunswick", mag: 5.5, time: Date.now(), depth: 12, lat: HOME.lat, lon: HOME.lon };
 
 const CENTURY_START = Date.UTC(1900, 0, 1);
 const CENTURY_END = Date.UTC(2026, 10, 9);
@@ -3160,7 +3158,7 @@ async function ringHomeBell(gen) {
   window.setTimeout(() => voices.delete(voice), decay * 1000 + 300);
   homeRang = true;
   playingId = HOME_EVENT.id;
-  setNowPlaying("Near home — Jay Valley Home Bell · E2 · 82 Hz · 6.5s decay");
+  setNowPlaying("Nearby — Northern New Brunswick · E2 · 82 Hz · 6.5s decay");
   later(() => { if (generation === g) { playingId = null; render(); } }, decay * 1000);
   render();
 }
@@ -3353,14 +3351,14 @@ async function fetchLive(silent) {
     updatedText = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium" }).format(new Date());
     computeNearHome(list);
     if (nearHome.length) {
-      setStatus("Live feed connected — " + list.length + " events. Near home: " + nearHome[0].q.place + " (" + Math.round(nearHome[0].km) + " km). Ringing the Home Bell." +
+      setStatus("Live feed connected — " + list.length + " events. Nearby: " + nearHome[0].q.place + " (" + Math.round(nearHome[0].km) + " km). Ringing the bell." +
         (dropped ? " " + dropped + " event" + (dropped === 1 ? "" : "s") + " without a magnitude omitted." : "") + " Auto-refresh every 60 s.");
-      setNowPlaying("Near home — " + nearHome[0].q.place + " · " + Math.round(nearHome[0].km) + " km from Jay Valley");
+      setNowPlaying("Nearby — " + nearHome[0].q.place + " · " + Math.round(nearHome[0].km) + " km from this point");
       const gen = ++generation;
       stopFlag = false;
       later(() => { if (generation === gen && !stopFlag) ringHomeBell(gen); }, 250);
     } else {
-      setStatus("Live feed connected — " + list.length + " events in the last 24 hours. No event within 1,000 km of Jay Valley." +
+      setStatus("Live feed connected — " + list.length + " events in the last 24 hours. No event within 1,000 km of this point." +
         (dropped ? " " + dropped + " event" + (dropped === 1 ? "" : "s") + " without a magnitude omitted." : "") + " Auto-refresh every 60 s.");
     }
     startAutoRefresh();
@@ -3548,7 +3546,7 @@ function render() {
   if (nearHome.length) {
     show("near-banner", true, "flex");
     show("near-none", false);
-    $("near-banner-title").textContent = "Near home — " + nearHome.length + " event" + (nearHome.length === 1 ? "" : "s") + " within 1,000 km of Jay Valley";
+    $("near-banner-title").textContent = "Nearby — " + nearHome.length + " event" + (nearHome.length === 1 ? "" : "s") + " within 1,000 km of this point";
     $("near-banner-list").textContent = nearHome.map((x) => x.q.place + " · " + Math.round(x.km) + " km").join(" · ");
   } else {
     show("near-banner", false);
@@ -3567,7 +3565,7 @@ function render() {
       '<td><span class="mag mag-' + Math.floor(k.mag) + '">M' + fmtMag(k.mag) + "</span></td>" +
       '<td class="place"><strong>' + place + "</strong>" +
         (near ? '<span class="near-tag">● NEAR HOME · ' + Math.round(km) + " km</span>" : "") +
-        "<small>" + k.lat.toFixed(2) + "°, " + k.lon.toFixed(2) + "° · pan " + (bellPan(k) >= 0 ? "right" : "left") + " · " + Math.round(km) + " km from Jay Valley</small></td>" +
+        "<small>" + k.lat.toFixed(2) + "°, " + k.lon.toFixed(2) + "° · pan " + (bellPan(k) >= 0 ? "right" : "left") + " · " + Math.round(km) + " km from this point</small></td>" +
       "<td>" + esc(fmtTime(k.time)) + "</td>" +
       "<td>" + k.depth.toFixed(1) + " km</td>" +
       '<td><span class="bell-spec">' + freq + " Hz · " + decay.toFixed(1) + "s</span></td>" +

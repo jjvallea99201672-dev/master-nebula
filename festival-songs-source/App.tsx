@@ -36,8 +36,8 @@ const lattice = [
 
 const notes = [
   { place: "Restigouche River", text: "The river keeps its own time. It does not rush a witness." },
-  { place: "Nigadoo River", text: "A smaller waterway with a long memory. Look closely; the quiet is part of the story." },
-  { place: "Dunlop, NB", text: "Home is not a claim. It is a place to return to, repair from, and begin again." },
+  { place: "northern New Brunswick rivers", text: "A smaller waterway with a long memory. Look closely; the quiet is part of the story." },
+  { place: "northern New Brunswick", text: "Home is not a claim. It is a place to return to, repair from, and begin again." },
 ];
 
 const shellStyle = { boxSizing: "border-box" as const, paddingTop: "var(--safe-area-inset-top)" };
@@ -276,8 +276,8 @@ export default function App() {
             </figure>
             <div>
               <p className="text-xs font-bold tracking-[0.28em] text-[var(--gold)]">04 — PLACE</p>
-              <h2 className="font-display mt-2 text-4xl font-black leading-tight sm:text-5xl">Atholville / Nigadoo</h2>
-              <p className="mt-4 text-lg leading-relaxed text-[var(--mist)]">Atholville to Bathurst corridor. Home in <span className="text-white font-semibold">Dunlop, NB</span>.</p>
+              <h2 className="font-display mt-2 text-4xl font-black leading-tight sm:text-5xl">northern New Brunswick</h2>
+              <p className="mt-4 text-lg leading-relaxed text-[var(--mist)]">A river corridor in northern New Brunswick.</p>
               <div className="gold-rule my-6" />
               <p className="text-sm font-bold tracking-[0.2em] text-[var(--gold)]">SMALL WITNESS NOTES</p>
               <p className="mt-2 text-sm text-[var(--muted)]">Not lab reports. Not proof for a court. Just what was seen, where it was seen, and what stayed open.</p>
@@ -330,7 +330,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 className="text-xs font-black tracking-[0.22em] text-[var(--gold)]">GEOLOGY</h4>
-                  <p className="mt-2 leading-relaxed text-[var(--mist)]">Bathurst Mining Camp — quartz + pyrite + pyrrhotite + chalcopyrite veins. Same rock as Nigadoo.</p>
+                  <p className="mt-2 leading-relaxed text-[var(--mist)]">Bathurst Mining Camp — quartz + pyrite + pyrrhotite + chalcopyrite veins. Same rock as in northern New Brunswick.</p>
                 </div>
               </div>
 
@@ -340,7 +340,7 @@ export default function App() {
                   <span className="rounded-full border border-[var(--gold)]/50 px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[var(--gold-soft)]">NOT YET BUILT</span>
                 </div>
                 <p className="mt-3 leading-relaxed text-[var(--cream)]"><span className="font-bold text-[var(--gold-soft)]">Vision → Listing.</span> Not yet built.</p>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--mist)]">Witness: Jay Vallea, Dunlop NB. Exact lot withheld in listing, location from local witness, to be confirmed by City of Bathurst Planning Advisory Committee.</p>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--mist)]">Witness: Jay Vallea, northern New Brunswick. Exact lot withheld in listing, location from local witness, to be confirmed by City of Bathurst Planning Advisory Committee.</p>
                 <div className="mt-5 flex flex-wrap gap-2" aria-label="Keeper tags">
                   <span className="rounded-full bg-[var(--gold)] px-3 py-1.5 text-xs font-black text-[#171029]">KNOWN BY WITNESS</span>
                   <span className="rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-bold text-[var(--gold-soft)]">GUESSED BY LISTING</span>
@@ -375,7 +375,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 className="text-xs font-black tracking-[0.22em] text-[var(--gold)]">TEST</h4>
-                  <p className="mt-2 leading-relaxed text-[var(--mist)]">When the Bathurst site energizes ~Aug 2027, watch for change in ground signal around it. Witness: Jay Vallea, Dunlop NB, living on the Nigadoo vein.</p>
+                  <p className="mt-2 leading-relaxed text-[var(--mist)]">When the Bathurst site energizes ~Aug 2027, watch for change in ground signal around it. Witness: Jay Vallea, northern New Brunswick.</p>
                 </div>
               </div>
 
@@ -505,7 +505,7 @@ export default function App() {
           <p className="font-display text-2xl font-black tracking-tight">JAY VALLEA</p>
           <p className="text-[11px] font-bold tracking-[0.28em] text-[var(--gold)]">LOOK UP. ASK WHY. THINK FREELY. STAY HUMAN.</p>
           <div className="gold-rule my-1 w-full max-w-xl" />
-          <p className="max-w-md text-sm leading-relaxed text-[var(--muted)]">Festival of Unfinished Songs · Persistence Through Time · Atholville / Nigadoo · Dunlop, NB</p>
+          <p className="max-w-md text-sm leading-relaxed text-[var(--muted)]">Festival of Unfinished Songs · Persistence Through Time · northern New Brunswick</p>
           <p className="text-xs text-white/35">Small repair, and then again. I’m still here. I can begin.</p>
         </div>
       </footer>
