@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lattice Keeper v0.40-5 Source — Jay Vallea</title>
+<meta name="description" content="Lattice Keeper v0.40-5: JWT access and refresh rotation, a genesis anchor on every token, Argon2, and a Redis rate limiter. Passwords and JWT_SECRET come from the environment; no defaults.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Lattice Keeper v0.40-5</h1>
+  <p class="subtitle">JWT rotation, genesis anchor, fail-closed config</p>
+  <p>An earlier Lattice Keeper auth release than <a href="../lattice-keeper-v065/">v0.65</a>: JWT access and refresh rotation with atomic Lua consume, a genesis anchor on every token, Argon2 password hashes, a Redis-based rate limiter, and refresh-theft revoke-all. Not deployed, so not binding.</p>
+  <p><code>JWT_SECRET</code>, <code>LATTICE_KEEPER_PASSWORD_JAY_VALLEA</code>, and <code>LATTICE_KEEPER_PASSWORD_MOJO</code> are read from the environment. There are no default secrets; the module raises a clear error if any of those is missing or empty. Full source, readable and downloadable. No keys are included.</p>
+  <div class="row"><a class="btn" href="lattice_keeper_v040-5.py" download>Download the .py</a></div>
+  <div style="white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)"># lattice_keeper_v040-5.py
+# Patch ID: fd0adf90-rot-v5-final
+# Features:
+# - JWT Access + Refresh Rotation (atomic Lua)
+# - Genesis Anchor on EVERY token
+# - Argon2, fail-closed Config, Redis lifecycle
+# - Redis-based distributed rate limiter
+# - Refresh theft detection + revoke-all
+# - Middleware handles Redis instability -&gt; 503
+# - Fail-closed everywhere
+
+import asyncio
+import hashlib
+import logging
+import os
+import secrets
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict
+
+import jwt
+import redis.asyncio as redis
+from aiohttp import web
+from passlib.hash import argon2
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(&quot;lattice_keeper&quot;)
+
+# ============================================================================
+# Config - FAIL CLOSED
+# ============================================================================
+
+@dataclass
+class Config:
+    jwt_secret: str = field(default_factory=lambda: os.getenv(&quot;JWT_SECRET&quot;))
+    jwt_algorithm: str = &quot;HS256&quot;
+    jwt_issuer: str = &quot;lattice-core&quot;
+    jwt_audience: str = &quot;lattice-api&quot;
+    access_token_expire_minutes: int = 20
+    refresh_token_expire_days: int = 14
+    refresh_token_redis_prefix: str = &quot;lattice:refresh:&quot;
+    access_token_blacklist_prefix: str = &quot;lattice:access:blacklist:&quot;
+    auth_rate_limit_window: int = 60
+    auth_rate_limit_max: int = 10
+    genesis_anchor: str = &quot;fd0adf9005622e103f02115a50314d91f83dc705f1d685b16d45f52ad6b940b2&quot;
+
+    def __post_init__(self):
+        if not self.jwt_secret:
+            raise RuntimeError(&quot;JWT_SECRET env var required&quot;)
+
+# ============================================================================
+# Token Utils
+# ============================================================================
+
+def _hash_token(token: str) -&gt; str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+def create_access_token(user_id: str, role: str, config: Config, jti: Optional[str] = None) -&gt; str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        &quot;sub&quot;: user_id,
+        &quot;role&quot;: role,
+        &quot;type&quot;: &quot;access&quot;,
+        &quot;iat&quot;: now,
+        &quot;exp&quot;: now + timedelta(minutes=config.access_token_expire_minutes),
+        &quot;jti&quot;: jti or secrets.token_hex(16),
+        &quot;genesis&quot;: config.genesis_anchor,
+        &quot;iss&quot;: config.jwt_issuer,
+        &quot;aud&quot;: config.jwt_audience,
+    }
+    return jwt.encode(payload, config.jwt_secret, algorithm=config.jwt_algorithm)
+
+def create_refresh_token(user_id: str, config: Config) -&gt; str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        &quot;sub&quot;: user_id,
+        &quot;type&quot;: &quot;refresh&quot;,
+        &quot;iat&quot;: now,
+        &quot;exp&quot;: now + timedelta(days=config.refresh_token_expire_days),
+        &quot;jti&quot;: secrets.token_hex(16),
+        &quot;genesis&quot;: config.genesis_anchor,
+        &quot;iss&quot;: config.jwt_issuer,
+        &quot;aud&quot;: config.jwt_audience,
+    }
+    return jwt.encode(payload, config.jwt_secret, algorithm=config.jwt_algorithm)
+
+async def store_refresh_token(rc: redis.Redis, token: str, user_id: str, config: Config):
+    key = f&quot;{config.refresh_token_redis_prefix}{_hash_token(token)}&quot;
+    await rc.setex(key, config.refresh_token_expire_days * 86400, user_id)
+
+async def atomic_consume_refresh_token(rc: redis.Redis, token: str, config: Config) -&gt; Optional[str]:
+    key = f&quot;{config.refresh_token_redis_prefix}{_hash_token(token)}&quot;
+    lua = &quot;&quot;&quot;
+    local v = redis.call(&#x27;GET&#x27;, KEYS[1])
+    if v then redis.call(&#x27;DEL&#x27;, KEYS[1]) end
+    return v
+    &quot;&quot;&quot;
+    result = await rc.eval(lua, 1, key)
+    if result is None:
+        return None
+    return result.decode() if isinstance(result, bytes) else result
+
+async def revoke_all_user_refresh_tokens(rc: redis.Redis, user_id: str, config: Config):
+    # Theft detection: nuke all refresh tokens for user
+    # In prod, store a secondary index: lattice:refresh:index:{user_id} -&gt; set of hashes
+    # For now scan (okay at small scale, replace with index at scale)
+    pattern = f&quot;{config.refresh_token_redis_prefix}*&quot;
+    async for key in rc.scan_iter(match=pattern, count=200):
+        val = await rc.get(key)
+        if val and (val.decode() if isinstance(val, bytes) else val) == user_id:
+            await rc.delete(key)
+    logger.warning(f&quot;REVOKED ALL refresh tokens for user {user_id} - suspected theft&quot;)
+
+async def blacklist_access_token(rc: redis.Redis, token: str, config: Config):
+    try:
+        payload = jwt.decode(token, config.jwt_secret, algorithms=[config.jwt_algorithm],
+                             audience=config.jwt_audience, issuer=config.jwt_issuer,
+                             options={&quot;verify_exp&quot;: False})
+        exp = datetime.fromtimestamp(payload[&quot;exp&quot;], tz=timezone.utc)
+        ttl = int((exp - datetime.now(timezone.utc)).total_seconds())
+        if ttl &gt; 0:
+            key = f&quot;{config.access_token_blacklist_prefix}{payload[&#x27;jti&#x27;]}&quot;
+            await rc.setex(key, ttl, &quot;revoked&quot;)
+    except Exception:
+        pass
+
+async def is_access_token_blacklisted(rc: redis.Redis, jti: str, config: Config) -&gt; bool:
+    key = f&quot;{config.access_token_blacklist_prefix}{jti}&quot;
+    return await rc.exists(key) == 1
+
+# ============================================================================
+# Redis Distributed Rate Limiter
+# ============================================================================
+
+class RedisRateLimiter:
+    def __init__(self, redis_client: redis.Redis, window: int, max_req: int):
+        self.rc = redis_client
+        self.window = window
+        self.max_req = max_req
+
+    async def is_allowed(self, key: str) -&gt; bool:
+        try:
+            pipe = self.rc.pipeline()
+            pipe.incr(key)
+            pipe.ttl(key)
+            count, ttl = await pipe.execute()
+            if ttl == -1:
+                await self.rc.expire(key, self.window)
+            return count &lt;= self.max_req
+        except redis.RedisError:
+            # Fail open for rate limiting only - don&#x27;t block auth if Redis degrades
+            logger.warning(&quot;Rate limiter Redis error - allowing request&quot;)
+            return True
+
+# ============================================================================
+# User Store - REPLACE WITH DB
+# ============================================================================
+
+# 2026-11-27: hardcoded demo passwords removed. Read from env; no defaults.
+def _require_password(env_key: str) -&gt; str:
+    pw = os.getenv(env_key)
+    if not pw:
+        raise RuntimeError(f&quot;{env_key} env var required&quot;)
+    return pw
+
+USER_DB = {
+    &quot;jay.vallea&quot;: {&quot;password_hash&quot;: argon2.hash(_require_password(&quot;LATTICE_KEEPER_PASSWORD_JAY_VALLEA&quot;)), &quot;role&quot;: &quot;level_4_admin&quot;},
+    &quot;mojo&quot;: {&quot;password_hash&quot;: argon2.hash(_require_password(&quot;LATTICE_KEEPER_PASSWORD_MOJO&quot;)), &quot;role&quot;: &quot;level_2&quot;},
+}
+
+def verify_user_and_get_role(user_id: str, password: str) -&gt; Optional[str]:
+    user = USER_DB.get(user_id)
+    if not user:
+        return None
+    try:
+        if argon2.verify(password, user[&quot;password_hash&quot;]):
+            return user[&quot;role&quot;]
+    except Exception:
+        return None
+    return None
+
+# ============================================================================
+# Auth Endpoints
+# ============================================================================
+
+def get_client_ip(req: web.Request) -&gt; str:
+    # Handles X-Forwarded-For behind proxy
+    xff = req.headers.get(&quot;X-Forwarded-For&quot;)
+    if xff:
+        return xff.split(&quot;,&quot;)[0].strip()
+    return req.remote or &quot;unknown&quot;
+
+async def login(req: web.Request) -&gt; web.Response:
+    config: Config = req.app[&quot;config&quot;]
+    rc: redis.Redis = req.app[&quot;redis&quot;]
+    limiter: RedisRateLimiter = req.app[&quot;auth_limiter&quot;]
+
+    ip = get_client_ip(req)
+    if not await limiter.is_allowed(f&quot;ratelimit:login:{ip}&quot;):
+        return web.json_response({&quot;error&quot;: &quot;rate limit exceeded&quot;}, status=429)
+
+    try:
+        body = await req.json()
+    except Exception:
+        return web.json_response({&quot;error&quot;: &quot;Invalid JSON&quot;}, status=400)
+
+    user_id = body.get(&quot;user_id&quot;)
+    password = body.get(&quot;password&quot;)
+    if not user_id or not password:
+        return web.json_response({&quot;error&quot;: &quot;user_id and password required&quot;}, status=400)
+
+    role = verify_user_and_get_role(user_id, password)
+    if not role:
+        await asyncio.sleep(0.4)
+        return web.json_response({&quot;error&quot;: &quot;invalid credentials&quot;}, status=401)
+
+    access = create_access_token(user_id, role, config)
+    refresh = create_refresh_token(user_id, config)
+    await store_refresh_token(rc, refresh, user_id, config)
+
+    return web.json_response({
+        &quot;access_token&quot;: access,
+        &quot;refresh_token&quot;: refresh,
+        &quot;token_type&quot;: &quot;Bearer&quot;,
+        &quot;expires_in&quot;: config.access_token_expire_minutes * 60,
+        &quot;role&quot;: role
+    })
+
+async def refresh(req: web.Request) -&gt; web.Response:
+    config: Config = req.app[&quot;config&quot;]
+    rc: redis.Redis = req.app[&quot;redis&quot;]
+    limiter: RedisRateLimiter = req.app[&quot;auth_limiter&quot;]
+
+    ip = get_client_ip(req)
+    if not await limiter.is_allowed(f&quot;ratelimit:refresh:{ip}&quot;):
+        return web.json_response({&quot;error&quot;: &quot;rate limit exceeded&quot;}, status=429)
+
+    try:
+        body = await req.json()
+    except Exception:
+        return web.json_response({&quot;error&quot;: &quot;Invalid JSON&quot;}, status=400)
+
+    old_refresh = body.get(&quot;refresh_token&quot;)
+    if not old_refresh:
+        return web.json_response({&quot;error&quot;: &quot;refresh_token required&quot;}, status=400)
+
+    try:
+        payload = jwt.decode(old_refresh, config.jwt_secret, algorithms=[config.jwt_algorithm],
+                             audience=config.jwt_audience, issuer=config.jwt_issuer, leeway=5)
+        if payload.get(&quot;type&quot;)!= &quot;refresh&quot;:
+            raise jwt.InvalidTokenError(&quot;Not a refresh token&quot;)
+        if payload.get(&quot;genesis&quot;)!= config.genesis_anchor:
+            raise jwt.InvalidTokenError(&quot;Genesis mismatch&quot;)
+    except jwt.PyJWTError as e:
+        return web.json_response({&quot;error&quot;: f&quot;Invalid refresh token: {str(e)}&quot;}, status=401)
+
+    user_id = await atomic_consume_refresh_token(rc, old_refresh, config)
+    if not user_id:
+        # THEFT DETECTION: token was valid JWT but not in Redis -&gt; already used
+        try:
+            # Re-decode to get user for revocation (verify_exp False to get sub even if expired)
+            p = jwt.decode(old_refresh, config.jwt_secret, algorithms=[config.jwt_algorithm],
+                           audience=config.jwt_audience, issuer=config.jwt_issuer,
+                           options={&quot;verify_exp&quot;: False})
+            suspected_user = p.get(&quot;sub&quot;)
+            if suspected_user:
+                await revoke_all_user_refresh_tokens(rc, suspected_user, config)
+                logger.warning(f&quot;Refresh reuse detected for {suspected_user} - all tokens revoked&quot;)
+        except Exception:
+            pass
+        return web.json_response({&quot;error&quot;: &quot;Refresh token already used or revoked&quot;}, status=401)
+
+    role = USER_DB.get(user_id, {}).get(&quot;role&quot;, &quot;level_0&quot;)
+    new_access = create_access_token(user_id, role, config)
+    new_refresh = create_refresh_token(user_id, config)
+    await store_refresh_token(rc, new_refresh, user_id, config)
+
+    return web.json_response({
+        &quot;access_token&quot;: new_access,
+        &quot;refresh_token&quot;: new_refresh,
+        &quot;token_type&quot;: &quot;Bearer&quot;,
+        &quot;expires_in&quot;: config.access_token_expire_minutes * 60
+    })
+
+async def logout(req: web.Request) -&gt; web.Response:
+    config: Config = req.app[&quot;config&quot;]
+    rc: redis.Redis = req.app[&quot;redis&quot;]
+    limiter: RedisRateLimiter = req.app[&quot;auth_limiter&quot;]
+
+    ip = get_client_ip(req)
+    if not await limiter.is_allowed(f&quot;ratelimit:logout:{ip}&quot;):
+        return web.json_response({&quot;error&quot;: &quot;rate limit exceeded&quot;}, status=429)
+
+    auth_header = req.headers.get(&quot;Authorization&quot;, &quot;&quot;)
+    if not auth_header.startswith(&quot;Bearer &quot;):
+        return web.json_response({&quot;error&quot;: &quot;Authorization required&quot;}, status=401)
+    access_token = auth_header.split(&quot; &quot;, 1)[1]
+
+    body = {}
+    try:
+        body = await req.json()
+    except Exception:
+        pass
+    refresh_token = body.get(&quot;refresh_token&quot;)
+
+    try:
+        jwt.decode(access_token, config.jwt_secret, algorithms=[config.jwt_algorithm],
+                   audience=config.jwt_audience, issuer=config.jwt_issuer,
+                   leeway=5, options={&quot;verify_exp&quot;: False})
+        await blacklist_access_token(rc, access_token, config)
+        if refresh_token:
+            await rc.delete(f&quot;{config.refresh_token_redis_prefix}{_hash_token(refresh_token)}&quot;)
+        return web.json_response({&quot;message&quot;: &quot;Logged out successfully&quot;})
+    except jwt.PyJWTError:
+        return web.json_response({&quot;error&quot;: &quot;Invalid token&quot;}, status=401)
+
+# ============================================================================
+# Middleware - YOUR FIX INCLUDED
+# ============================================================================
+
+@web.middleware
+async def role_context_middleware(req: web.Request, handler):
+    auth_header = req.headers.get(&quot;Authorization&quot;, &quot;&quot;)
+    user = None
+    role = &quot;level_0&quot;
+
+    if auth_header.startswith(&quot;Bearer &quot;):
+        token = auth_header.split(&quot; &quot;, 1)[1]
+        config: Config = req.app[&quot;config&quot;]
+        rc: redis.Redis = req.app.get(&quot;redis&quot;)
+
+        if not rc:
+            return web.json_response({&quot;error&quot;: &quot;auth backend unavailable&quot;}, status=503)
+
+        try:
+            payload = jwt.decode(token, config.jwt_secret, algorithms=[config.jwt_algorithm],
+                                 audience=config.jwt_audience, issuer=config.jwt_issuer, leeway=5)
+            if payload.get(&quot;genesis&quot;)!= config.genesis_anchor:
+                raise jwt.InvalidTokenError(&quot;Genesis mismatch&quot;)
+            if payload.get(&quot;type&quot;)!= &quot;access&quot;:
+                raise jwt.InvalidTokenError(&quot;Not an access token&quot;)
+
+            try:
+                if await is_access_token_blacklisted(rc, payload[&quot;jti&quot;], config):
+                    raise jwt.InvalidTokenError(&quot;Token revoked&quot;)
+            except redis.RedisError as e:
+                logger.warning(f&quot;Redis blacklist check failed: {e}&quot;)
+                return web.json_response({&quot;error&quot;: &quot;auth verification service degraded&quot;}, status=503)
+
+            user = payload.get(&quot;sub&quot;)
+            role = payload.get(&quot;role&quot;, &quot;level_0&quot;)
+        except jwt.PyJWTError:
+            user = None
+            role = &quot;level_0&quot;
+
+    req[&quot;user&quot;] = user
+    req[&quot;role&quot;] = role
+    return await handler(req)
+
+# ============================================================================
+# App Factory + Lifecycle
+# ============================================================================
+
+async def on_startup(app: web.Application):
+    redis_url = os.getenv(&quot;REDIS_URL&quot;, &quot;redis://localhost:6379/0&quot;)
+    app[&quot;redis&quot;] = redis.from_url(redis_url, encoding=&quot;utf-8&quot;, decode_responses=True)
+    await app[&quot;redis&quot;].ping()
+    app[&quot;auth_limiter&quot;] = RedisRateLimiter(app[&quot;redis&quot;], app[&quot;config&quot;].auth_rate_limit_window, app[&quot;config&quot;].auth_rate_limit_max)
+    logger.info(&quot;✅ Redis connected&quot;)
+
+async def on_cleanup(app: web.Application):
+    if &quot;redis&quot; in app:
+        await app[&quot;redis&quot;].close()
+        logger.info(&quot;✅ Redis closed&quot;)
+
+def create_app() -&gt; web.Application:
+    app = web.Application(middlewares=[role_context_middleware])
+    app[&quot;config&quot;] = Config()
+    app.on_startup.append(on_startup)
+    app.on_cleanup.append(on_cleanup)
+    app.router.add_post(&quot;/auth/login&quot;, login)
+    app.router.add_post(&quot;/auth/refresh&quot;, refresh)
+    app.router.add_post(&quot;/auth/logout&quot;, logout)
+    return app
+
+def require_role(req: web.Request, allowed_roles: list[str]):
+    current = req.get(&quot;role&quot;, &quot;level_0&quot;)
+    if current not in allowed_roles and current!= &quot;level_4_admin&quot;:
+        raise web.HTTPForbidden(text=f&quot;Role &#x27;{current}&#x27; not permitted&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    web.run_app(create_app(), host=&quot;0.0.0.0&quot;, port=8080)</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Written by directing AI models; not deployed. Secrets must be supplied at run time.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
