@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember Construct — Visualizer &amp; Recorder — Jay Vallea</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#07080d;color:#e8e6df;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:14px 18px;border-bottom:1px solid #ffffff22;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  h1{font-size:18px;margin:0;letter-spacing:.12em}
+  h1 span{color:#f5c542}
+  .sub{color:#9aa0b0;font-size:13px}
+  .controls{padding:12px 18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button,input,select{background:#12141d;color:#fff;border:1px solid #ffffff2a;border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+  button:hover{border-color:#f5c542}
+  button.rec{background:#b91c1c;border-color:#ef4444}
+  #status{font-size:13px;color:#9aa0b0}
+  #status b{color:#f5c542}
+  .wrap{padding:0 18px 18px}
+  canvas{width:100%;max-height:70vh;background:#000;border:1px solid #ffffff22;border-radius:12px;display:block}
+  p{color:#9aa0b0;font-size:13px;line-height:1.5;max-width:900px}
+  kbd{background:#ffffff1a;border:1px solid #ffffff33;border-radius:4px;padding:1px 6px;font-size:12px}
+</style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:200;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<header>
+  <h1>EMBER <span>CONSTRUCT</span></h1>
+  <div class="sub">Audio visualizer and recorder, YouTube-ready, built from scratch.</div>
+</header>
+<div class="controls">
+  <button id="demoBtn">▶ Demo tone</button>
+  <button id="nebulaBtn">▶ Master Nebula (3:01)</button>
+  <button id="micBtn">🎤 Mic</button>
+  <label>🎵 Play one of your tracks <input type="file" id="fileInput" accept="audio/*"></label>
+  <button id="modeBtn">Mode: Rings</button>
+  <button id="recBtn">● Press R to record</button>
+  <button id="dlBtn" disabled>⬇ Download recording</button>
+  <span id="status">Status: <b>idle</b> — pick a source, then press R.</span>
+</div>
+<div class="wrap">
+  <canvas id="cv" width="1920" height="1080"></canvas>
+  <p>Keys: <kbd>R</kbd> record / stop &nbsp; <kbd>Space</kbd> demo on/off &nbsp; <kbd>M</kbd> change mode (now including Pleiades) &nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> colour themes.<br>
+  To play one of your actual tracks: use "Play one of your tracks" above and pick a WAV/MP3 from your computer — it will play, visualize, and record with the audio. No track files are bundled in this page itself.<br>
+  Recording captures the 1920×1080 canvas at 60 fps plus the audio stream, as WebM — the format YouTube accepts directly. If no audio source is active, it records silent video, so start a source first.</p>
+  <audio id="player" controls style="width:100%"></audio>
+</div>
+<script>
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const statusEl = document.getElementById('status');
+const setStatus = s => statusEl.innerHTML = 'Status: <b>' + s + '</b>';
+let AC = null, analyser = null, srcNode = null, dest = null, data = null;
+let mode = 0, theme = 0, demoOsc = [], demoOn = false;
+const themes = [
+  {bg:'#07080d', ring:'#f5c542', mid:'#e879f9', low:'#38bdf8'},
+  {bg:'#050d0a', ring:'#34d399', mid:'#f5c542', low:'#22d3ee'},
+  {bg:'#0d0714', ring:'#e879f9', mid:'#f5c542', low:'#818cf8'},
+];
+const modeNames = ['Rings', 'Bars', 'Spiral', 'Pleiades'];
+function ensureAudio(){
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = AC.createAnalyser(); analyser.fftSize = 2048;
+  dest = AC.createMediaStreamDestination();
+  analyser.connect(dest);
+  // FIX: also route to speakers, otherwise you only get audio in the recording, not in your ears
+  analyser.connect(AC.destination);
+  data = new Uint8Array(analyser.frequencyBinCount);
+}
+function connectSource(node){
+  ensureAudio();
+  try { srcNode && srcNode.disconnect(); } catch(e) {}
+  srcNode = node; srcNode.connect(analyser);
+  setStatus('source connected — visualizer live');
+}
+document.getElementById('demoBtn').onclick = () => {
+  ensureAudio(); AC.resume();
+  if (demoOn) { demoOsc.forEach(o=>{try{o.stop()}catch(e){}}); demoOsc=[]; demoOn=false; setStatus('demo stopped'); return; }
+  demoOsc = [110, 165, 220, 277].map((f,i)=>{
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = i%2 ? 'triangle' : 'sine'; o.frequency.value = f;
+    g.gain.value = 0.08; o.connect(g); g.connect(analyser); o.start(); return o;
+  });
+  demoOn = true; setStatus('demo tone playing — press R to record');
+};
+document.getElementById('micBtn').onclick = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    connectSource(AC ? AC.createMediaStreamSource(stream) : (ensureAudio(), AC.createMediaStreamSource(stream)));
+  } catch(e){ setStatus('mic blocked: ' + e.message); }
+};
+let playerSource = null;
+function playPlayer(){
+  const player = document.getElementById('player');
+  ensureAudio(); AC.resume();
+  if(!playerSource) playerSource = AC.createMediaElementSource(player);
+  connectSource(playerSource);
+  player.play();
+  setStatus('playing: ' + (player.src.split('/').pop() || 'track'));
+}
+document.getElementById('nebulaBtn').onclick = () => {
+  const player = document.getElementById('player');
+  player.src = 'Master_Nebula.mp3';
+  playPlayer();
+};
+document.getElementById('fileInput').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const player = document.getElementById('player');
+  player.src = URL.createObjectURL(f);
+  playPlayer();
+};
+document.getElementById('modeBtn').onclick = () => { mode = (mode+1)%4; document.getElementById('modeBtn').textContent = 'Mode: ' + modeNames[mode]; };
+
+let recorder = null, chunks = [], recording = false;
+const recBtn = document.getElementById('recBtn'), dlBtn = document.getElementById('dlBtn');
+function toggleRec(){
+  if (recording) { recorder.stop(); recording = false; recBtn.textContent = '● Press R to record'; recBtn.classList.remove('rec'); setStatus('recording stopped — download ready'); return; }
+  ensureAudio();
+  const canvasStream = cv.captureStream(60);
+  const mixed = new MediaStream([...canvasStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  chunks = [];
+  recorder = new MediaRecorder(mixed, {mimeType:'video/webm;codecs=vp9,opus', videoBitsPerSecond: 12000000});
+  recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, {type:'video/webm'});
+    dlBtn.disabled = false;
+    dlBtn.onclick = () => { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Ember-Construct_' + new Date().toISOString().slice(0,10) + '.webm'; a.click(); };
+  };
+  recorder.start(); recording = true; recBtn.textContent = '■ Stop recording'; recBtn.classList.add('rec'); setStatus('REC ● recording 1920×1080 WebM');
+}
+recBtn.onclick = toggleRec;
+document.addEventListener('keydown', e => {
+  if (e.key==='r' || e.key==='R') toggleRec();
+  if (e.key===' ') { e.preventDefault(); document.getElementById('demoBtn').click(); }
+  if (e.key==='m' || e.key==='M') document.getElementById('modeBtn').click();
+  if (['1','2','3'].includes(e.key)) theme = Number(e.key)-1;
+});
+let t = 0;
+function draw(){
+  requestAnimationFrame(draw); t += 0.008;
+  const th = themes[theme];
+  ctx.fillStyle = th.bg; ctx.fillRect(0,0,1920,1080);
+  // nebula glow
+  const g = ctx.createRadialGradient(960,540,0,960,540,900);
+  g.addColorStop(0, th.mid + '22'); g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g; ctx.fillRect(0,0,1920,1080);
+  const cx=960, cy=540;
+  if (analyser) analyser.getByteFrequencyData(data);
+  else data = new Uint8Array(1024);
+  const avg = data.reduce((a,b)=>a+b,0)/data.length/255;
+  if (mode===0){
+    [320, 240, 160].forEach((r,i)=>{
+      ctx.beginPath(); ctx.strokeStyle = [th.ring, th.mid, th.low][i]; ctx.lineWidth = 3 + avg*8;
+      ctx.arc(cx, cy, r + Math.sin(t*2+i)*10 + avg*40, 0, Math.PI*2); ctx.stroke();
+    });
+    for(let i=0;i<180;i++){
+      const a = i/180*Math.PI*2, v = data[i*4]/255;
+      const r = 380 + v*220;
+      ctx.fillStyle = th.ring; ctx.beginPath();
+      ctx.arc(cx+Math.cos(a)*r, cy+Math.sin(a)*r, 3+v*6, 0, Math.PI*2); ctx.fill();
+    }
+  } else if (mode===1){
+    for(let i=0;i<96;i++){
+      const v = data[i*8]/255, h = 80 + v*500;
+      ctx.fillStyle = i%3===0 ? th.ring : i%3===1 ? th.mid : th.low;
+      ctx.fillRect(120 + i*18, 900-h, 10, h);
+    }
+  } else if (mode===2){
+    for(let i=0;i<240;i++){
+      const a = t + i*0.11, v = data[i*4]/255, r = 40 + i*2.2 + v*120;
+      ctx.fillStyle = th.mid; ctx.beginPath();
+      ctx.arc(cx+Math.cos(a)*r, cy+Math.sin(a)*r, 2+v*5, 0, Math.PI*2); ctx.fill();
+    }
+  } else {
+    // Pleiades mode: the Seven Sisters, each pulsing to its own frequency band
+    const stars = [
+      {n:'Alcyone', x:0, y:0, b:40}, {n:'Atlas', x:-220, y:-140, b:120},
+      {n:'Electra', x:180, y:-180, b:200}, {n:'Maia', x:260, y:60, b:280},
+      {n:'Merope', x:-80, y:220, b:360}, {n:'Taygeta', x:120, y:200, b:440},
+      {n:'Pleione', x:-300, y:80, b:520},
+    ];
+    const pts = stars.map(s => ({...s, px: cx+s.x, py: cy+s.y, v: (data[s.b]||0)/255}));
+    ctx.strokeStyle = th.low + '88'; ctx.lineWidth = 2;
+    ctx.beginPath(); pts.forEach((p,i)=>{ i ? ctx.lineTo(p.px,p.py) : ctx.moveTo(p.px,p.py); }); ctx.stroke();
+    pts.forEach(p => {
+      ctx.fillStyle = th.ring; ctx.beginPath(); ctx.arc(p.px, p.py, 10 + p.v*28, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = '22px system-ui'; ctx.fillText(p.n, p.px+22, p.py+8);
+    });
+    ctx.fillStyle = th.mid; ctx.font = '26px system-ui';
+    ctx.fillText('PLEIADES  •  Seven Sisters', 60, 140);
+  }
+  ctx.fillStyle = '#ffffff'; ctx.font = 'bold 28px system-ui'; ctx.fillText('EMBER CONSTRUCT', 60, 60);
+  ctx.font = '20px system-ui'; ctx.fillStyle = th.ring;
+  ctx.fillText(recording ? '● REC' : 'READY  •  R = record  •  M = mode', 60, 100);
+  ctx.fillStyle = '#9aa0b0'; ctx.fillText('1920 × 1080  •  WebM  •  YouTube-ready', 60, 1020);
+}
+draw();
+</script>
+</body>
+</html>
