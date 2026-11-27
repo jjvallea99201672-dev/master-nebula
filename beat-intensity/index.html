@@ -1,3 +1,10 @@
+<!-- MASTER NEBULA 3D Visualizer — fixed copy, 2026-11-27. Original 3DViz.html untouched.
+     Fixes: (1) pause/resume no longer restarts from 0 (onended guard); (2) shockwave no longer
+     locks bloom for ~a minute after use; (3) BPM is now a real onset+autocorrelation estimate
+     instead of a length/loudness count; (4) nebula orbs no longer jump backward as beats decay;
+     (5) mode button shows active on load; (6) recording falls back to mp4 where webm is
+     unsupported (Safari); (7) animation uses real frame delta instead of a fixed 0.016;
+     (8) pixel ratio capped at 2. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -314,7 +321,7 @@
         
         const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
         renderer.toneMappingExposure = 1.2;
         document.body.appendChild(renderer.domElement);
@@ -539,6 +546,7 @@
         
         function setMode(mode) {
             currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
             masterNebula.visible = mode === 'nebula';
             sphereGroup.visible = mode === 'sphere';
             cubeGroup.visible = mode === 'cube';
@@ -631,11 +639,45 @@
         
         uploadBtn.addEventListener('click', () => fileInput.click());
         
+        // Estimate tempo from the audio itself: onset envelope + autocorrelation.
+        // Returns BPM in 60-200, or null when no clear pulse is found.
+        function estimateBPM(channelData, sampleRate) {
+            const hop = 512;
+            const frames = Math.floor(channelData.length / hop);
+            if (frames < 64) return null;
+            const env = new Float32Array(frames);
+            let prev = 0;
+            for (let i = 0; i < frames; i++) {
+                let e = 0;
+                const start = i * hop;
+                for (let j = 0; j < hop; j++) { const v = channelData[start + j]; e += v * v; }
+                e = Math.sqrt(e / hop);
+                env[i] = Math.max(0, e - prev);
+                prev = e;
+            }
+            const fps = sampleRate / hop;
+            const minLag = Math.max(1, Math.floor(fps * 60 / 200));
+            const maxLag = Math.floor(fps * 60 / 60);
+            let bestLag = 0, bestScore = 0, total = 0;
+            for (let lag = minLag; lag <= maxLag; lag++) {
+                let s = 0;
+                for (let i = 0; i + lag < frames; i++) s += env[i] * env[i + lag];
+                total += s;
+                if (s > bestScore) { bestScore = s; bestLag = lag; }
+            }
+            // A real pulse stands out from the background correlation; noise does not.
+            const mean = total / (maxLag - minLag + 1);
+            if (!bestLag || bestScore <= 0 || bestScore < 2 * mean) return null;
+            return Math.round(60 * fps / bestLag);
+        }
+        
         async function loadAudio(file) {
             const arrayBuffer = await file.arrayBuffer();
             
             if (audioContext) {
+                if (source) source.onended = null; // closing fires onended; don't let it reset pause state
                 await audioContext.close();
+                source = null;
             }
             
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -647,18 +689,12 @@
             document.getElementById('fileInfo').innerHTML = `🎵 ${file.name.substring(0, 30)}`;
             showStatus(`LOADED: ${file.name} - PRESS PLAY`, '#00ff88');
             
-            // Calculate BPM
-            const data = audioBuffer.getChannelData(0);
-            let peaks = 0;
-            for (let i = 0; i < data.length; i += 1000) {
-                if (Math.abs(data[i]) > 0.3) peaks++;
-            }
-            const estimatedBPM = 60 + Math.floor(peaks / 3);
-            document.getElementById('bpmDisplay').innerHTML = `BPM: ${estimatedBPM}`;
+            // Estimate BPM from the audio itself (onset + autocorrelation)
+            const estimatedBPM = estimateBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRate);
+            document.getElementById('bpmDisplay').innerHTML = estimatedBPM ? `BPM: ~${estimatedBPM}` : 'BPM: --';
             
             pausedAt = 0;
             if (isPlaying) {
-                if (source) source.stop();
                 isPlaying = false;
                 document.getElementById('playBtn').innerHTML = '▶';
             }
@@ -679,6 +715,16 @@
             }
         });
         
+        // Stopping a BufferSource fires its onended handler, which resets pause
+        // state. Null it first so pause/resume keeps its position.
+        function stopSource() {
+            if (source) {
+                source.onended = null;
+                try { source.stop(); } catch(e) {}
+                source = null;
+            }
+        }
+        
         async function playAudio() {
             if (!audioBuffer) {
                 showStatus('UPLOAD AUDIO FIRST!', '#ff6666');
@@ -690,9 +736,7 @@
                     await audioContext.resume();
                 }
                 
-                if (source) {
-                    try { source.stop(); } catch(e) {}
-                }
+                stopSource();
                 
                 source = audioContext.createBufferSource();
                 source.buffer = audioBuffer;
@@ -726,8 +770,7 @@
         function pauseAudio() {
             if (source && isPlaying) {
                 pausedAt = audioContext.currentTime - startTime;
-                source.stop();
-                source = null;
+                stopSource();
                 isPlaying = false;
                 document.getElementById('playBtn').innerHTML = '▶';
                 showStatus('PAUSED', '#ffaa00');
@@ -796,7 +839,12 @@
             try {
                 const stream = renderer.domElement.captureStream(30);
                 recordedChunks = [];
-                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                let mimeType = '';
+                if (window.MediaRecorder) {
+                    if (MediaRecorder.isTypeSupported('video/webm')) mimeType = 'video/webm';
+                    else if (MediaRecorder.isTypeSupported('video/mp4')) mimeType = 'video/mp4';
+                }
+                mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
                 
                 mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) recordedChunks.push(e.data);
@@ -851,12 +899,15 @@
         
         // ========== ANIMATION LOOP ==========
         let time = 0;
+        let dt = 0.016;
         let rainbowHue = 0;
+        const clock = new THREE.Clock();
         
         function animate() {
             requestAnimationFrame(animate);
-            time += 0.016;
-            rainbowHue += 0.008;
+            dt = Math.min(0.05, clock.getDelta());
+            time += dt;
+            rainbowHue += dt * 0.5;
             
             frameCount++;
             const now = performance.now();
@@ -874,6 +925,7 @@
             
             if (shockwaveActive > 0) {
                 shockwaveActive *= 0.85;
+                if (shockwaveActive < 0.01) shockwaveActive = 0; // snap to 0, or it blocks other effects
                 bloomPass.strength = 1.5 + shockwaveActive * 2;
             } else if (currentEffect === 'glow') {
                 bloomPass.strength = 0.8 + beat * 0.4;
@@ -917,7 +969,8 @@
                 });
                 
                 nebulaOrbs.forEach((orb, i) => {
-                    const angle = time * (0.8 + beat * 1.5) + orb.userData.angle;
+                    orb.userData.angle += (0.8 + beat * 1.5) * dt; // accumulate: a time-based angle jumps back as beats decay
+                    const angle = orb.userData.angle;
                     const radius = orb.userData.baseRadius + beat * 0.5;
                     orb.position.x = Math.cos(angle) * radius;
                     orb.position.z = Math.sin(angle) * radius;
