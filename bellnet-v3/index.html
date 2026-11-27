@@ -1,0 +1,3693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BellNet v3 — Seismic Sonification Network — Jay Vallea</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&display=swap');
+
+*, ::before, ::after{
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ;
+}
+
+::backdrop{
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ;
+}
+
+/*
+! tailwindcss v3.4.18 | MIT License | https://tailwindcss.com
+*/
+
+/*
+1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
+2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
+*/
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  /* 1 */
+  border-width: 0;
+  /* 2 */
+  border-style: solid;
+  /* 2 */
+  border-color: #e5e7eb;
+  /* 2 */
+}
+
+::before,
+::after {
+  --tw-content: '';
+}
+
+/*
+1. Use a consistent sensible line-height in all browsers.
+2. Prevent adjustments of font size after orientation changes in iOS.
+3. Use a more readable tab size.
+4. Use the user's configured `sans` font-family by default.
+5. Use the user's configured `sans` font-feature-settings by default.
+6. Use the user's configured `sans` font-variation-settings by default.
+7. Disable tap highlights on iOS
+*/
+
+html,
+:host {
+  line-height: 1.5;
+  /* 1 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
+  -moz-tab-size: 4;
+  /* 3 */
+  -o-tab-size: 4;
+     tab-size: 4;
+  /* 3 */
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* 4 */
+  font-feature-settings: normal;
+  /* 5 */
+  font-variation-settings: normal;
+  /* 6 */
+  -webkit-tap-highlight-color: transparent;
+  /* 7 */
+}
+
+/*
+1. Remove the margin in all browsers.
+2. Inherit line-height from `html` so users can set them as a class directly on the `html` element.
+*/
+
+body {
+  margin: 0;
+  /* 1 */
+  line-height: inherit;
+  /* 2 */
+}
+
+/*
+1. Add the correct height in Firefox.
+2. Correct the inheritance of border color in Firefox. (https://bugzilla.mozilla.org/show_bug.cgi?id=190655)
+3. Ensure horizontal rules are visible by default.
+*/
+
+hr {
+  height: 0;
+  /* 1 */
+  color: inherit;
+  /* 2 */
+  border-top-width: 1px;
+  /* 3 */
+}
+
+/*
+Add the correct text decoration in Chrome, Edge, and Safari.
+*/
+
+abbr:where([title]) {
+  -webkit-text-decoration: underline dotted;
+          text-decoration: underline dotted;
+}
+
+/*
+Remove the default font size and weight for headings.
+*/
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/*
+Reset links to optimize for opt-in styling instead of opt-out.
+*/
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+/*
+Add the correct font weight in Edge and Safari.
+*/
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+/*
+1. Use the user's configured `mono` font-family by default.
+2. Use the user's configured `mono` font-feature-settings by default.
+3. Use the user's configured `mono` font-variation-settings by default.
+4. Correct the odd `em` font sizing in all browsers.
+*/
+
+code,
+kbd,
+samp,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /* 1 */
+  font-feature-settings: normal;
+  /* 2 */
+  font-variation-settings: normal;
+  /* 3 */
+  font-size: 1em;
+  /* 4 */
+}
+
+/*
+Add the correct font size in all browsers.
+*/
+
+small {
+  font-size: 80%;
+}
+
+/*
+Prevent `sub` and `sup` elements from affecting the line height in all browsers.
+*/
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/*
+1. Remove text indentation from table contents in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=999088, https://bugs.webkit.org/show_bug.cgi?id=201297)
+2. Correct table border color inheritance in all Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=935729, https://bugs.webkit.org/show_bug.cgi?id=195016)
+3. Remove gaps between table borders by default.
+*/
+
+table {
+  text-indent: 0;
+  /* 1 */
+  border-color: inherit;
+  /* 2 */
+  border-collapse: collapse;
+  /* 3 */
+}
+
+/*
+1. Change the font styles in all browsers.
+2. Remove the margin in Firefox and Safari.
+3. Remove default padding in all browsers.
+*/
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  /* 1 */
+  font-feature-settings: inherit;
+  /* 1 */
+  font-variation-settings: inherit;
+  /* 1 */
+  font-size: 100%;
+  /* 1 */
+  font-weight: inherit;
+  /* 1 */
+  line-height: inherit;
+  /* 1 */
+  letter-spacing: inherit;
+  /* 1 */
+  color: inherit;
+  /* 1 */
+  margin: 0;
+  /* 2 */
+  padding: 0;
+  /* 3 */
+}
+
+/*
+Remove the inheritance of text transform in Edge and Firefox.
+*/
+
+button,
+select {
+  text-transform: none;
+}
+
+/*
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Remove default button styles.
+*/
+
+button,
+input:where([type='button']),
+input:where([type='reset']),
+input:where([type='submit']) {
+  -webkit-appearance: button;
+  /* 1 */
+  background-color: transparent;
+  /* 2 */
+  background-image: none;
+  /* 2 */
+}
+
+/*
+Use the modern Firefox focus style for all focusable elements.
+*/
+
+:-moz-focusring {
+  outline: auto;
+}
+
+/*
+Remove the additional `:invalid` styles in Firefox. (https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737)
+*/
+
+:-moz-ui-invalid {
+  box-shadow: none;
+}
+
+/*
+Add the correct vertical alignment in Chrome and Firefox.
+*/
+
+progress {
+  vertical-align: baseline;
+}
+
+/*
+Correct the cursor style of increment and decrement buttons in Safari.
+*/
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/*
+1. Correct the odd appearance in Chrome and Safari.
+2. Correct the outline style in Safari.
+*/
+
+[type='search'] {
+  -webkit-appearance: textfield;
+  /* 1 */
+  outline-offset: -2px;
+  /* 2 */
+}
+
+/*
+Remove the inner padding in Chrome and Safari on macOS.
+*/
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/*
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Change font properties to `inherit` in Safari.
+*/
+
+::-webkit-file-upload-button {
+  -webkit-appearance: button;
+  /* 1 */
+  font: inherit;
+  /* 2 */
+}
+
+/*
+Add the correct display in Chrome and Safari.
+*/
+
+summary {
+  display: list-item;
+}
+
+/*
+Removes the default spacing and border for appropriate elements.
+*/
+
+blockquote,
+dl,
+dd,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+figure,
+p,
+pre {
+  margin: 0;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+Reset default styling for dialogs.
+*/
+
+dialog {
+  padding: 0;
+}
+
+/*
+Prevent resizing textareas horizontally by default.
+*/
+
+textarea {
+  resize: vertical;
+}
+
+/*
+1. Reset the default placeholder opacity in Firefox. (https://github.com/tailwindlabs/tailwindcss/issues/3300)
+2. Set the default placeholder color to the user's configured gray 400 color.
+*/
+
+input::-moz-placeholder, textarea::-moz-placeholder {
+  opacity: 1;
+  /* 1 */
+  color: #9ca3af;
+  /* 2 */
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1;
+  /* 1 */
+  color: #9ca3af;
+  /* 2 */
+}
+
+/*
+Set the default cursor for buttons.
+*/
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+/*
+Make sure disabled buttons don't get the pointer cursor.
+*/
+
+:disabled {
+  cursor: default;
+}
+
+/*
+1. Make replaced elements `display: block` by default. (https://github.com/mozdevs/cssremedy/issues/14)
+2. Add `vertical-align: middle` to align replaced elements more sensibly by default. (https://github.com/jensimmons/cssremedy/issues/14#issuecomment-634934210)
+   This can trigger a poorly considered lint error in some tools but is included by design.
+*/
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  /* 1 */
+  vertical-align: middle;
+  /* 2 */
+}
+
+/*
+Constrain images and videos to the parent width and preserve their intrinsic aspect ratio. (https://github.com/mozdevs/cssremedy/issues/14)
+*/
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Make elements with the HTML hidden attribute stay hidden by default */
+
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none;
+}
+
+.\!visible{
+  visibility: visible !important;
+}
+
+.visible{
+  visibility: visible;
+}
+
+.table{
+  display: table;
+}
+
+.hidden{
+  display: none;
+}
+
+.ring{
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.filter{
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
+:root{
+  --navy:#07152e;
+  --navy2:#0b2347;
+  --ink:#12233f;
+  --gold:#d9a93d;
+  --gold2:#f2c96a;
+  --parchment:#f5edd8;
+  --paper:#fffaf0;
+  --surface:#fbf6e8;
+  --line:#d7c9a6;
+  --muted:#68778f;
+  --bg:#f4ecd7;
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+}
+
+*{
+  box-sizing:border-box
+}
+
+html{
+  scrollbar-color:#0b2347 #e8dcbd
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"DM Sans",system-ui,sans-serif
+}
+
+button,input{
+  font:inherit
+}
+
+button{
+  cursor:pointer
+}
+
+.app-shell{
+  min-height:100vh;
+  padding-top:var(--safe-area-inset-top);
+  background:radial-gradient(circle at 88% -10%, rgba(217,169,61,.28), transparent 34%), linear-gradient(180deg,#f8efd8 0,#eee1c0 100%)
+}
+
+.topbar{
+  height:72px;
+  max-width:1440px;
+  margin:0 auto;
+  padding:0 28px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid #bda76d
+}
+
+.brand-mark{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:var(--navy);
+  color:var(--gold);
+  display:grid;
+  place-items:center;
+  position:relative
+}
+
+.brand-mark span{
+  position:absolute;
+  font:750 11px "Fraunces",serif;
+  color:#fff;
+  bottom:4px
+}
+
+.brand-copy{
+  display:flex;
+  flex-direction:column;
+  line-height:1
+}
+
+.brand-copy strong{
+  font-family:"Fraunces",serif;
+  font-size:23px;
+  letter-spacing:.04em;
+  color:var(--navy)
+}
+
+.brand-copy em{
+  color:var(--gold);
+  font-style:normal
+}
+
+.brand-copy small{
+  font-size:9px;
+  letter-spacing:.2em;
+  color:#756b51
+}
+
+.live-pill{
+  margin-left:16px;
+  border:1px solid #bda76d;
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  display:flex;
+  gap:7px;
+  align-items:center;
+  background:#fff8e2
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%
+}
+
+.dot.amber{
+  background:#d99a2c
+}
+
+.dot.green{
+  background:#26875b
+}
+
+.header-note{
+  margin-left:auto;
+  font-family:"Fraunces",serif;
+  font-size:15px;
+  color:#24395e
+}
+
+main{
+  max-width:1440px;
+  margin:0 auto;
+  padding:34px 28px 0
+}
+
+.hero{
+  background:var(--navy);
+  color:#f9f1d8;
+  border-radius:26px;
+  padding:42px 48px 30px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(7,21,46,.2)
+}
+
+.hero:after{
+  content:"";
+  position:absolute;
+  width:440px;
+  height:440px;
+  border:1px solid rgba(217,169,61,.25);
+  border-radius:50%;
+  right:-130px;
+  top:-150px;
+  box-shadow:0 0 0 45px rgba(217,169,61,.05),0 0 0 90px rgba(217,169,61,.03)
+}
+
+.hero-eyebrow{
+  color:var(--gold2);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.18em;
+  display:flex;
+  gap:8px;
+  align-items:center
+}
+
+.hero h1{
+  font-family:"Fraunces",serif;
+  font-size:clamp(44px,6.2vw,84px);
+  line-height:.95;
+  letter-spacing:-.04em;
+  margin:22px 0 18px;
+  max-width:1000px
+}
+
+.hero h1 span{
+  color:var(--gold2);
+  font-weight:500
+}
+
+.hero-lede{
+  max-width:720px;
+  color:#c8d0dc;
+  font-size:18px;
+  line-height:1.55
+}
+
+.hero-stats{
+  display:flex;
+  gap:0;
+  border-top:1px solid rgba(255,255,255,.14);
+  margin-top:30px
+}
+
+.hero-stats div{
+  padding:18px 28px 0 0;
+  margin-right:28px;
+  border-right:1px solid rgba(255,255,255,.08)
+}
+
+.hero-stats div:last-child{
+  border:0
+}
+
+.hero-stats b{
+  display:block;
+  font-family:"Fraunces",serif;
+  font-size:29px;
+  color:#fff
+}
+
+.hero-stats span{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#9eabb9
+}
+
+.now-playing{
+  margin-top:26px;
+  background:#f3e7c6;
+  color:#12233f;
+  border-radius:14px;
+  padding:15px 18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  position:relative;
+  z-index:1
+}
+
+.now-playing small{
+  display:block;
+  font-size:10px;
+  letter-spacing:.16em;
+  color:#765f28
+}
+
+.now-playing strong{
+  font-size:14px
+}
+
+.now-playing svg{
+  margin-left:auto;
+  color:#8b6715
+}
+
+.eq{
+  display:flex;
+  gap:3px;
+  align-items:end;
+  height:24px
+}
+
+.eq i{
+  display:block;
+  width:4px;
+  background:#a87b1b;
+  animation:eq 1s ease-in-out infinite alternate
+}
+
+.eq i:nth-child(1){
+  height:9px
+}
+
+.eq i:nth-child(2){
+  height:18px;
+  animation-delay:.1s
+}
+
+.eq i:nth-child(3){
+  height:12px;
+  animation-delay:.2s
+}
+
+.eq i:nth-child(4){
+  height:20px
+}
+
+.eq i:nth-child(5){
+  height:8px;
+  animation-delay:.3s
+}
+
+@keyframes eq{
+  to{
+    height:23px
+  }
+}
+
+.source-box{
+  margin-top:22px;
+  border:1px solid #b99f63;
+  background:var(--paper);
+  border-radius:18px;
+  padding:22px 26px
+}
+
+.source-head{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.source-head h2{
+  font-family:"Fraunces",serif;
+  font-size:24px;
+  margin:0
+}
+
+.source-badge{
+  margin-left:auto;
+  background:var(--navy);
+  color:var(--gold2);
+  padding:6px 9px;
+  border-radius:999px;
+  font-size:10px;
+  letter-spacing:.12em
+}
+
+.source-grid{
+  display:grid;
+  grid-template-columns:1.3fr 1.3fr .9fr;
+  gap:28px;
+  margin-top:18px
+}
+
+.source-grid small{
+  font-size:10px;
+  letter-spacing:.16em;
+  color:#8a7140;
+  font-weight:700
+}
+
+.source-grid code{
+  display:block;
+  word-break:break-all;
+  color:#17457e;
+  font-size:12px;
+  line-height:1.5;
+  margin:7px 0
+}
+
+.source-grid p{
+  font-size:13px;
+  line-height:1.5;
+  color:#5b6573;
+  margin:0
+}
+
+.citation{
+  margin-top:20px;
+  padding-top:15px;
+  border-top:1px dashed #cbbd90;
+  font-size:12px;
+  color:#6a603f
+}
+
+.console{
+  margin-top:22px;
+  background:#fffdf6;
+  border:1px solid #c9b98d;
+  border-radius:20px;
+  padding:25px 28px;
+  box-shadow:0 12px 30px rgba(60,44,8,.07)
+}
+
+.console-title{
+  display:flex;
+  align-items:end;
+  justify-content:space-between
+}
+
+.kicker{
+  font-size:11px;
+  letter-spacing:.18em;
+  font-weight:700;
+  color:#8a6c22
+}
+
+.console h2{
+  font-family:"Fraunces",serif;
+  font-size:32px;
+  margin:4px 0 0
+}
+
+.updated{
+  font-size:12px;
+  color:#748096
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1.15fr 1fr .5fr 1fr 1fr;
+  gap:14px;
+  align-items:stretch;
+  margin-top:22px
+}
+
+.btn{
+  border:0;
+  border-radius:11px;
+  padding:15px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-weight:700;
+  min-height:52px
+}
+
+.btn.primary{
+  background:var(--navy);
+  color:#fff
+}
+
+.btn.gold{
+  background:var(--gold);
+  color:#14263f
+}
+
+.btn.quiet{
+  background:#eee2c4;
+  color:#263a5a
+}
+
+.btn:disabled{
+  opacity:.58;
+  cursor:wait
+}
+
+.spin{
+  animation:spin 1s linear infinite
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg)
+  }
+}
+
+.slider-block{
+  border:1px solid #d9cda9;
+  border-radius:11px;
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center
+}
+
+.slider-block label{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:13px
+}
+
+.slider-block label span{
+  display:flex;
+  align-items:center;
+  gap:6px
+}
+
+.slider-block small{
+  font-size:10px;
+  color:#7d8694
+}
+
+.slider-block input{
+  width:100%;
+  accent-color:#8a6c22
+}
+
+.status-line{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:18px;
+  padding-top:15px;
+  border-top:1px solid #e5dab8;
+  font-size:13px;
+  color:#405069
+}
+
+.data-section{
+  padding:58px 0 12px
+}
+
+.section-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:24px
+}
+
+.section-heading h2{
+  font-family:"Fraunces",serif;
+  font-size:42px;
+  line-height:1;
+  margin:5px 0 0
+}
+
+.filters{
+  display:flex;
+  align-items:center;
+  gap:18px
+}
+
+.filters label{
+  font-size:12px;
+  display:flex;
+  gap:8px;
+  align-items:center
+}
+
+.filters input{
+  accent-color:#8a6c22
+}
+
+.seg{
+  display:flex;
+  background:#e9dcb9;
+  padding:4px;
+  border-radius:999px
+}
+
+.seg button{
+  border:0;
+  background:transparent;
+  padding:8px 14px;
+  border-radius:999px;
+  font-weight:700
+}
+
+.seg button.active{
+  background:var(--navy);
+  color:#fff
+}
+
+.sample-note{
+  margin-top:18px;
+  background:#fff0b9;
+  border-left:4px solid #b98919;
+  padding:13px 16px;
+  font-size:13px;
+  line-height:1.5
+}
+
+.table-wrap{
+  margin-top:18px;
+  background:#fffdf6;
+  border:1px solid #cdbd8f;
+  border-radius:16px;
+  overflow:hidden
+}
+
+.table-wrap table{
+  width:100%;
+  border-collapse:collapse
+}
+
+.table-wrap th{
+  text-align:left;
+  font-size:10px;
+  letter-spacing:.14em;
+  color:#8a7441;
+  padding:14px 18px;
+  border-bottom:1px solid #ddd0a9
+}
+
+.table-wrap td{
+  padding:15px 18px;
+  border-bottom:1px solid #efe6c9;
+  font-size:13px
+}
+
+.table-wrap tr:last-child td{
+  border-bottom:0
+}
+
+.table-wrap tr.is-playing{
+  background:#fff0b6
+}
+
+.mag{
+  display:inline-block;
+  background:#eee0ba;
+  color:#5c4410;
+  padding:5px 8px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  white-space:nowrap
+}
+
+.mag-9,.mag-8{
+  background:#3d1717;
+  color:#ffd1a0
+}
+
+.mag-7{
+  background:#7a3d16;
+  color:#ffe2b8
+}
+
+.place strong{
+  display:block
+}
+
+.place small{
+  color:#7a8494
+}
+
+.bell-spec{
+  white-space:nowrap;
+  color:#29476e;
+  font-weight:600
+}
+
+.play-row{
+  border:1px solid #bfa866;
+  background:#fbf4d9;
+  border-radius:999px;
+  padding:8px 12px;
+  display:flex;
+  gap:6px;
+  align-items:center;
+  font-weight:700;
+  color:#263a5a;
+  white-space:nowrap
+}
+
+.empty{
+  padding:26px;
+  text-align:center;
+  color:#6b7280
+}
+
+.table-foot{
+  font-size:12px;
+  color:#6c6a5c
+}
+
+.peaks{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:22px;
+  padding:48px 0
+}
+
+.peaks-intro h2{
+  font-family:"Fraunces",serif;
+  font-size:45px;
+  line-height:1;
+  margin:8px 0 14px
+}
+
+.peaks-intro>p{
+  color:#5b6573;
+  line-height:1.6
+}
+
+.mapping{
+  margin-top:26px;
+  border-top:1px solid #c9b98d
+}
+
+.mapping>div{
+  display:grid;
+  grid-template-columns:80px 1fr;
+  gap:4px 12px;
+  padding:13px 0;
+  border-bottom:1px solid #d7cba5
+}
+
+.mapping small{
+  grid-row:span 2;
+  color:#876e2f;
+  font-weight:700
+}
+
+.mapping b{
+  font-family:"Fraunces",serif
+}
+
+.mapping span{
+  font-size:12px;
+  color:#6f7683
+}
+
+.peak-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px
+}
+
+.peak-card{
+  background:var(--navy);
+  color:#e9e1ca;
+  border-radius:16px;
+  padding:20px;
+  position:relative;
+  overflow:hidden
+}
+
+.peak-card:nth-child(2){
+  background:#172f57
+}
+
+.peak-card:nth-child(3){
+  background:#233f52
+}
+
+.peak-card:nth-child(4){
+  background:#3d2d24
+}
+
+.peak-card:nth-child(5){
+  background:#243c3a
+}
+
+.peak-card:nth-child(6){
+  background:#3b2d4d
+}
+
+.peak-top{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  letter-spacing:.12em
+}
+
+.peak-card h3{
+  font-family:"Fraunces",serif;
+  font-size:28px;
+  margin:24px 0 2px
+}
+
+.range{
+  font-size:12px;
+  color:#aeb8c6;
+  margin:0
+}
+
+.note-row{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin:20px 0
+}
+
+.note{
+  width:50px;
+  height:50px;
+  border:1px solid var(--gold);
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-family:"Fraunces",serif;
+  font-size:19px;
+  color:var(--gold2)
+}
+
+.note-row small{
+  display:block;
+  font-size:9px;
+  letter-spacing:.14em
+}
+
+.note-row strong{
+  font-size:13px
+}
+
+.mode{
+  font-family:"Fraunces",serif;
+  font-size:16px;
+  color:#fff;
+  margin:0
+}
+
+.timbre{
+  font-size:12px;
+  color:#aeb8c6;
+  margin:5px 0 18px
+}
+
+.peak-wave{
+  display:flex;
+  align-items:end;
+  gap:5px;
+  height:45px
+}
+
+.peak-wave span{
+  width:8px;
+  background:var(--gold);
+  opacity:.8;
+  border-radius:3px 3px 0 0
+}
+
+.how{
+  background:#f7eecf;
+  border:1px solid #c8b985;
+  border-radius:20px;
+  padding:30px
+}
+
+.how-head h2{
+  font-family:"Fraunces",serif;
+  font-size:38px;
+  margin:5px 0 22px
+}
+
+.steps{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px
+}
+
+.steps article{
+  background:#fffdf6;
+  border:1px solid #d9cda9;
+  border-radius:14px;
+  padding:22px;
+  position:relative
+}
+
+.steps article>span{
+  position:absolute;
+  right:18px;
+  top:14px;
+  font-family:"Fraunces",serif;
+  font-size:30px;
+  color:#dfc97f
+}
+
+.steps article svg{
+  color:#8a6c22
+}
+
+.steps h3{
+  font-family:"Fraunces",serif;
+  font-size:24px;
+  margin:16px 0 7px
+}
+
+.steps p{
+  font-size:13px;
+  line-height:1.55;
+  color:#5b6573
+}
+
+.warning{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  background:var(--navy);
+  color:#f2e7c5;
+  border-radius:12px;
+  padding:16px 18px;
+  margin-top:14px
+}
+
+.warning p{
+  margin:0;
+  font-size:13px;
+  line-height:1.5
+}
+
+.warning svg{
+  flex:0 0 auto;
+  color:var(--gold2)
+}
+
+footer{
+  max-width:1440px;
+  margin:42px auto 0;
+  padding:28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-top:1px solid #bda76d
+}
+
+footer div:first-child{
+  display:flex;
+  flex-direction:column
+}
+
+footer strong{
+  font-family:"Fraunces",serif
+}
+
+footer span{
+  font-size:12px;
+  color:#6c6a5c;
+  margin-top:4px
+}
+
+.footer-mark{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  font-weight:800;
+  color:#0b2347
+}
+
+@media(max-width:900px){
+  .topbar{
+    padding:0 16px
+  }
+
+  .header-note{
+    display:none
+  }
+
+  .brand-copy small{
+    display:none
+  }
+
+  .live-pill{
+    margin-left:auto
+  }
+
+  main{
+    padding:20px 14px 0
+  }
+
+  .hero{
+    padding:30px 22px
+  }
+
+  .hero-stats{
+    flex-wrap:wrap
+  }
+
+  .hero-stats div{
+    padding:14px 18px 0 0;
+    margin-right:18px
+  }
+
+  .hero-stats div:nth-child(2){
+    border:0
+  }
+
+  .source-grid{
+    grid-template-columns:1fr;
+    gap:18px
+  }
+
+  .console{
+    padding:20px 16px
+  }
+
+  .console-title{
+    align-items:start;
+    flex-direction:column;
+    gap:6px
+  }
+
+  .controls{
+    grid-template-columns:1fr 1fr
+  }
+
+  .controls .btn.primary{
+    grid-column:1/-1
+  }
+
+  .slider-block{
+    grid-column:span 1
+  }
+
+  .section-heading{
+    align-items:start;
+    flex-direction:column
+  }
+
+  .filters{
+    flex-wrap:wrap
+  }
+
+  .table-wrap{
+    overflow-x:auto
+  }
+
+  .table-wrap table{
+    min-width:720px
+  }
+
+  .peaks{
+    grid-template-columns:1fr
+  }
+
+  .peak-grid{
+    grid-template-columns:1fr 1fr
+  }
+
+  .steps{
+    grid-template-columns:1fr
+  }
+
+  footer{
+    padding:22px 16px;
+    align-items:start;
+    flex-direction:column;
+    gap:16px
+  }
+}
+
+@media(max-width:560px){
+  .brand-copy strong{
+    font-size:18px
+  }
+
+  .live-pill{
+    font-size:9px;
+    padding:6px
+  }
+
+  .hero h1{
+    font-size:42px
+  }
+
+  .hero-lede{
+    font-size:16px
+  }
+
+  .hero-stats div{
+    width:42%;
+    margin-right:0
+  }
+
+  .hero-stats div:nth-child(2){
+    border-right:1px solid rgba(255,255,255,.08)
+  }
+
+  .now-playing{
+    padding:13px
+  }
+
+  .now-playing strong{
+    font-size:12px
+  }
+
+  .controls{
+    grid-template-columns:1fr
+  }
+
+  .controls .slider-block{
+    grid-column:1
+  }
+
+  .section-heading h2{
+    font-size:34px
+  }
+
+  .peaks-intro h2{
+    font-size:36px
+  }
+
+  .peak-grid{
+    grid-template-columns:1fr
+  }
+
+  .how{
+    padding:20px 16px
+  }
+
+  .how-head h2{
+    font-size:31px
+  }
+
+  .warning{
+    align-items:start
+  }
+}
+
+.night-toggle{
+  margin-left:10px;
+  border:1px solid #bda76d;
+  background:#fff8e2;
+  border-radius:999px;
+  padding:8px 11px;
+  display:flex;
+  gap:6px;
+  align-items:center;
+  font-weight:700;
+  font-size:11px;
+  color:#263a5a;
+  white-space:nowrap
+}
+
+.night-toggle.active{
+  background:#0b2347;
+  color:#f2c96a;
+  border-color:#0b2347
+}
+
+.century{
+  margin-top:22px;
+  background:#07152e;
+  color:#f9f1d8;
+  border-radius:22px;
+  padding:30px 30px 26px;
+  box-shadow:0 18px 44px rgba(7,21,46,.22);
+  overflow:hidden
+}
+
+.century-head{
+  display:flex;
+  gap:24px;
+  justify-content:space-between;
+  align-items:start
+}
+
+.century-head h2{
+  font-family:"Fraunces",serif;
+  font-size:44px;
+  line-height:1;
+  margin:6px 0 10px
+}
+
+.century-head p{
+  color:#c8d0dc;
+  line-height:1.6;
+  max-width:760px;
+  margin:0
+}
+
+.century-badge{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  white-space:nowrap;
+  background:#d9a93d;
+  color:#14263f;
+  border-radius:999px;
+  padding:9px 13px;
+  font-weight:800;
+  font-size:12px
+}
+
+.century-controls{
+  display:grid;
+  grid-template-columns:1.25fr 1.1fr 1.1fr .65fr;
+  gap:12px;
+  margin-top:24px
+}
+
+.btn.shuffle{
+  background:#f2c96a;
+  color:#14263f
+}
+
+.century-query{
+  margin:18px 0 0
+}
+
+.century-query small{
+  display:block;
+  font-size:10px;
+  letter-spacing:.16em;
+  color:#f2c96a;
+  font-weight:700
+}
+
+.century-query code{
+  display:block;
+  word-break:break-all;
+  color:#bcd0ec;
+  font-size:12px;
+  line-height:1.5;
+  margin-top:5px
+}
+
+.century-stats{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0;
+  border-top:1px solid rgba(255,255,255,.14);
+  margin-top:20px
+}
+
+.century-stats div{
+  padding:16px 24px 0 0;
+  margin-right:24px;
+  border-right:1px solid rgba(255,255,255,.08)
+}
+
+.century-stats div:last-child{
+  border:0
+}
+
+.century-stats b{
+  display:block;
+  font-family:"Fraunces",serif;
+  font-size:26px;
+  color:#fff
+}
+
+.century-stats span{
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#9eabb9
+}
+
+.century-player{
+  margin-top:24px;
+  background:#f3e7c6;
+  color:#12233f;
+  border-radius:14px;
+  padding:16px 18px
+}
+
+.century-player-top{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:start
+}
+
+.century-player-top small{
+  display:block;
+  font-size:10px;
+  letter-spacing:.16em;
+  color:#765f28;
+  font-weight:800
+}
+
+.century-player-top strong{
+  font-size:17px
+}
+
+.century-counter b{
+  font-family:"Fraunces",serif;
+  font-size:24px
+}
+
+.century-counter span{
+  font-size:12px;
+  color:#6a603f
+}
+
+.century-track{
+  height:12px;
+  background:#d9cda9;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:14px
+}
+
+.century-track span{
+  display:block;
+  height:100%;
+  background:#0b2347;
+  border-radius:999px;
+  transition:width .25s ease
+}
+
+.century-player-foot{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:8px;
+  font-size:11px;
+  color:#6a603f;
+  margin-top:9px
+}
+
+.century-status{
+  display:flex;
+  gap:8px;
+  align-items:start;
+  margin:16px 0 0;
+  font-size:13px;
+  line-height:1.5;
+  color:#c8d0dc
+}
+
+.century-grid{
+  display:grid;
+  grid-template-columns:1.15fr 1.25fr 1fr;
+  gap:14px;
+  margin-top:18px
+}
+
+.century-card{
+  background:#fffdf6;
+  color:#12233f;
+  border-radius:14px;
+  padding:20px
+}
+
+.century-card p{
+  font-size:13px;
+  line-height:1.6;
+  color:#5b6573;
+  margin:0 0 10px
+}
+
+.century-card p strong,.century-card p b{
+  color:#12233f
+}
+
+.card-head{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:12px
+}
+
+.card-head h3{
+  font-family:"Fraunces",serif;
+  font-size:21px;
+  margin:0
+}
+
+.card-head svg{
+  color:#8a6c22;
+  flex:0 0 auto
+}
+
+.bias-toggle{
+  margin-left:auto;
+  border:1px solid #bfa866;
+  background:#fbf4d9;
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:11px;
+  font-weight:800;
+  color:#263a5a;
+  white-space:nowrap
+}
+
+.bias-toggle.active{
+  background:#0b2347;
+  color:#f2c96a
+}
+
+.big-line{
+  font-family:"Fraunces",serif;
+  font-size:19px;
+  line-height:1.3;
+  color:#12233f!important
+}
+
+.muted-note{
+  font-size:12px;
+  color:#7d8694!important
+}
+
+.decluster-check{
+  display:flex;
+  gap:10px;
+  align-items:start;
+  border-top:1px dashed #cbbd90;
+  padding-top:13px;
+  margin-top:4px;
+  cursor:pointer
+}
+
+.decluster-check input{
+  width:18px;
+  height:18px;
+  accent-color:#8a6c22;
+  margin-top:2px;
+  flex:0 0 auto
+}
+
+.decluster-check span{
+  display:flex;
+  flex-direction:column
+}
+
+.decluster-check small{
+  font-size:12px;
+  line-height:1.5;
+  color:#5b6573;
+  margin-top:3px
+}
+
+.no-predict{
+  display:flex;
+  gap:14px;
+  align-items:start;
+  background:#a4241d;
+  color:#fff;
+  border-radius:14px;
+  padding:18px 20px;
+  margin-top:14px
+}
+
+.no-predict svg{
+  flex:0 0 auto;
+  margin-top:2px
+}
+
+.no-predict strong{
+  font-family:"Fraunces",serif;
+  font-size:22px
+}
+
+.no-predict p{
+  margin:6px 0 0;
+  line-height:1.5;
+  font-size:13px
+}
+
+.earth-rings{
+  margin-top:14px;
+  border:1px solid rgba(217,169,61,.45);
+  border-radius:14px;
+  padding:22px;
+  display:grid;
+  grid-template-columns:1fr 180px;
+  gap:20px;
+  align-items:center
+}
+
+.earth-rings h3{
+  font-family:"Fraunces",serif;
+  font-size:26px;
+  margin:10px 0
+}
+
+.earth-rings p{
+  color:#c8d0dc;
+  font-size:13px;
+  line-height:1.6;
+  margin:0 0 8px
+}
+
+.earth-rings p strong{
+  color:#fff
+}
+
+.coming{
+  background:#f2c96a;
+  color:#14263f;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:10px;
+  letter-spacing:.14em;
+  font-weight:800
+}
+
+.earth-ring-visual{
+  position:relative;
+  height:150px;
+  display:grid;
+  place-items:center
+}
+
+.earth-ring-visual .ring{
+  position:absolute;
+  border:1px solid rgba(242,201,106,.6);
+  border-radius:50%
+}
+
+.earth-ring-visual .ring.r1{
+  width:70px;
+  height:70px
+}
+
+.earth-ring-visual .ring.r2{
+  width:115px;
+  height:115px;
+  opacity:.6
+}
+
+.earth-ring-visual .ring.r3{
+  width:155px;
+  height:155px;
+  opacity:.35
+}
+
+.earth-ring-visual strong{
+  font-family:"Fraunces",serif;
+  font-size:20px
+}
+
+.earth-ring-visual small{
+  margin-top:28px;
+  color:#aeb8c6
+}
+
+.century-foot{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  color:#aeb8c6;
+  font-size:12px;
+  margin:16px 0 0
+}
+
+.v2-row{
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:14px;
+  margin-top:16px
+}
+
+.record-box,.night-box{
+  border:1px solid #d9cda9;
+  border-radius:14px;
+  padding:18px;
+  background:#fffaf0
+}
+
+.record-head{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.record-head>div{
+  display:flex;
+  flex-direction:column
+}
+
+.record-head span{
+  font-size:11px;
+  color:#6a603f
+}
+
+.rec-dot{
+  margin-left:auto;
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background:#c3b998
+}
+
+.rec-dot.on{
+  background:#d92d20;
+  box-shadow:0 0 0 5px rgba(217,45,32,.16);
+  animation:recpulse 1s infinite
+}
+
+@keyframes recpulse{
+  50%{
+    box-shadow:0 0 0 2px rgba(217,45,32,.08)
+  }
+}
+
+.record-box>p{
+  font-size:13px;
+  line-height:1.5;
+  color:#5b6573;
+  margin:10px 0
+}
+
+.record-fallback{
+  color:#9a3b1f!important;
+  font-weight:600
+}
+
+.record-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center
+}
+
+.btn.record{
+  background:#12325c;
+  color:#fff
+}
+
+.btn.stop-rec{
+  background:#a4241d;
+  color:#fff
+}
+
+.btn.download{
+  background:#d9a93d;
+  color:#14263f;
+  text-decoration:none
+}
+
+.record-audio{
+  width:100%;
+  height:38px
+}
+
+.night-box{
+  display:flex;
+  flex-direction:column;
+  gap:10px
+}
+
+.night-box>div{
+  display:flex;
+  gap:10px;
+  align-items:start
+}
+
+.night-box>div svg{
+  flex:0 0 auto;
+  color:#8a6c22;
+  margin-top:2px
+}
+
+.night-box strong{
+  font-size:16px
+}
+
+.night-box p{
+  font-size:13px;
+  line-height:1.5;
+  color:#5b6573;
+  margin:4px 0 0
+}
+
+.btn.night-btn{
+  background:#0b2347;
+  color:#f2c96a
+}
+
+.btn.night-btn.active{
+  background:#f2c96a;
+  color:#14263f
+}
+
+.night-box small{
+  font-size:11px;
+  color:#748096
+}
+
+.home-section{
+  padding:22px 0 0
+}
+
+.home-card{
+  display:grid;
+  grid-template-columns:1fr 230px;
+  background:#0b2347;
+  color:#f9f1d8;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 18px 40px rgba(7,21,46,.18)
+}
+
+.home-left{
+  padding:28px
+}
+
+.home-badge{
+  display:inline-flex;
+  gap:7px;
+  align-items:center;
+  background:#d9a93d;
+  color:#14263f;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:10px;
+  letter-spacing:.14em;
+  font-weight:800
+}
+
+.home-left h2{
+  font-family:"Fraunces",serif;
+  font-size:38px;
+  margin:14px 0 4px
+}
+
+.home-place{
+  font-weight:700;
+  color:#f2c96a;
+  margin:0
+}
+
+.home-coords{
+  font-size:12px;
+  color:#aeb8c6;
+  margin:6px 0 12px
+}
+
+.home-desc{
+  font-size:14px;
+  line-height:1.6;
+  color:#c8d0dc;
+  max-width:640px
+}
+
+.home-ring{
+  margin-top:16px
+}
+
+.home-rang{
+  margin-left:12px;
+  font-size:12px;
+  color:#f2c96a
+}
+
+.home-right{
+  position:relative;
+  display:grid;
+  place-items:center;
+  background:radial-gradient(circle at 50% 42%,rgba(217,169,61,.45),transparent 55%);
+  min-height:210px
+}
+
+.home-right svg{
+  color:#f2c96a
+}
+
+.home-right strong{
+  position:absolute;
+  bottom:58px;
+  font-family:"Fraunces",serif;
+  font-size:28px
+}
+
+.home-right small{
+  position:absolute;
+  bottom:38px;
+  color:#aeb8c6
+}
+
+.home-bell{
+  font-size:64px;
+  color:#f2c96a
+}
+
+.home-ring{
+  position:absolute;
+  border:1px solid rgba(242,201,106,.5);
+  border-radius:50%;
+  width:90px;
+  height:90px
+}
+
+.home-ring.r2{
+  width:140px;
+  height:140px;
+  opacity:.4
+}
+
+.near-banner{
+  margin-top:14px;
+  background:#fff0b9;
+  border:1px solid #d9a93d;
+  border-left:5px solid #b98919;
+  border-radius:14px;
+  padding:15px 17px;
+  display:flex;
+  gap:12px;
+  align-items:center
+}
+
+.near-banner>div{
+  display:flex;
+  flex-direction:column
+}
+
+.near-banner span{
+  font-size:12px;
+  color:#5b6573
+}
+
+.near-banner .btn{
+  margin-left:auto;
+  white-space:nowrap
+}
+
+.near-none{
+  font-size:12px;
+  color:#6c6a5c;
+  margin:12px 2px 0
+}
+
+.near-tag{
+  display:inline-block;
+  margin-top:4px;
+  background:#a4241d;
+  color:#fff;
+  border-radius:999px;
+  padding:3px 8px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.06em
+}
+
+.table-wrap tr.near-home{
+  background:#fff0b9
+}
+
+.table-wrap tr.near-home td{
+  border-color:#e2c87a
+}
+
+.app-shell.night-mode{
+  background:linear-gradient(180deg,#040a1a,#07152e 60%,#0a1a33);
+  color:#dbe6f5
+}
+
+.app-shell.night-mode .topbar{
+  border-color:#243a5c
+}
+
+.app-shell.night-mode .brand-copy strong{
+  color:#eef3fa
+}
+
+.app-shell.night-mode .brand-copy small{
+  color:#8ea3c0
+}
+
+.app-shell.night-mode .header-note{
+  color:#c8d7ee
+}
+
+.app-shell.night-mode .live-pill,.app-shell.night-mode .night-toggle{
+  background:#12233f;
+  border-color:#38506f;
+  color:#e6edf7
+}
+
+.app-shell.night-mode .hero{
+  background:#040b1c;
+  box-shadow:0 20px 50px rgba(0,0,0,.45)
+}
+
+.app-shell.night-mode .source-box,.app-shell.night-mode .console,.app-shell.night-mode .record-box,.app-shell.night-mode .night-box,.app-shell.night-mode .table-wrap,.app-shell.night-mode .steps article,.app-shell.night-mode .how{
+  background:#0e1e38;
+  border-color:#2b4264;
+  color:#dbe6f5
+}
+
+.app-shell.night-mode .console h2,.app-shell.night-mode .section-heading h2,.app-shell.night-mode .source-head h2,.app-shell.night-mode .how-head h2{
+  color:#f6edd0
+}
+
+.app-shell.night-mode .slider-block{
+  border-color:#2b4264
+}
+
+.app-shell.night-mode .record-box>p,.app-shell.night-mode .night-box p,.app-shell.night-mode .peaks-intro>p,.app-shell.night-mode .steps p{
+  color:#aeb9c8
+}
+
+.app-shell.night-mode .status-line{
+  border-color:#2b4264
+}
+
+.app-shell.night-mode footer{
+  border-color:#243a5c
+}
+
+.app-shell.night-mode .footer-mark{
+  color:#f2c96a
+}
+
+.app-shell.night-mode .table-wrap th,.app-shell.night-mode .table-wrap td{
+  border-color:#2b4264;
+  color:#d8dee8
+}
+
+.app-shell.night-mode .table-wrap tr.near-home{
+  background:#3a2d10
+}
+
+.app-shell.night-mode .near-banner{
+  background:#3a2d10;
+  border-color:#d9a93d;
+  color:#f6edd0
+}
+
+.app-shell.night-mode .near-banner span{
+  color:#c8d0dc
+}
+
+.night-sky{
+  position:absolute;
+  inset:0;
+  pointer-events:none
+}
+
+.moon{
+  position:absolute;
+  right:78px;
+  top:26px;
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:#fdf3c8;
+  box-shadow:0 0 30px 12px rgba(253,243,200,.35);
+  z-index:1
+}
+
+.moon-glow{
+  position:absolute;
+  right:60px;
+  top:8px;
+  width:88px;
+  height:88px;
+  border-radius:50%;
+  border:1px solid rgba(253,243,200,.28)
+}
+
+.star{
+  position:absolute;
+  background:#fff;
+  border-radius:50%;
+  animation:twinkle 2s ease-in-out infinite alternate;
+  z-index:0
+}
+
+@keyframes twinkle{
+  from{
+    opacity:.25;
+    transform:scale(.7)
+  }
+
+  to{
+    opacity:1;
+    transform:scale(1.25)
+  }
+}
+
+@media(max-width:900px){
+  .v2-row{
+    grid-template-columns:1fr
+  }
+
+  .home-card{
+    grid-template-columns:1fr
+  }
+
+  .home-right{
+    min-height:150px
+  }
+
+  .near-banner{
+    flex-wrap:wrap
+  }
+
+  .near-banner .btn{
+    margin-left:0
+  }
+
+  .night-toggle{
+    font-size:10px;
+    padding:7px 8px
+  }
+
+  .century{
+    padding:22px 16px
+  }
+
+  .century-head{
+    flex-direction:column
+  }
+
+  .century-controls{
+    grid-template-columns:1fr 1fr
+  }
+
+  .century-grid{
+    grid-template-columns:1fr
+  }
+
+  .earth-rings{
+    grid-template-columns:1fr
+  }
+
+  .century-player-top{
+    flex-direction:column
+  }
+
+  .century-head h2{
+    font-size:36px
+  }
+}
+
+@media(max-width:560px){
+  .century-controls{
+    grid-template-columns:1fr
+  }
+
+  .century-controls .btn{
+    width:100%
+  }
+
+  .century-stats div{
+    margin-right:16px;
+    padding-right:16px
+  }
+
+  .card-head{
+    flex-wrap:wrap
+  }
+
+  .bias-toggle{
+    margin-left:0
+  }
+
+  .century-player-foot{
+    flex-direction:column
+  }
+
+  .home-left{
+    padding:22px 18px
+  }
+
+  .home-left h2{
+    font-size:32px
+  }
+
+  .record-actions .btn{
+    width:100%
+  }
+}
+
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0a152a;
+    --paper:#14273f;
+    --surface:#12233c;
+    --ink:#f0e8d1;
+    --muted:#b8c0cc;
+    --line:#38506f
+  }
+
+  body{
+    background:#0a152a;
+    color:#eee5c8
+  }
+
+  .app-shell{
+    background:radial-gradient(circle at 88% -10%, rgba(217,169,61,.16), transparent 34%), linear-gradient(180deg,#0b1b33,#0a152a)
+  }
+
+  .source-box,.console,.table-wrap,.steps article{
+    background:#14273f;
+    border-color:#38506f;
+    color:#eee5c8
+  }
+
+  .source-grid p,.steps p,.peaks-intro>p{
+    color:#b7c0cd
+  }
+
+  .console h2,.section-heading h2,.source-head h2{
+    color:#f6edd0
+  }
+
+  .table-wrap th,.table-wrap td{
+    border-color:#38506f;
+    color:#d8dee8
+  }
+
+  .table-wrap tr.is-playing{
+    background:#3a2d10
+  }
+
+  .seg{
+    background:#0a152a
+  }
+
+  .play-row,.now-playing{
+    background:#f3e7c6;
+    color:#12233f
+  }
+
+  .filters label{
+    color:#d5dce6
+  }
+
+  .table-foot,.source-grid p{
+    color:#aeb9c8
+  }
+
+  .how{
+    background:#172a42;
+    border-color:#38506f
+  }
+
+  .how-head h2{
+    color:#f6edd0
+  }
+}
+
+@import "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&display=swap";@tailwind base;@tailwind components;@tailwind utilities;:root{--navy:#07152e;--navy2:#0b2347;--ink:#12233f;--gold:#d9a93d;--gold2:#f2c96a;--parchment:#f5edd8;--paper:#fffaf0;--surface:#fbf6e8;--line:#d7c9a6;--muted:#68778f;--bg:#f4ecd7;--safe-area-inset-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}html{scrollbar-color:#0b2347 #e8dcbd}body{background:var(--bg);color:var(--ink);margin:0;font-family:DM Sans,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Noto Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif}button,input{font:inherit}button{cursor:pointer}.app-shell{padding-top:var(--safe-area-inset-top);background:radial-gradient(circle at 88% -10%,#d9a93d47,#0000 34%),linear-gradient(#f8efd8 0,#eee1c0 100%);min-height:100vh}.topbar{display:flex;border-bottom:1px solid #bda76d;align-items: center;gap:12px;max-width:1440px;height:72px;margin:0 auto;padding:0 28px}.brand-mark{background:var(--navy);color:var(--gold);display:grid;position:relative;border-radius:50%;place-items: center;width:40px;height:40px}.brand-mark span{position:absolute;color:#fff;font:750 11px Fraunces,serif;bottom:4px}.brand-copy{display:flex;flex-direction:column;line-height:1}.brand-copy strong{letter-spacing:.04em;color:var(--navy);font-family:Fraunces,serif;font-size:23px}.brand-copy em{color:var(--gold);font-style:normal}.brand-copy small{letter-spacing:.2em;color:#756b51;font-size:9px}.live-pill{letter-spacing:.08em;display:flex;background:#fff8e2;border:1px solid #bda76d;border-radius:999px;align-items: center;gap:7px;margin-left:16px;padding:7px 10px;font-size:11px;font-weight:700}.dot{border-radius:50%;width:8px;height:8px}.dot.amber{background:#d99a2c}.dot.green{background:#26875b}.header-note{color:#24395e;margin-left:auto;font-family:Fraunces,serif;font-size:15px}main{max-width:1440px;margin:0 auto;padding:34px 28px 0}.hero{background:var(--navy);color:#f9f1d8;position:relative;overflow:hidden;border-radius:26px;padding:42px 48px 30px;box-shadow:0 20px 50px #07152e33}.hero:after{content:"";position:absolute;border:1px solid #d9a93d40;border-radius:50%;width:440px;height:440px;top:-150px;right:-130px;box-shadow:0 0 0 45px #d9a93d0d,0 0 0 90px #d9a93d08}.hero-eyebrow{color:var(--gold2);letter-spacing:.18em;display:flex;align-items: center;gap:8px;font-size:12px;font-weight:700}.hero h1{letter-spacing:-.04em;max-width:1000px;margin:22px 0 18px;font-family:Fraunces,serif;font-size:clamp(44px,6.2vw,84px);line-height:.95}.hero h1 span{color:var(--gold2);font-weight:500}.hero-lede{color:#c8d0dc;max-width:720px;font-size:18px;line-height:1.55}.hero-stats{display:flex;border-top:1px solid #ffffff24;gap:0;margin-top:30px}.hero-stats div{border-right:1px solid #ffffff14;margin-right:28px;padding:18px 28px 0 0}.hero-stats div:last-child{border:0}.hero-stats b{display:block;color:#fff;font-family:Fraunces,serif;font-size:29px}.hero-stats span{letter-spacing:.12em;text-transform:uppercase;color:#9eabb9;font-size:11px}.now-playing{color:#12233f;display:flex;position:relative;z-index:1;background:#f3e7c6;border-radius:14px;align-items: center;gap:14px;margin-top:26px;padding:15px 18px}.now-playing small{display:block;letter-spacing:.16em;color:#765f28;font-size:10px}.now-playing strong{font-size:14px}.now-playing svg{color:#8b6715;margin-left:auto}.eq{display:flex;align-items: end;gap:3px;height:24px}.eq i{display:block;animation:eq 1s ease-in-out infinite alternate;background:#a87b1b;width:4px}.eq i:first-child{height:9px}.eq i:nth-child(2){animation-delay:.1s;height:18px}.eq i:nth-child(3){animation-delay:.2s;height:12px}.eq i:nth-child(4){height:20px}.eq i:nth-child(5){animation-delay:.3s;height:8px}@keyframes eq{to{height:23px}}.source-box{background:var(--paper);border:1px solid #b99f63;border-radius:18px;margin-top:22px;padding:22px 26px}.source-head{display:flex;align-items: center;gap:10px}.source-head h2{margin:0;font-family:Fraunces,serif;font-size:24px}.source-badge{background:var(--navy);color:var(--gold2);letter-spacing:.12em;border-radius:999px;margin-left:auto;padding:6px 9px;font-size:10px}.source-grid{display:grid;grid-template-columns:1.3fr 1.3fr .9fr;gap:28px;margin-top:18px}.source-grid small{letter-spacing:.16em;color:#8a7140;font-size:10px;font-weight:700}.source-grid code{display:block;word-break:break-all;color:#17457e;margin:7px 0;font-size:12px;line-height:1.5}.source-grid p{color:#5b6573;margin:0;font-size:13px;line-height:1.5}.citation{color:#6a603f;border-top:1px dashed #cbbd90;margin-top:20px;padding-top:15px;font-size:12px}.console{background:#fffdf6;border:1px solid #c9b98d;border-radius:20px;margin-top:22px;padding:25px 28px;box-shadow:0 12px 30px #3c2c0812}.console-title{display:flex;justify-content:space-between;align-items: end}.kicker{letter-spacing:.18em;color:#8a6c22;font-size:11px;font-weight:700}.console h2{margin:4px 0 0;font-family:Fraunces,serif;font-size:32px}.updated{color:#748096;font-size:12px}.controls{display:grid;grid-template-columns:1.15fr 1fr .5fr 1fr 1fr;align-items:stretch;gap:14px;margin-top:22px}.btn{display:flex;border:0;border-radius:11px;justify-content:center;align-items: center;gap:8px;min-height:52px;padding:15px 16px;font-weight:700}.btn.primary{background:var(--navy);color:#fff}.btn.gold{background:var(--gold);color:#14263f}.btn.quiet{color:#263a5a;background:#eee2c4}.btn:disabled{opacity:.58;cursor:wait}.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.slider-block{display:flex;border:1px solid #d9cda9;border-radius:11px;flex-direction:column;justify-content:center;padding:12px 14px}.slider-block label{display:flex;justify-content:space-between;align-items: center;font-size:13px}.slider-block label span{display:flex;align-items: center;gap:6px}.slider-block small{color:#7d8694;font-size:10px}.slider-block input{accent-color:#8a6c22;width:100%}.status-line{display:flex;color:#405069;border-top:1px solid #e5dab8;align-items: center;gap:8px;margin-top:18px;padding-top:15px;font-size:13px}.data-section{padding:58px 0 12px}.section-heading{display:flex;justify-content:space-between;align-items: end;gap:24px}.section-heading h2{margin:5px 0 0;font-family:Fraunces,serif;font-size:42px;line-height:1}.filters{display:flex;align-items: center;gap:18px}.filters label{display:flex;align-items: center;gap:8px;font-size:12px}.filters input{accent-color:#8a6c22}.seg{display:flex;background:#e9dcb9;border-radius:999px;padding:4px}.seg button{background:0 0;border:0;border-radius:999px;padding:8px 14px;font-weight:700}.seg button.active{background:var(--navy);color:#fff}.sample-note{background:#fff0b9;border-left:4px solid #b98919;margin-top:18px;padding:13px 16px;font-size:13px;line-height:1.5}.table-wrap{overflow:hidden;background:#fffdf6;border:1px solid #cdbd8f;border-radius:16px;margin-top:18px}.table-wrap table{border-collapse:collapse;width:100%}.table-wrap th{text-align:left;letter-spacing:.14em;color:#8a7441;border-bottom:1px solid #ddd0a9;padding:14px 18px;font-size:10px}.table-wrap td{border-bottom:1px solid #efe6c9;padding:15px 18px;font-size:13px}.table-wrap tr:last-child td{border-bottom:0}.table-wrap tr.is-playing{background:#fff0b6}.mag{display:inline-block;color:#5c4410;white-space:nowrap;background:#eee0ba;border-radius:999px;padding:5px 8px;font-size:12px;font-weight:800}.mag-9,.mag-8{color:#ffd1a0;background:#3d1717}.mag-7{color:#ffe2b8;background:#7a3d16}.place strong{display:block}.place small{color:#7a8494}.bell-spec{white-space:nowrap;color:#29476e;font-weight:600}.play-row{display:flex;color:#263a5a;white-space:nowrap;background:#fbf4d9;border:1px solid #bfa866;border-radius:999px;align-items: center;gap:6px;padding:8px 12px;font-weight:700}.empty{text-align:center;color:#6b7280;padding:26px}.table-foot{color:#6c6a5c;font-size:12px}.peaks{display:grid;grid-template-columns:300px 1fr;gap:22px;padding:48px 0}.peaks-intro h2{margin:8px 0 14px;font-family:Fraunces,serif;font-size:45px;line-height:1}.peaks-intro>p{color:#5b6573;line-height:1.6}.mapping{border-top:1px solid #c9b98d;margin-top:26px}.mapping>div{display:grid;grid-template-columns:80px 1fr;border-bottom:1px solid #d7cba5;gap:4px 12px;padding:13px 0}.mapping small{grid-row:span 2;color:#876e2f;font-weight:700}.mapping b{font-family:Fraunces,serif}.mapping span{color:#6f7683;font-size:12px}.peak-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.peak-card{background:var(--navy);color:#e9e1ca;position:relative;overflow:hidden;border-radius:16px;padding:20px}.peak-card:nth-child(2){background:#172f57}.peak-card:nth-child(3){background:#233f52}.peak-card:nth-child(4){background:#3d2d24}.peak-card:nth-child(5){background:#243c3a}.peak-card:nth-child(6){background:#3b2d4d}.peak-top{display:flex;letter-spacing:.12em;justify-content:space-between;font-size:11px}.peak-card h3{margin:24px 0 2px;font-family:Fraunces,serif;font-size:28px}.range{color:#aeb8c6;margin:0;font-size:12px}.note-row{display:flex;align-items: center;gap:12px;margin:20px 0}.note{border:1px solid var(--gold);display:grid;color:var(--gold2);border-radius:50%;place-items: center;width:50px;height:50px;font-family:Fraunces,serif;font-size:19px}.note-row small{display:block;letter-spacing:.14em;font-size:9px}.note-row strong{font-size:13px}.mode{color:#fff;margin:0;font-family:Fraunces,serif;font-size:16px}.timbre{color:#aeb8c6;margin:5px 0 18px;font-size:12px}.peak-wave{display:flex;align-items: end;gap:5px;height:45px}.peak-wave span{background:var(--gold);opacity:.8;border-radius:3px 3px 0 0;width:8px}.how{background:#f7eecf;border:1px solid #c8b985;border-radius:20px;padding:30px}.how-head h2{margin:5px 0 22px;font-family:Fraunces,serif;font-size:38px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.steps article{position:relative;background:#fffdf6;border:1px solid #d9cda9;border-radius:14px;padding:22px}.steps article>span{position:absolute;color:#dfc97f;font-family:Fraunces,serif;font-size:30px;top:14px;right:18px}.steps article svg{color:#8a6c22}.steps h3{margin:16px 0 7px;font-family:Fraunces,serif;font-size:24px}.steps p{color:#5b6573;font-size:13px;line-height:1.55}.warning{display:flex;background:var(--navy);color:#f2e7c5;border-radius:12px;align-items: center;gap:12px;margin-top:14px;padding:16px 18px}.warning p{margin:0;font-size:13px;line-height:1.5}.warning svg{color:var(--gold2);flex:none}footer{display:flex;border-top:1px solid #bda76d;justify-content:space-between;align-items: center;max-width:1440px;margin:42px auto 0;padding:28px}footer div:first-child{display:flex;flex-direction:column}footer strong{font-family:Fraunces,serif}footer span{color:#6c6a5c;margin-top:4px;font-size:12px}.footer-mark{display:flex;color:#0b2347;align-items: center;gap:8px;font-weight:800}@media (max-width:900px){.topbar{padding:0 16px}.header-note,.brand-copy small{display:none}.live-pill{margin-left:auto}main{padding:20px 14px 0}.hero{padding:30px 22px}.hero-stats{flex-wrap:wrap}.hero-stats div{margin-right:18px;padding:14px 18px 0 0}.hero-stats div:nth-child(2){border:0}.source-grid{grid-template-columns:1fr;gap:18px}.console{padding:20px 16px}.console-title{flex-direction:column;align-items: start;gap:6px}.controls{grid-template-columns:1fr 1fr}.controls .btn.primary{grid-column:1/-1}.slider-block{grid-column:span 1}.section-heading{flex-direction:column;align-items: start}.filters{flex-wrap:wrap}.table-wrap{overflow-x:auto}.table-wrap table{min-width:720px}.peaks{grid-template-columns:1fr}.peak-grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr}footer{flex-direction:column;align-items: start;gap:16px;padding:22px 16px}}@media (max-width:560px){.brand-copy strong{font-size:18px}.live-pill{padding:6px;font-size:9px}.hero h1{font-size:42px}.hero-lede{font-size:16px}.hero-stats div{width:42%;margin-right:0}.hero-stats div:nth-child(2){border-right:1px solid #ffffff14}.now-playing{padding:13px}.now-playing strong{font-size:12px}.controls{grid-template-columns:1fr}.controls .slider-block{grid-column:1}.section-heading h2{font-size:34px}.peaks-intro h2{font-size:36px}.peak-grid{grid-template-columns:1fr}.how{padding:20px 16px}.how-head h2{font-size:31px}.warning{align-items: start}}.night-toggle{display:flex;color:#263a5a;white-space:nowrap;background:#fff8e2;border:1px solid #bda76d;border-radius:999px;align-items: center;gap:6px;margin-left:10px;padding:8px 11px;font-size:11px;font-weight:700}.night-toggle.active{color:#f2c96a;background:#0b2347;border-color:#0b2347}.century{color:#f9f1d8;overflow:hidden;background:#07152e;border-radius:22px;margin-top:22px;padding:30px 30px 26px;box-shadow:0 18px 44px #07152e38}.century-head{display:flex;justify-content:space-between;align-items: start;gap:24px}.century-head h2{margin:6px 0 10px;font-family:Fraunces,serif;font-size:44px;line-height:1}.century-head p{color:#c8d0dc;max-width:760px;margin:0;line-height:1.6}.century-badge{display:flex;white-space:nowrap;color:#14263f;background:#d9a93d;border-radius:999px;align-items: center;gap:8px;padding:9px 13px;font-size:12px;font-weight:800}.century-controls{display:grid;grid-template-columns:1.25fr 1.1fr 1.1fr .65fr;gap:12px;margin-top:24px}.btn.shuffle{color:#14263f;background:#f2c96a}.century-query{margin:18px 0 0}.century-query small{display:block;letter-spacing:.16em;color:#f2c96a;font-size:10px;font-weight:700}.century-query code{display:block;word-break:break-all;color:#bcd0ec;margin-top:5px;font-size:12px;line-height:1.5}.century-stats{display:flex;border-top:1px solid #ffffff24;flex-wrap:wrap;gap:0;margin-top:20px}.century-stats div{border-right:1px solid #ffffff14;margin-right:24px;padding:16px 24px 0 0}.century-stats div:last-child{border:0}.century-stats b{display:block;color:#fff;font-family:Fraunces,serif;font-size:26px}.century-stats span{letter-spacing:.12em;text-transform:uppercase;color:#9eabb9;font-size:10px}.century-player{color:#12233f;background:#f3e7c6;border-radius:14px;margin-top:24px;padding:16px 18px}.century-player-top{display:flex;justify-content:space-between;align-items: start;gap:16px}.century-player-top small{display:block;letter-spacing:.16em;color:#765f28;font-size:10px;font-weight:800}.century-player-top strong{font-size:17px}.century-counter b{font-family:Fraunces,serif;font-size:24px}.century-counter span{color:#6a603f;font-size:12px}.century-track{overflow:hidden;background:#d9cda9;border-radius:999px;height:12px;margin-top:14px}.century-track span{display:block;background:#0b2347;border-radius:999px;height:100%;transition:width .25s}.century-player-foot{display:flex;color:#6a603f;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:9px;font-size:11px}.century-status{display:flex;color:#c8d0dc;align-items: start;gap:8px;margin:16px 0 0;font-size:13px;line-height:1.5}.century-grid{display:grid;grid-template-columns:1.15fr 1.25fr 1fr;gap:14px;margin-top:18px}.century-card{color:#12233f;background:#fffdf6;border-radius:14px;padding:20px}.century-card p{color:#5b6573;margin:0 0 10px;font-size:13px;line-height:1.6}.century-card p strong,.century-card p b{color:#12233f}.card-head{display:flex;align-items: center;gap:9px;margin-bottom:12px}.card-head h3{margin:0;font-family:Fraunces,serif;font-size:21px}.card-head svg{color:#8a6c22;flex:none}.bias-toggle{color:#263a5a;white-space:nowrap;background:#fbf4d9;border:1px solid #bfa866;border-radius:999px;margin-left:auto;padding:7px 10px;font-size:11px;font-weight:800}.bias-toggle.active{color:#f2c96a;background:#0b2347}.big-line{font-family:Fraunces,serif;font-size:19px;line-height:1.3;color:#12233f!important}.muted-note{font-size:12px;color:#7d8694!important}.decluster-check{display:flex;cursor:pointer;border-top:1px dashed #cbbd90;align-items: start;gap:10px;margin-top:4px;padding-top:13px}.decluster-check input{accent-color:#8a6c22;flex:none;width:18px;height:18px;margin-top:2px}.decluster-check span{display:flex;flex-direction:column}.decluster-check small{color:#5b6573;margin-top:3px;font-size:12px;line-height:1.5}.no-predict{display:flex;color:#fff;background:#a4241d;border-radius:14px;align-items: start;gap:14px;margin-top:14px;padding:18px 20px}.no-predict svg{flex:none;margin-top:2px}.no-predict strong{font-family:Fraunces,serif;font-size:22px}.no-predict p{margin:6px 0 0;font-size:13px;line-height:1.5}.earth-rings{display:grid;grid-template-columns:1fr 180px;border:1px solid #d9a93d73;border-radius:14px;align-items: center;gap:20px;margin-top:14px;padding:22px}.earth-rings h3{margin:10px 0;font-family:Fraunces,serif;font-size:26px}.earth-rings p{color:#c8d0dc;margin:0 0 8px;font-size:13px;line-height:1.6}.earth-rings p strong{color:#fff}.coming{color:#14263f;letter-spacing:.14em;background:#f2c96a;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:800}.earth-ring-visual{position:relative;display:grid;place-items: center;height:150px}.earth-ring-visual .ring{position:absolute;border:1px solid #f2c96a99;border-radius:50%}.earth-ring-visual .ring.r1{width:70px;height:70px}.earth-ring-visual .ring.r2{opacity:.6;width:115px;height:115px}.earth-ring-visual .ring.r3{opacity:.35;width:155px;height:155px}.earth-ring-visual strong{font-family:Fraunces,serif;font-size:20px}.earth-ring-visual small{color:#aeb8c6;margin-top:28px}.century-foot{display:flex;color:#aeb8c6;align-items: center;gap:8px;margin:16px 0 0;font-size:12px}.v2-row{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-top:16px}.record-box,.night-box{background:#fffaf0;border:1px solid #d9cda9;border-radius:14px;padding:18px}.record-head{display:flex;align-items: center;gap:10px}.record-head>div{display:flex;flex-direction:column}.record-head span{color:#6a603f;font-size:11px}.rec-dot{background:#c3b998;border-radius:50%;width:11px;height:11px;margin-left:auto}.rec-dot.on{animation:recpulse 1s infinite;background:#d92d20;box-shadow:0 0 0 5px #d92d2029}@keyframes recpulse{50%{box-shadow:0 0 0 2px #d92d2014}}.record-box>p{color:#5b6573;margin:10px 0;font-size:13px;line-height:1.5}.record-fallback{font-weight:600;color:#9a3b1f!important}.record-actions{display:flex;flex-wrap:wrap;align-items: center;gap:10px}.btn.record{color:#fff;background:#12325c}.btn.stop-rec{color:#fff;background:#a4241d}.btn.download{color:#14263f;text-decoration:none;background:#d9a93d}.record-audio{width:100%;height:38px}.night-box{display:flex;flex-direction:column;gap:10px}.night-box>div{display:flex;align-items: start;gap:10px}.night-box>div svg{color:#8a6c22;flex:none;margin-top:2px}.night-box strong{font-size:16px}.night-box p{color:#5b6573;margin:4px 0 0;font-size:13px;line-height:1.5}.btn.night-btn{color:#f2c96a;background:#0b2347}.btn.night-btn.active{color:#14263f;background:#f2c96a}.night-box small{color:#748096;font-size:11px}.home-section{padding:22px 0 0}.home-card{display:grid;grid-template-columns:1fr 230px;color:#f9f1d8;overflow:hidden;background:#0b2347;border-radius:20px;box-shadow:0 18px 40px #07152e2e}.home-left{padding:28px}.home-badge{display:inline-flex;color:#14263f;letter-spacing:.14em;background:#d9a93d;border-radius:999px;align-items: center;gap:7px;padding:6px 10px;font-size:10px;font-weight:800}.home-left h2{margin:14px 0 4px;font-family:Fraunces,serif;font-size:38px}.home-place{color:#f2c96a;margin:0;font-weight:700}.home-coords{color:#aeb8c6;margin:6px 0 12px;font-size:12px}.home-desc{color:#c8d0dc;max-width:640px;font-size:14px;line-height:1.6}.home-ring{margin-top:16px}.home-rang{color:#f2c96a;margin-left:12px;font-size:12px}.home-right{position:relative;display:grid;background:radial-gradient(circle at 50% 42%,#d9a93d73,#0000 55%);place-items: center;min-height:210px}.home-right svg{color:#f2c96a}.home-right strong{position:absolute;font-family:Fraunces,serif;font-size:28px;bottom:58px}.home-right small{position:absolute;color:#aeb8c6;bottom:38px}.home-bell{color:#f2c96a;font-size:64px}.home-ring{position:absolute;border:1px solid #f2c96a80;border-radius:50%;width:90px;height:90px}.home-ring.r2{opacity:.4;width:140px;height:140px}.near-banner{display:flex;background:#fff0b9;border:1px solid #d9a93d;border-left:5px solid #b98919;border-radius:14px;align-items: center;gap:12px;margin-top:14px;padding:15px 17px}.near-banner>div{display:flex;flex-direction:column}.near-banner span{color:#5b6573;font-size:12px}.near-banner .btn{white-space:nowrap;margin-left:auto}.near-none{color:#6c6a5c;margin:12px 2px 0;font-size:12px}.near-tag{display:inline-block;color:#fff;letter-spacing:.06em;background:#a4241d;border-radius:999px;margin-top:4px;padding:3px 8px;font-size:10px;font-weight:800}.table-wrap tr.near-home{background:#fff0b9}.table-wrap tr.near-home td{border-color:#e2c87a}.app-shell.night-mode{color:#dbe6f5;background:linear-gradient(#040a1a,#07152e 60%,#0a1a33)}.app-shell.night-mode .topbar{border-color:#243a5c}.app-shell.night-mode .brand-copy strong{color:#eef3fa}.app-shell.night-mode .brand-copy small{color:#8ea3c0}.app-shell.night-mode .header-note{color:#c8d7ee}.app-shell.night-mode .live-pill,.app-shell.night-mode .night-toggle{color:#e6edf7;background:#12233f;border-color:#38506f}.app-shell.night-mode .hero{background:#040b1c;box-shadow:0 20px 50px #00000073}.app-shell.night-mode .source-box,.app-shell.night-mode .console,.app-shell.night-mode .record-box,.app-shell.night-mode .night-box,.app-shell.night-mode .table-wrap,.app-shell.night-mode .steps article,.app-shell.night-mode .how{color:#dbe6f5;background:#0e1e38;border-color:#2b4264}.app-shell.night-mode .console h2,.app-shell.night-mode .section-heading h2,.app-shell.night-mode .source-head h2,.app-shell.night-mode .how-head h2{color:#f6edd0}.app-shell.night-mode .slider-block{border-color:#2b4264}.app-shell.night-mode .record-box>p,.app-shell.night-mode .night-box p,.app-shell.night-mode .peaks-intro>p,.app-shell.night-mode .steps p{color:#aeb9c8}.app-shell.night-mode .status-line{border-color:#2b4264}.app-shell.night-mode footer{border-color:#243a5c}.app-shell.night-mode .footer-mark{color:#f2c96a}.app-shell.night-mode .table-wrap th,.app-shell.night-mode .table-wrap td{color:#d8dee8;border-color:#2b4264}.app-shell.night-mode .table-wrap tr.near-home{background:#3a2d10}.app-shell.night-mode .near-banner{color:#f6edd0;background:#3a2d10;border-color:#d9a93d}.app-shell.night-mode .near-banner span{color:#c8d0dc}.night-sky{position:absolute;pointer-events:none;inset:0}.moon{position:absolute;z-index:1;background:#fdf3c8;border-radius:50%;width:52px;height:52px;top:26px;right:78px;box-shadow:0 0 30px 12px #fdf3c859}.moon-glow{position:absolute;border:1px solid #fdf3c847;border-radius:50%;width:88px;height:88px;top:8px;right:60px}.star{position:absolute;animation:twinkle 2s ease-in-out infinite alternate;z-index:0;background:#fff;border-radius:50%}@keyframes twinkle{0%{opacity:.25;transform:scale(.7)}to{opacity:1;transform:scale(1.25)}}@media (max-width:900px){.v2-row,.home-card{grid-template-columns:1fr}.home-right{min-height:150px}.near-banner{flex-wrap:wrap}.near-banner .btn{margin-left:0}.night-toggle{padding:7px 8px;font-size:10px}.century{padding:22px 16px}.century-head{flex-direction:column}.century-controls{grid-template-columns:1fr 1fr}.century-grid,.earth-rings{grid-template-columns:1fr}.century-player-top{flex-direction:column}.century-head h2{font-size:36px}}@media (max-width:560px){.century-controls{grid-template-columns:1fr}.century-controls .btn{width:100%}.century-stats div{margin-right:16px;padding-right:16px}.card-head{flex-wrap:wrap}.bias-toggle{margin-left:0}.century-player-foot{flex-direction:column}.home-left{padding:22px 18px}.home-left h2{font-size:32px}.record-actions .btn{width:100%}}@media (prefers-color-scheme:dark){:root{--bg:#0a152a;--paper:#14273f;--surface:#12233c;--ink:#f0e8d1;--muted:#b8c0cc;--line:#38506f}body{color:#eee5c8;background:#0a152a}.app-shell{background:radial-gradient(circle at 88% -10%,#d9a93d29,#0000 34%),linear-gradient(#0b1b33,#0a152a)}.source-box,.console,.table-wrap,.steps article{color:#eee5c8;background:#14273f;border-color:#38506f}.source-grid p,.steps p,.peaks-intro>p{color:#b7c0cd}.console h2,.section-heading h2,.source-head h2{color:#f6edd0}.table-wrap th,.table-wrap td{color:#d8dee8;border-color:#38506f}.table-wrap tr.is-playing{background:#3a2d10}.seg{background:#0a152a}.play-row,.now-playing{color:#12233f;background:#f3e7c6}.filters label{color:#d5dce6}.table-foot,.source-grid p{color:#aeb9c8}.how{background:#172a42;border-color:#38506f}.how-head h2{color:#f6edd0}}
+/* v3 addition: USGS event links in the table */
+.place a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.place a:hover{color:#E8C86A}
+/* v3 fix: the "Ring My Valley" button must NOT carry class "home-ring".
+   The reused stylesheet has TWO .home-ring rules — margin-top:16px for the
+   button, and position:absolute + 90px circle for the decorative rings in
+   .home-right — and both applied to the button, turning it into a small
+   absolute-positioned disc that hung over the note below it. The button is
+   now a plain .btn.gold; this rule restores its top margin. */
+.home-left .btn.gold{margin-top:16px}
+</style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div id="root">
+<div class="app-shell" id="app-shell">
+  <header class="topbar">
+    <div class="brand-mark"><span class="icon" data-icon="bell" data-size="22"></span><span>B</span></div>
+    <div class="brand-copy"><strong>BELLNET <em>v3</em></strong><small>SEISMIC SONIFICATION NETWORK</small></div>
+    <div class="live-pill"><span class="dot amber" id="live-dot"></span><span id="live-label">SAMPLE MODE</span></div>
+    <button class="night-toggle" id="night-toggle" aria-pressed="false" aria-label="Toggle Night Mode"><span class="icon" data-icon="moon" data-size="16"></span> <span id="night-toggle-label">Night Mode</span></button>
+    <div class="header-note">Real Data. Real Peaks. Real Sound.</div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="night-sky" id="night-sky" aria-hidden="true" hidden><span class="moon"></span><span class="moon-glow"></span><span id="stars"></span></div>
+      <div class="hero-eyebrow"><span class="icon" data-icon="mountain" data-size="15"></span> A NET OF MOUNTAIN BELLS · EST. FROM THE GROUND UP</div>
+      <h1>Peaks sing like bells.<br /><span>We turn the catalogue into bells.</span></h1>
+      <p class="hero-lede">Bellnet turns real ground motion into audible bells. A large quake becomes a deep, long toll. A shallow tremor becomes a bright strike. Nothing here predicts the next event.</p>
+      <div class="hero-stats">
+        <div><b id="stat-events">5</b><span>Events in view</span></div>
+        <div><b id="stat-largest">M9.1</b><span>Largest shown</span></div>
+        <div><b id="stat-peaks">7</b><span>Peak + home instruments</span></div>
+        <div><b><span id="stat-speed">120</span>×</b><span>Bell spacing</span></div>
+      </div>
+      <div class="now-playing" aria-live="polite">
+        <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div><small>NOW RINGING</small><strong id="now-playing">The net is quiet.</strong></div>
+        <span class="icon" data-icon="music" data-size="20"></span>
+      </div>
+    </section>
+
+    <section class="source-box">
+      <div class="source-head"><span class="icon" data-icon="radio" data-size="19"></span><h2>Real data source</h2><span class="source-badge">NO API KEY</span></div>
+      <div class="source-grid">
+        <div><small>USGS REAL-TIME FEED</small><code>earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson</code><p>Last 24 hours · refreshes automatically about every minute while live.</p></div>
+        <div><small>IRIS / EARTHSCOPE FDSN</small><code><a href="https://service.iris.edu/fdsnws/dataselect/1/" target="_blank" rel="noopener">https://service.iris.edu/fdsnws/dataselect/1/</a></code><p>Waveform service for deeper audification work.</p></div>
+        <div><small>METHOD</small><p><b>Parameter-mapping sonification.</b> Magnitude → pitch, depth → sustain, longitude → stereo pan. No waveform is sped up here — waveform audification via IRIS FDSN is a separate, deeper step. Not a prediction tool.</p></div>
+      </div>
+      <div class="citation">Method lineage: Seismic Sound Lab · Columbia University · Joshua Russell normal modes · GeoNet — music of earthquake.</div>
+    </section>
+
+    <section class="console" aria-label="Bellnet controls">
+      <div class="console-title">
+        <div><span class="kicker">CONTROL ROOM</span><h2>Listen to the planet.</h2></div>
+        <span class="updated">Updated · <span id="updated">—</span></span>
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="btn-fetch"><span class="icon" data-icon="refresh" data-size="18"></span><span id="btn-fetch-label">Fetch Real Quakes — Last 24h</span></button>
+        <button class="btn gold" id="btn-play" aria-pressed="false"><span class="icon" data-icon="play" data-size="18"></span><span id="btn-play-label">Play Bellnet</span></button>
+        <button class="btn quiet" id="btn-stop"><span class="icon" data-icon="stop" data-size="16"></span> <span id="btn-stop-label">Stop</span></button>
+        <div class="slider-block">
+          <label><span><span class="icon" data-icon="gauge" data-size="16"></span> Bell spacing</span><b><span id="speed-val">120</span>×</b></label>
+          <input type="range" min="1" max="20000" step="1" value="120" id="speed" aria-label="Bell spacing" />
+          <small>1× to 20,000× · gap between bells</small>
+        </div>
+        <div class="slider-block">
+          <label><span><span class="icon" data-icon="volume" data-size="16"></span> Volume</span><b><span id="vol-val">72</span>%</b></label>
+          <input type="range" min="0" max="100" value="72" id="volume" aria-label="Volume" />
+          <small>WebAudio master gain</small>
+        </div>
+      </div>
+      <div class="status-line"><span class="icon" data-icon="activity" data-size="16"></span><span id="status">Historical examples loaded. Fetch the live USGS feed to hear the last 24 hours.</span></div>
+      <div class="v2-row">
+        <div class="record-box">
+          <div class="record-head"><span class="icon" data-icon="record" data-size="18"></span><div><strong>Record Mode</strong><span id="rec-state">Capture the choir to .webm</span></div><span class="rec-dot" id="rec-dot"></span></div>
+          <p id="rec-msg">Ready to capture the choir. Press Start Recording, ring some bells, then stop to download.</p>
+          <p class="record-fallback" id="rec-fallback" hidden>MediaRecorder is not supported in this browser, so recording is unavailable here.</p>
+          <div class="record-actions">
+            <button class="btn record" id="btn-rec-start"><span class="icon" data-icon="record" data-size="17"></span> Start Recording</button>
+            <button class="btn stop-rec" id="btn-rec-stop" hidden><span class="icon" data-icon="stop" data-size="16"></span> Stop Recording · <span id="rec-time">00:00</span></button>
+            <a class="btn download" id="rec-download" href="#" download="bellnet-choir.webm" hidden><span class="icon" data-icon="download" data-size="17"></span> Download Recording (.webm)</a>
+            <audio class="record-audio" id="rec-audio" controls hidden></audio>
+          </div>
+        </div>
+        <div class="night-box">
+          <div><span class="icon" data-icon="moon" data-size="22"></span><strong>Night Mode</strong><p>Dim, starry listening. Auto-Ring plays the largest 5 quakes as a night choir after each fetch.</p></div>
+          <button class="btn night-btn" id="btn-night" aria-pressed="false"><span class="icon" data-icon="moon" data-size="17"></span> <span id="btn-night-label">Turn Night Mode On</span></button>
+          <small id="night-note">Auto-Ring is off.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="century" id="century" aria-label="Century Mode">
+      <div class="century-head">
+        <div><span class="kicker">CENTURY MODE · 1900 TO NOW</span><h2>One long piece.</h2><p>Every M6+ event since 1900, in order, compressed into ten minutes. 1900 to now spans about 4.0 billion seconds — this piece plays it at roughly <span id="century-rate-text">6.67</span> million times real time.</p></div>
+        <span class="century-badge"><span class="icon" data-icon="calendar" data-size="16"></span> 1900 → 2026</span>
+      </div>
+      <div class="century-controls">
+        <button class="btn primary" id="btn-century-load"><span class="icon" data-icon="radio" data-size="18"></span><span id="btn-century-load-label">Load Century M6+ Since 1900</span></button>
+        <button class="btn gold" id="btn-century-play"><span class="icon" data-icon="play" data-size="18"></span><span id="btn-century-play-label">Play Century in 10 Minutes</span></button>
+        <button class="btn shuffle" id="btn-century-shuffle"><span class="icon" data-icon="shuffle" data-size="18"></span><span id="btn-century-shuffle-label">Play Shuffled Version</span></button>
+        <button class="btn quiet" id="btn-century-stop"><span class="icon" data-icon="stop" data-size="16"></span> Stop Century</button>
+      </div>
+      <p class="century-query"><small>USGS FDSN QUERY · FALLS BACK TO DECADE CHUNKS IF TRUNCATED</small><code id="century-query-url">https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&amp;starttime=1900-01-01&amp;endtime=2026-11-09&amp;minmagnitude=6&amp;limit=20000&amp;orderby=time</code></p>
+      <div class="century-stats">
+        <div><b id="century-loaded">—</b><span>M6+ events loaded</span></div>
+        <div><b id="century-declustered">—</b><span>Events after declustering</span></div>
+        <div><b><span id="century-rate">6.67</span>M×</b><span>Time compression</span></div>
+        <div><b>10:00</b><span>Piece length</span></div>
+        <div><b id="century-status-word">Not loaded</b><span>Archive status</span></div>
+      </div>
+      <div class="century-player" aria-live="polite">
+        <div class="century-player-top">
+          <div><small id="century-player-mode">CENTURY TIMELINE</small><strong id="century-player-title">Load the archive to begin</strong></div>
+          <div class="century-counter"><b id="century-count">0</b><span> / <span id="century-total">—</span> bells</span></div>
+        </div>
+        <div class="century-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Century playback progress" id="century-track"><span id="century-bar" style="width:0%"></span></div>
+        <div class="century-player-foot"><span><span id="century-pct">0</span>% · <span id="century-play-state">paused</span></span><span>1900 ———————— 2026</span><span>Each bell: pitch from magnitude · pan from longitude · loudness from magnitude</span></div>
+      </div>
+      <p class="century-status"><span class="icon" data-icon="activity" data-size="16"></span><span id="century-status">Century archive not loaded yet. Load M6+ events since 1900 to hear the long piece.</span></p>
+      <div class="century-grid">
+        <div class="century-card bias-card">
+          <div class="card-head"><span class="icon" data-icon="alert" data-size="19"></span><h3>Principle 56</h3><button class="bias-toggle active" id="bias-toggle" aria-pressed="true">Hide Warning</button></div>
+          <div id="bias-body">
+            <p class="big-line">A complete archive is not a complete observation.</p>
+            <p>Early quiet may be fewer sensors, not a quieter Earth. M6+ is reasonably complete from the early 1900s, M5 from roughly the 1960s, and M4.5 from the 1970s. Smaller magnitudes are not loaded in Century Mode to avoid bias.</p>
+            <p>If playback gets denser in the 1970s, that is mostly instruments getting better — not the Earth getting busier.</p>
+          </div>
+          <p class="muted-note" id="bias-hidden-note" hidden>Warning hidden. Press “Show Instrument Bias Warning” to bring back Principle 56.</p>
+        </div>
+        <div class="century-card">
+          <div class="card-head"><span class="icon" data-icon="activity" data-size="19"></span><h3>Why clusters sound like flurries</h3></div>
+          <p><strong>Omori’s law:</strong> a big strike is followed by a flurry of aftershocks that thins out over time. You will hear a hard toll, then a rush that decays.</p>
+          <p><strong>Gutenberg–Richter:</strong> small events vastly outnumber large ones — roughly 10× more events for each magnitude step down. That steady ratio is why Century Mode stays at M6+: adding smaller events would swamp the piece and the bias.</p>
+          <label class="decluster-check"><input type="checkbox" id="decluster" /> <span><strong>Decluster — Remove Aftershocks</strong><small>Filters events within 30 days and 100 km of a larger prior event. <span id="decluster-count">Load the archive to see how many are removed.</span> This is the standard method to avoid letting aftershocks swamp any other signal.</small></span></label>
+        </div>
+        <div class="century-card shuffle-card">
+          <div class="card-head"><span class="icon" data-icon="shuffle" data-size="19"></span><h3>Shuffle Test</h3></div>
+          <p>Play the <strong>same events, same bells, in random order</strong> and compare it with the real sequence. If a “pattern” survives shuffling, it may be in your ear — not in the Earth.</p>
+          <p>Hearing a pattern is a <strong>hypothesis, not a finding</strong>. Compare gaps between events versus a random (Poisson) baseline.</p>
+          <p class="muted-note">Great earthquakes arriving in global bursts or on regular cycles is disputed, with no consensus. Treat it as something to test, not assume.</p>
+        </div>
+      </div>
+      <div class="no-predict"><span class="icon" data-icon="alert" data-size="24"></span><div><strong>This does NOT predict earthquakes.</strong><p>Timing has not been predicted from the catalog. A pattern heard = a hypothesis to test. Bellnet helps you listen to what already happened.</p></div></div>
+      <div class="earth-rings">
+        <div><span class="coming">COMING NEXT · NOT WORKING YET</span><h3>Earth Rings — Normal Mode Audification</h3><p>After a great quake, the whole Earth rings. Its lowest tone has a period of about 54 minutes — far below hearing. Speeding up real seismometer recordings brings it into audible range. That is true audification.</p><p>It needs <strong>waveform data</strong> from IRIS / EarthScope FDSN dataselect — not the event catalog — so it is a bigger build. No waveform data is faked here.</p></div>
+        <div class="earth-ring-visual" aria-hidden="true"><span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span><strong>~54 min</strong><small>lowest normal mode</small></div>
+      </div>
+      <p class="century-foot"><span class="icon" data-icon="globe" data-size="15"></span> Ring of Fire: longitude drives stereo pan, so the Pacific rim sounds as a persistent left–right pattern. Headphones recommended. Stop cuts every voice immediately.</p>
+    </section>
+
+    <section class="home-section" aria-label="Jay Valley home bell">
+      <div class="home-card">
+        <div class="home-left">
+          <span class="home-badge"><span class="icon" data-icon="pin" data-size="15"></span> YOUR VALLEY</span>
+          <h2>Jay Valley — Home Bell</h2>
+          <p class="home-place">Dunlop, NB · Belle-Baie, New Brunswick, Canada</p>
+          <p class="home-coords">47.69° N, −65.73° W · Base note E2 · 82 Hz · warm deep bell</p>
+          <p class="home-desc">A warm, deep bell for home — long, patient, and close. When a USGS event lands within 1,000 km of Dunlop, it is highlighted below and this bell rings on its own with a “Near home” message.</p>
+          <button class="btn gold" id="btn-home-ring"><span class="icon" data-icon="music" data-size="18"></span> Ring My Valley</button>
+          <span class="home-rang" id="home-rang" hidden>Home bell has rung.</span>
+        </div>
+        <div class="home-right" aria-hidden="true"><span class="icon" data-icon="bell" data-size="62"></span><div class="home-ring r1"></div><div class="home-ring r2"></div><strong>E2</strong><small>82 Hz</small></div>
+      </div>
+      <div class="near-banner" id="near-banner" role="status" hidden><span class="icon" data-icon="pin" data-size="19"></span><div><strong id="near-banner-title">Near home</strong><span id="near-banner-list"></span></div><button class="btn gold" id="btn-home-ring-again">Ring Home Bell Again</button></div>
+      <p class="near-none" id="near-none">No event in the current list is within 1,000 km of Jay Valley. Fetch the live feed to check again.</p>
+    </section>
+
+    <section class="data-section" id="quakes">
+      <div class="section-heading">
+        <div><span class="kicker">THE NET · <span id="net-label">HISTORICAL SCALE</span></span><h2>Real quakes, translated to bells</h2></div>
+        <div class="filters">
+          <label>Minimum magnitude <input type="range" min="0" max="7" step="0.5" value="0" id="minmag" /> <b>M<span id="minmag-val">0.0</span>+</b></label>
+          <div class="seg">
+            <button id="sort-time" class="active">Newest</button>
+            <button id="sort-mag">Largest</button>
+          </div>
+        </div>
+      </div>
+      <div class="sample-note" id="sample-note"><strong>Sample set — historical examples, not live.</strong> 2011 Tōhoku M9.1 · 2015 Nepal M7.8 · 2010 Chile M8.8 · 2004 Sumatra M9.1 · 2023 Türkiye M7.8. Fetch the live feed for current events.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>MAG</th><th>PLACE</th><th>TIME</th><th>DEPTH</th><th>BELL</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="empty" hidden>No events meet this magnitude filter. Lower the threshold to hear the smaller bells.</div>
+      </div>
+      <p class="table-foot">Larger magnitude → lower pitch. Greater depth → longer sustain. Longitude → stereo pan. Pitch = 420 × 2^(−(M−2)×0.42) Hz, so every event lands in the audible range on ordinary speakers. The table is a listening instrument, not a hazard forecast.</p>
+    </section>
+
+    <section class="peaks" id="peaks">
+      <div class="peaks-intro">
+        <span class="kicker">PEAKS AS BELLS</span>
+        <h2>Six mountains.<br />Six voices.</h2>
+        <p>Each peak is treated as a resonant body. The listed frequencies are conceptual normal-mode starting points — not claims that a mountain rings at one pure pitch.</p>
+        <div class="mapping">
+          <div><small>MAGNITUDE</small><b>→ Pitch</b><span>larger = deeper</span></div>
+          <div><small>ENERGY</small><b>→ Loudness</b><span>stronger = fuller</span></div>
+          <div><small>DEPTH</small><b>→ Sustain</b><span>deeper = longer</span></div>
+        </div>
+      </div>
+      <div class="peak-grid" id="peak-grid"></div>
+    </section>
+
+    <section class="how">
+      <div class="how-head"><span class="kicker">HOW IT WORKS</span><h2>From seismometer to bell.</h2></div>
+      <div class="steps">
+        <article><span>01</span><div class="icon" data-icon="radio" data-size="25"></div><h3>Record</h3><p>A seismometer records ground velocity — motion far below human hearing.</p></article>
+        <article><span>02</span><div class="icon" data-icon="gauge" data-size="25"></div><h3>Map</h3><p>Map the catalogue values to a bell: magnitude sets pitch, depth sets sustain, longitude sets stereo pan. The bell is synthesised — not a sped-up recording.</p></article>
+        <article><span>03</span><div class="icon" data-icon="bell" data-size="25"></div><h3>Ring</h3><p>Map the event to a bell oscillator. Magnitude, energy, and depth shape the voice.</p></article>
+      </div>
+      <div class="warning"><span class="icon" data-icon="alert" data-size="20"></span><p><strong>Sonification is not a prediction tool.</strong> Bellnet helps you listen to what already happened. It does not forecast earthquakes.</p></div>
+    </section>
+  </main>
+  <footer>
+    <div><strong>Truth first. Evidence always. Integrity by design.</strong><span>Jay Valley — The Peak Sings Like A Bell.</span></div>
+    <div class="footer-mark"><span class="icon" data-icon="bell" data-size="18"></span> Bellnet v3 Century Mode — Jay Valley — Peak Sings, Valley Holds.</div>
+  </footer>
+</div>
+</div>
+<script>
+"use strict";
+
+/* ---- v3: vanilla JS rebuild of Bellnet-Real-Data-Software__2.html ("BellNet v3").
+   Same design (__2's CSS reused verbatim), same copy except the corrected lines.
+   Kept from __2: Night Mode + auto-ring largest 5, Record Mode (.webm),
+   Century Mode (FDSN M6+ 1900-now, decluster, 10-minute playback, shuffle test,
+   Principle 56 warning), Home Bell + near-home 1,000 km, Earth Rings teaser,
+   stop counter + AudioContext suspend on stop.
+   Fixes vs __2 (plus the v2 fixes it never got): (1) pitch remap 0.72 -> 0.42
+   (M9.1 was 12 Hz, now 53 Hz); (2) live feed really auto-refreshes every 60 s;
+   (3) "audification / time-compression" copy corrected to parameter mapping
+   (the Century piece IS time-compressed, and keeps that label); (4) null-mag
+   events omitted instead of shown as M0.0 (live) or defaulted to M6.0 (century);
+   (5) Nepal sample time 06:11:25 -> 06:11:26 UTC; (6) place names link to USGS;
+   (7) HOME MOVED Atholville (47.99, -66.32) -> Dunlop (47.69, -65.73), per the
+   user's own confirmed home — the file's Atholville is ~55 km off;
+   (8) century copy: 1900-now is 127 years, ~4.0 billion seconds, not "a century,
+   3.15 billion"; (9) Stop now also stops an active recording, so it cannot
+   keep capturing silence; (10) step icons use div wrappers (the v2 lesson:
+   CSS .steps article>span absolutely positions every direct-child span). */
+
+const $ = (id) => document.getElementById(id);
+/* Show/hide helper. The reused stylesheet sets display on some classes
+   (.near-banner is display:flex), which overrides the HTML `hidden`
+   attribute — that was the Home-section overlap. Inline display always wins. */
+function show(id, on, display) {
+  const el = $(id);
+  if (!el) return;
+  if (on) { el.removeAttribute("hidden"); el.style.display = display || ""; }
+  else el.style.display = "none";
+}
+
+/* Minimal inline SVG icons (lucide-style, stroke icons), replacing lucide-react. */
+const ICONS = {
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  mountain: '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+  radio: '<circle cx="12" cy="12" r="2"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  stop: '<rect x="3" y="3" width="18" height="18" rx="2"/>',
+  gauge: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+  volume: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>',
+  activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  record: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  shuffle: '<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.6-8.6c.8-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>'
+};
+function icon(name, size) {
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size +
+    '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
+}
+document.querySelectorAll('.icon').forEach((el) => {
+  el.innerHTML = icon(el.dataset.icon, Number(el.dataset.size) || 18);
+});
+
+/* ---- Data ---- */
+const SAMPLE = [
+  { id: "sample-tohoku", place: "Near east coast of Honshu, Japan", mag: 9.1, time: Date.UTC(2011, 2, 11, 5, 46, 24), depth: 29, lat: 38.3, lon: 142.37 },
+  { id: "sample-sumatra", place: "Off west coast of northern Sumatra", mag: 9.1, time: Date.UTC(2004, 11, 26, 0, 58, 53), depth: 30, lat: 3.3, lon: 95.98 },
+  { id: "sample-chile", place: "Offshore Maule, Chile", mag: 8.8, time: Date.UTC(2010, 1, 27, 6, 34, 11), depth: 22.9, lat: -36.12, lon: -72.9 },
+  { id: "sample-nepal", place: "Gorkha, Nepal", mag: 7.8, time: Date.UTC(2015, 3, 25, 6, 11, 26), depth: 8.2, lat: 28.23, lon: 84.73 },
+  { id: "sample-turkey", place: "Pazarcık, Kahramanmaraş, Türkiye", mag: 7.8, time: Date.UTC(2023, 1, 6, 1, 17, 34), depth: 10, lat: 37.17, lon: 37.03 }
+];
+
+const PEAKS = [
+  { name: "Everest", range: "Himalaya · Nepal / China", elevation: "8,849 m", note: "C2", freq: "0.3 mHz concept", mode: "Deep planetary hum", timbre: "Long, cathedral decay" },
+  { name: "Kilimanjaro", range: "Eastern Rift · Tanzania", elevation: "5,895 m", note: "D2", freq: "0.4 mHz concept", mode: "Warm dormant voice", timbre: "Round, patient swell" },
+  { name: "Denali", range: "Alaska Range · USA", elevation: "6,190 m", note: "E2", freq: "0.5 mHz concept", mode: "Northern clear tone", timbre: "Bright frosted edge" },
+  { name: "Aconcagua", range: "Andes · Argentina", elevation: "6,961 m", note: "F2", freq: "0.6 mHz concept", mode: "High desert resonance", timbre: "Dry, stone-struck ring" },
+  { name: "Mont Blanc", range: "Alps · France / Italy", elevation: "4,808 m", note: "G2", freq: "0.7 mHz concept", mode: "Alpine overtone", timbre: "Crisp, choral shimmer" },
+  { name: "Fuji", range: "Honshu · Japan", elevation: "3,776 m", note: "A2", freq: "0.8 mHz concept", mode: "Volcanic bell", timbre: "Soft ash, long tail" }
+];
+
+/* Home Bell — Dunlop, NB (geocoded district point 47.6851, -65.7327; shown rounded).
+   __2 placed home in Atholville (47.99, -66.32), ~55 km from Dunlop; corrected here. */
+const HOME = { name: "Jay Valley — Home Bell", place: "Dunlop, NB", region: "Dunlop, Belle-Baie, New Brunswick, Canada", lat: 47.6851, lon: -65.7327, note: "E2", freq: "82 Hz · warm deep bell", decay: 6.5 };
+const HOME_EVENT = { id: "home-valley", place: "Jay Valley — Dunlop, NB", mag: 5.5, time: Date.now(), depth: 12, lat: HOME.lat, lon: HOME.lon };
+
+const CENTURY_START = Date.UTC(1900, 0, 1);
+const CENTURY_END = Date.UTC(2026, 10, 9);
+const CENTURY_QUERY = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-11-09&minmagnitude=6&limit=20000&orderby=time";
+const CENTURY_CHUNKS = [["1900-01-01","1910-01-01"],["1910-01-01","1920-01-01"],["1920-01-01","1930-01-01"],["1930-01-01","1940-01-01"],["1940-01-01","1950-01-01"],["1950-01-01","1960-01-01"],["1960-01-01","1970-01-01"],["1970-01-01","1980-01-01"],["1980-01-01","1990-01-01"],["1990-01-01","2000-01-01"],["2000-01-01","2010-01-01"],["2010-01-01","2020-01-01"],["2020-01-01","2026-11-09"]];
+const CENTURY_RATE = ((CENTURY_END - CENTURY_START) / 1000 / 600 / 1e6).toFixed(2); /* ~6.67M x */
+
+/* ---- State ---- */
+let events = SAMPLE.slice();
+let sampleMode = true;
+let loading = false;
+let statusText = "Historical examples loaded. Fetch the live USGS feed to hear the last 24 hours.";
+let updatedText = "—";
+let speed = 120;
+let volume = 72;
+let playingId = null;
+let sequencePlaying = false;
+let nowPlayingText = "The net is quiet.";
+let sortMode = "time";
+let minMag = 0;
+let nearHome = [];
+let nightMode = false;
+let homeRang = false;
+let stopCount = 0;
+let refreshTimer = null;
+
+/* recording */
+let recorder = null, recChunks = [], recUrl = null, recStart = 0, recElapsed = 0, recTimer = null;
+const recSupported = typeof window !== "undefined" && typeof window.MediaRecorder !== "undefined";
+
+/* century */
+let centuryEvents = [], centuryLoaded = false, centuryLoading = false;
+let centuryPlaying = false, centuryMode = null; /* "real" | "shuffled" */
+let centuryDecluster = false, centuryBiasShown = true;
+let centuryCount = 0, centuryPct = 0, centuryYear = 1900;
+
+const fmtTime = (t) => new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(t));
+const fmtMag = (m) => m.toFixed(1);
+const fmtClock = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+const haversineKm = (lat1, lon1, lat2, lon2) => {
+  const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(a));
+};
+
+/* ---- Mappings (v3: exponent 0.42, anchor M2 = 420 Hz) ---- */
+const bellFreq = (k) => { const K = Math.max(0, Math.min(9.5, k.mag)); return Math.round(420 * Math.pow(2, -(K - 2) * 0.42)); };
+const bellDecay = (k) => Math.min(7.5, 1.1 + Math.max(0, k.depth) / 18 + k.mag / 8);
+const bellPan = (k) => Math.max(-0.85, Math.min(0.85, k.lon / 180));
+
+/* ---- Audio engine ---- */
+let audioCtx = null, masterGain = null, captureDest = null;
+const voices = new Set();
+let voiceSeq = 0, stopFlag = false, generation = 0, sequenceActive = false;
+let seqTimeout = null, seqResolver = null;
+const pendingTimeouts = new Set();
+
+function later(fn, ms) {
+  const id = window.setTimeout(() => { pendingTimeouts.delete(id); fn(); }, ms);
+  pendingTimeouts.add(id);
+  return id;
+}
+
+async function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = volume / 100;
+    masterGain.connect(audioCtx.destination);
+    try { captureDest = audioCtx.createMediaStreamDestination(); masterGain.connect(captureDest); } catch (e) { captureDest = null; }
+  }
+  if (audioCtx.state === "suspended") await audioCtx.resume();
+  if (masterGain) masterGain.gain.setTargetAtTime(volume / 100, audioCtx.currentTime, 0.03);
+  return audioCtx;
+}
+
+function stopAllVoices() {
+  for (const v of Array.from(voices)) {
+    v.nodes.forEach(({ osc, gain }) => {
+      try { gain.gain.cancelScheduledValues(audioCtx ? audioCtx.currentTime : 0); gain.gain.setTargetAtTime(0, audioCtx ? audioCtx.currentTime : 0, 0.01); osc.stop((audioCtx ? audioCtx.currentTime : 0) + 0.05); } catch (e) {}
+      try { gain.disconnect(); } catch (e) {}
+      try { osc.disconnect(); } catch (e) {}
+    });
+  }
+  voices.clear();
+}
+
+/* v3: Stop also stops an active recording (new vs __2, where Stop left it capturing silence). */
+function stopEverything() {
+  if (recorder && recorder.state !== "inactive") stopRecording();
+  stopFlag = true;
+  generation += 1;
+  if (seqTimeout !== null) { window.clearTimeout(seqTimeout); seqTimeout = null; }
+  if (seqResolver) { const r = seqResolver; seqResolver = null; r(); }
+  for (const id of Array.from(pendingTimeouts)) window.clearTimeout(id);
+  pendingTimeouts.clear();
+  stopAllVoices();
+  try { if (masterGain && audioCtx) { masterGain.gain.cancelScheduledValues(audioCtx.currentTime); masterGain.gain.setTargetAtTime(0, audioCtx.currentTime); } } catch (e) {}
+  try { if (audioCtx) audioCtx.suspend(); } catch (e) {}
+  sequenceActive = false;
+  const wasCenturyPlaying = centuryPlaying;
+  centuryPlaying = false;
+  centuryMode = null;
+  playingId = null;
+  sequencePlaying = false;
+  stopCount += 1;
+  setNowPlaying("The net is quiet.");
+  setStatus("Stopped " + stopCount + " — all voices silenced immediately. The net is quiet.");
+  if (wasCenturyPlaying) setCenturyStatus("Century Mode stopped — press Play Century to start again.");
+  render();
+  renderCentury(); /* v3 fix: the Century panel was left showing "Playing…" after Stop */
+}
+
+async function ringBell(k, gen, announce = true, decayOverride) {
+  const ctx = await ensureAudio();
+  if (generation !== gen) return;
+  const freq = bellFreq(k), decay = decayOverride !== undefined ? decayOverride : bellDecay(k), pan = bellPan(k);
+  const t0 = ctx.currentTime;
+  const panner = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+  if (panner) { panner.pan.value = pan; panner.connect(masterGain); }
+  const out = panner || masterGain;
+  const partials = [{ mult: 1, gain: 1 }, { mult: 2.01, gain: 0.42 }, { mult: 2.74, gain: 0.28 }, { mult: 3.76, gain: 0.16 }, { mult: 5.43, gain: 0.08 }];
+  const nodes = [];
+  partials.forEach((p) => {
+    const osc = ctx.createOscillator();
+    osc.type = p.mult === 1 ? "sine" : "triangle";
+    osc.frequency.setValueAtTime(freq * p.mult, t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * p.mult * 0.985), t0 + Math.min(1.4, decay * 0.22));
+    const g = ctx.createGain();
+    const peak = 0.16 * p.gain * Math.min(1, 0.35 + k.mag / 9);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + decay);
+    osc.connect(g); g.connect(out);
+    osc.start(t0); osc.stop(t0 + decay + 0.1);
+    nodes.push({ osc, gain: g });
+  });
+  const voice = { id: "voice-" + (++voiceSeq) + "-" + Date.now() + "-" + Math.random().toString(36).slice(2), nodes };
+  voices.add(voice);
+  window.setTimeout(() => voices.delete(voice), decay * 1000 + 300);
+  if (announce) setNowPlaying("M" + fmtMag(k.mag) + " — " + k.place + " · " + freq + " Hz · " + decay.toFixed(1) + "s decay");
+  playingId = k.id;
+}
+
+async function ringHomeBell(gen) {
+  const g = gen !== undefined ? gen : ++generation;
+  if (gen === undefined) { stopFlag = false; stopAllVoices(); sequenceActive = false; sequencePlaying = false; }
+  const ctx = await ensureAudio();
+  if (generation !== g || stopFlag) return;
+  const freq = 82, decay = HOME.decay, pan = bellPan(HOME);
+  const t0 = ctx.currentTime;
+  const panner = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+  if (panner) { panner.pan.value = pan; panner.connect(masterGain); }
+  const out = panner || masterGain;
+  const partials = [{ mult: 1, gain: 1 }, { mult: 2.01, gain: 0.42 }, { mult: 2.74, gain: 0.28 }, { mult: 3.76, gain: 0.16 }, { mult: 5.43, gain: 0.08 }];
+  const nodes = [];
+  partials.forEach((p) => {
+    const osc = ctx.createOscillator();
+    osc.type = p.mult === 1 ? "sine" : "triangle";
+    osc.frequency.setValueAtTime(freq * p.mult, t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * p.mult * 0.985), t0 + Math.min(1.4, decay * 0.22));
+    const gg = ctx.createGain();
+    gg.gain.setValueAtTime(0.0001, t0);
+    gg.gain.exponentialRampToValueAtTime(0.2 * p.gain, t0 + 0.02);
+    gg.gain.exponentialRampToValueAtTime(0.0001, t0 + decay);
+    osc.connect(gg); gg.connect(out);
+    osc.start(t0); osc.stop(t0 + decay + 0.1);
+    nodes.push({ osc, gain: gg });
+  });
+  const voice = { id: "home-" + Date.now(), nodes };
+  voices.add(voice);
+  window.setTimeout(() => voices.delete(voice), decay * 1000 + 300);
+  homeRang = true;
+  playingId = HOME_EVENT.id;
+  setNowPlaying("Near home — Jay Valley Home Bell · E2 · 82 Hz · 6.5s decay");
+  later(() => { if (generation === g) { playingId = null; render(); } }, decay * 1000);
+  render();
+}
+
+/* ---- Playback ---- */
+async function playOne(k) {
+  if (playingId === k.id) { stopEverything(); return; }
+  stopFlag = false;
+  const gen = ++generation;
+  stopAllVoices();
+  sequenceActive = false;
+  sequencePlaying = false;
+  await ringBell(k, gen);
+  window.setTimeout(() => { if (generation === gen) { playingId = null; render(); } }, bellDecay(k) * 1000);
+  render();
+}
+
+async function playAll() {
+  stopFlag = false;
+  const gen = ++generation;
+  stopAllVoices();
+  sequenceActive = true;
+  sequencePlaying = true;
+  render();
+  const list = filteredEvents().slice(0, 24);
+  for (const ev of list) {
+    if (stopFlag || generation !== gen) break;
+    await ringBell(ev, gen);
+    render();
+    if (stopFlag || generation !== gen) break;
+    const gap = Math.max(180, 1900 - speed * 8.2);
+    await new Promise((res) => { seqResolver = res; seqTimeout = window.setTimeout(() => { seqTimeout = null; seqResolver = null; res(); }, gap); });
+    if (stopFlag || generation !== gen) break;
+  }
+  if (generation === gen) {
+    sequenceActive = false;
+    sequencePlaying = false;
+    playingId = null;
+    setNowPlaying("The sequence finished. The net is quiet.");
+    render();
+  }
+}
+
+async function playNightChoir() {
+  stopFlag = false;
+  const gen = ++generation;
+  stopAllVoices();
+  sequenceActive = true;
+  sequencePlaying = true;
+  setNowPlaying("Night choir — 5 bells in sequence");
+  render();
+  const list = [...events].sort((a, b) => b.mag - a.mag).slice(0, 5);
+  for (const ev of list) {
+    if (stopFlag || generation !== gen) break;
+    await ringBell(ev, gen);
+    if (stopFlag || generation !== gen) break;
+    const gap = Math.max(180, 1900 - speed * 8.2);
+    await new Promise((res) => { seqResolver = res; seqTimeout = window.setTimeout(() => { seqTimeout = null; seqResolver = null; res(); }, gap); });
+    if (stopFlag || generation !== gen) break;
+  }
+  if (generation === gen) {
+    sequenceActive = false;
+    sequencePlaying = false;
+    playingId = null;
+    setNowPlaying("The sequence finished. The net is quiet.");
+    render();
+  }
+}
+
+function setNightMode(on) {
+  nightMode = on;
+  $("app-shell").classList.toggle("night-mode", on);
+  show("night-sky", on);
+  $("night-toggle").setAttribute("aria-pressed", on ? "true" : "false");
+  $("night-toggle-label").textContent = on ? "Night Mode On" : "Night Mode";
+  $("btn-night").setAttribute("aria-pressed", on ? "true" : "false");
+  $("btn-night-label").textContent = on ? "Night Mode: On — Auto-Ring enabled" : "Turn Night Mode On";
+  $("night-note").textContent = on ? "Auto-Ring is on. Fetch the feed to hear the largest 5." : "Auto-Ring is off.";
+  if (on) {
+    setStatus("Night Mode on — dimmed, starry, and Auto-Ring will play the largest 5 after each fetch.");
+    const top = [...events].sort((a, b) => b.mag - a.mag).slice(0, 5);
+    if (top.length) playNightChoir();
+  } else {
+    setStatus("Night Mode off — back to daylight. Auto-Ring paused.");
+  }
+  render();
+}
+
+/* ---- Recording ---- */
+async function startRecording() {
+  if (!recSupported) { setRecMsg("MediaRecorder is not supported in this browser, so recording is unavailable here. You can still listen live."); return; }
+  try {
+    await ensureAudio();
+    if (!captureDest) throw new Error("No capture destination");
+    if (recUrl) { URL.revokeObjectURL(recUrl); recUrl = null; }
+    recChunks = [];
+    const rec = new window.MediaRecorder(captureDest.stream, { mimeType: window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : undefined });
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.push(e.data); };
+    rec.onstop = () => {
+      const blob = new Blob(recChunks, { type: rec.mimeType || "audio/webm" });
+      recUrl = URL.createObjectURL(blob);
+      $("rec-download").href = recUrl;
+      show("rec-download", true);
+      const au = $("rec-audio");
+      au.src = recUrl; show("rec-audio", true);
+      setRecMsg("Recording saved locally — " + fmtClock(recElapsed) + " · " + (blob.size / 1024).toFixed(0) + " KB .webm. Use Download Recording to keep it.");
+    };
+    recorder = rec;
+    rec.start(250);
+    recStart = Date.now();
+    recElapsed = 0;
+    $("rec-time").textContent = "00:00";
+    show("btn-rec-start", false);
+    show("btn-rec-stop", true);
+    show("rec-download", false);
+    show("rec-audio", false);
+    $("rec-dot").classList.add("on");
+    $("rec-state").textContent = "● Recording · 00:00";
+    setRecMsg("● Recording the Bellnet choir… Ring bells now — the capture includes everything you play.");
+    if (recTimer) window.clearInterval(recTimer);
+    recTimer = window.setInterval(() => {
+      recElapsed = Math.floor((Date.now() - recStart) / 1000);
+      $("rec-time").textContent = fmtClock(recElapsed);
+      $("rec-state").textContent = "● Recording · " + fmtClock(recElapsed);
+    }, 500);
+  } catch (e) {
+    setRecMsg("Recording could not start in this browser. MediaRecorder may be blocked or unavailable.");
+  }
+}
+
+function stopRecording() {
+  try { if (recorder && recorder.state !== "inactive") recorder.stop(); } catch (e) {}
+  if (recTimer) { window.clearInterval(recTimer); recTimer = null; }
+  recorder = null;
+  show("btn-rec-start", true);
+  show("btn-rec-stop", false);
+  $("rec-dot").classList.remove("on");
+  $("rec-state").textContent = recUrl ? "Recording ready" : "Capture the choir to .webm";
+  setRecMsg("Recording stopped — your .webm file is ready below.");
+}
+function setRecMsg(s) { const el = $("rec-msg"); if (el) el.textContent = s; }
+
+/* ---- Live feed ---- */
+const FEED_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  refreshTimer = window.setInterval(() => { if (!document.hidden && !sampleMode) fetchLive(true); }, 60000);
+}
+function stopAutoRefresh() {
+  if (refreshTimer !== null) { window.clearInterval(refreshTimer); refreshTimer = null; }
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && !sampleMode && !loading) fetchLive(true);
+});
+
+function computeNearHome(list) {
+  nearHome = list.map((q) => ({ q, km: haversineKm(q.lat, q.lon, HOME.lat, HOME.lon) }))
+    .filter((x) => x.km <= 1000)
+    .sort((a, b) => a.km - b.km);
+}
+
+async function fetchLive(silent) {
+  if (loading) return;
+  loading = true;
+  if (!silent) setStatus("Listening to USGS…");
+  render();
+  try {
+    const res = await fetch(FEED_URL);
+    if (!res.ok) throw new Error("Feed returned " + res.status);
+    const data = await res.json();
+    const feats = (data.features || []);
+    const dropped = feats.filter((f) => typeof f.properties?.mag !== "number").length;
+    const list = feats
+      .filter((f) => typeof f.properties?.mag === "number")
+      .map((f, i) => ({
+        id: f.id || ("usgs-" + i),
+        place: f.properties?.place || "Unknown location",
+        mag: f.properties.mag,
+        time: f.properties?.time || Date.now(),
+        depth: f.geometry?.coordinates?.[2] ?? 10,
+        lat: f.geometry?.coordinates?.[1] ?? 0,
+        lon: f.geometry?.coordinates?.[0] ?? 0,
+        url: f.properties?.url
+      }))
+      .sort((a, b) => b.time - a.time);
+    if (!list.length) throw new Error("Feed returned no events");
+    events = list;
+    sampleMode = false;
+    updatedText = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium" }).format(new Date());
+    computeNearHome(list);
+    if (nearHome.length) {
+      setStatus("Live feed connected — " + list.length + " events. Near home: " + nearHome[0].q.place + " (" + Math.round(nearHome[0].km) + " km). Ringing the Home Bell." +
+        (dropped ? " " + dropped + " event" + (dropped === 1 ? "" : "s") + " without a magnitude omitted." : "") + " Auto-refresh every 60 s.");
+      setNowPlaying("Near home — " + nearHome[0].q.place + " · " + Math.round(nearHome[0].km) + " km from Jay Valley");
+      const gen = ++generation;
+      stopFlag = false;
+      later(() => { if (generation === gen && !stopFlag) ringHomeBell(gen); }, 250);
+    } else {
+      setStatus("Live feed connected — " + list.length + " events in the last 24 hours. No event within 1,000 km of Jay Valley." +
+        (dropped ? " " + dropped + " event" + (dropped === 1 ? "" : "s") + " without a magnitude omitted." : "") + " Auto-refresh every 60 s.");
+    }
+    startAutoRefresh();
+    if (nightMode) {
+      const delay = nearHome.length ? 9000 : 350;
+      later(() => { if (nightMode && !stopFlag) playNightChoir(); }, delay);
+    }
+  } catch (e) {
+    events = SAMPLE.slice();
+    sampleMode = true;
+    nearHome = [];
+    stopAutoRefresh();
+    setStatus("Live feed unavailable in this browser or network. Showing labeled historical examples instead.");
+  } finally {
+    loading = false;
+    render();
+  }
+}
+
+/* ---- Century archive ---- */
+function decluster(list) {
+  const sorted = [...list].sort((a, b) => a.time - b.time);
+  const kept = [];
+  for (const ev of sorted) {
+    if (!kept.some((o) => o.mag > ev.mag && ev.time - o.time <= 2592000000 && ev.time >= o.time && haversineKm(ev.lat, ev.lon, o.lat, o.lon) <= 100)) kept.push(ev);
+  }
+  return kept;
+}
+function centuryActiveList() {
+  return centuryDecluster ? decluster(centuryEvents) : [...centuryEvents].sort((a, b) => a.time - b.time);
+}
+
+async function loadCentury() {
+  if (centuryLoading) return;
+  centuryLoading = true;
+  setCenturyStatus("Loading Century archive — fetching the USGS FDSN query…");
+  renderCentury();
+  try {
+    let list = [];
+    const seen = new Set();
+    let droppedNull = 0;
+    const add = (feats) => {
+      for (const f of feats || []) {
+        if (typeof f.properties?.mag !== "number") { droppedNull++; continue; }
+        const id = f.id || ("century-" + (f.properties?.time || "") + "-" + list.length);
+        if (seen.has(id)) continue;
+        seen.add(id);
+        list.push({ id, place: f.properties?.place || "Unknown location", mag: f.properties.mag, time: f.properties?.time || 0, depth: f.geometry?.coordinates?.[2] ?? 10, lat: f.geometry?.coordinates?.[1] ?? 0, lon: f.geometry?.coordinates?.[0] ?? 0, url: f.properties?.url });
+      }
+    };
+    let ok = false;
+    try {
+      const r = await fetch(CENTURY_QUERY);
+      if (!r.ok) throw new Error("Century query returned " + r.status);
+      const d = await r.json();
+      const feats = d.features || [];
+      if (feats.length && feats.length < 20000) { add(feats); ok = true; }
+    } catch (e) { ok = false; }
+    if (!ok) {
+      list = []; seen.clear(); droppedNull = 0;
+      setCenturyStatus("Loading Century archive — fetching USGS FDSN chunks by decade…");
+      for (let n = 0; n < CENTURY_CHUNKS.length; n++) {
+        const [s, e] = CENTURY_CHUNKS[n];
+        setCenturyStatus("Loading Century archive — chunk " + (n + 1) + " of " + CENTURY_CHUNKS.length + " (" + s + " → " + e + ") · " + list.length.toLocaleString() + " events so far…");
+        renderCentury();
+        const url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=" + s + "&endtime=" + e + "&minmagnitude=6&limit=20000&orderby=time";
+        const r = await fetch(url);
+        if (!r.ok) throw new Error("Century chunk " + (n + 1) + " returned " + r.status);
+        add((await r.json()).features || []);
+      }
+    }
+    if (!list.length) throw new Error("Century query returned no events");
+    list.sort((a, b) => a.time - b.time);
+    centuryEvents = list;
+    centuryLoaded = true;
+    centuryCount = 0; centuryPct = 0; centuryYear = 1900;
+    setCenturyStatus("Century archive loaded — " + list.length.toLocaleString() + " M6+ events, 1900–2026. Press Play Century in 10 Minutes to hear them in order." + (droppedNull ? " (" + droppedNull + " without a magnitude omitted.)" : ""));
+    setStatus("Century Mode ready — " + list.length.toLocaleString() + " M6+ events loaded from USGS FDSN.");
+  } catch (e) {
+    setCenturyStatus("Century archive could not be loaded in this browser or network. The USGS FDSN query is shown below — try Load Century again. No events were invented.");
+  } finally {
+    centuryLoading = false;
+    renderCentury();
+    render();
+  }
+}
+
+async function playCentury(shuffled) {
+  const list = centuryActiveList();
+  if (!list.length) {
+    setCenturyStatus("Load the Century archive first — press Load Century M6+ Since 1900, then play.");
+    setNowPlaying("Century Mode — archive not loaded yet.");
+    return;
+  }
+  stopFlag = false;
+  const gen = ++generation;
+  stopAllVoices();
+  sequenceActive = false;
+  sequencePlaying = false;
+  centuryPlaying = true;
+  centuryMode = shuffled ? "shuffled" : "real";
+  centuryCount = 0; centuryPct = 0;
+  const ordered = [...list];
+  if (shuffled) for (let i = ordered.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = ordered[i]; ordered[i] = ordered[j]; ordered[j] = t; }
+  const t0 = ordered[0].time;
+  const span = Math.max(1, ordered[ordered.length - 1].time - t0);
+  const startWall = Date.now();
+  let lastUi = 0;
+  setNowPlaying(shuffled
+    ? "Shuffle Test — " + ordered.length.toLocaleString() + " bells in random order · same events, same bells"
+    : "Century Mode — " + ordered.length.toLocaleString() + " bells · 1900 → 2026 in 10 minutes");
+  renderCentury();
+  for (let w = 0; w < ordered.length; w++) {
+    if (stopFlag || generation !== gen || !centuryPlaying) break;
+    const ev = ordered[w];
+    const pos = shuffled ? (ordered.length > 1 ? w / (ordered.length - 1) * 600 : 0) : (ev.time - t0) / span * 600;
+    let wait = pos * 1000 - (Date.now() - startWall);
+    if (wait > 0) {
+      await new Promise((res) => { seqResolver = res; seqTimeout = window.setTimeout(() => { seqTimeout = null; seqResolver = null; res(); }, Math.min(wait, 60000)); });
+      if (stopFlag || generation !== gen || !centuryPlaying) break;
+      wait = pos * 1000 - (Date.now() - startWall);
+      if (wait > 0) await new Promise((res) => { seqResolver = res; seqTimeout = window.setTimeout(() => { seqTimeout = null; seqResolver = null; res(); }, wait); });
+      if (stopFlag || generation !== gen || !centuryPlaying) break;
+    }
+    const decay = Math.min(1.8, 0.55 + ev.mag * 0.09);
+    await ringBell(ev, gen, false, decay);
+    if (stopFlag || generation !== gen || !centuryPlaying) break;
+    const done = Date.now() - startWall;
+    if (w % 8 === 0 || w === ordered.length - 1 || done - lastUi > 300) {
+      lastUi = done;
+      centuryCount = w + 1;
+      centuryPct = Math.round((w + 1) / ordered.length * 100);
+      centuryYear = shuffled ? 0 : new Date(ev.time).getUTCFullYear();
+      renderCentury();
+    }
+  }
+  if (generation === gen) {
+    centuryPlaying = false;
+    centuryMode = null;
+    playingId = null;
+    setNowPlaying(shuffled
+      ? "Shuffle Test finished. Compare it with the real order — hearing a pattern is a hypothesis, not a finding."
+      : "Century Mode finished — 1900 to now, in 10 minutes. The net is quiet.");
+    setCenturyStatus(shuffled
+      ? "Shuffle Test finished — same events, random order. Compare gaps and clustering against the real sequence and a Poisson baseline."
+      : "Century Mode finished — " + ordered.length.toLocaleString() + " M6+ bells played.");
+    renderCentury();
+    render();
+  }
+}
+function setCenturyStatus(s) { const el = $("century-status"); if (el) el.textContent = s; }
+
+/* ---- Rendering ---- */
+function filteredEvents() {
+  return events.filter((k) => k.mag >= minMag)
+    .sort((a, b) => sortMode === "mag" ? b.mag - a.mag : b.time - a.time);
+}
+function setStatus(s) { statusText = s; const el = $("status"); if (el) el.textContent = s; }
+function setNowPlaying(s) { nowPlayingText = s; const el = $("now-playing"); if (el) el.textContent = s; }
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function render() {
+  const list = filteredEvents();
+  $("live-dot").className = sampleMode ? "dot amber" : "dot green";
+  $("live-label").textContent = sampleMode ? "SAMPLE MODE" : "LIVE USGS";
+  $("net-label").textContent = sampleMode ? "HISTORICAL SCALE" : "LIVE 24-HOUR NET";
+  $("sample-note").style.display = sampleMode ? "" : "none";
+  $("stat-events").textContent = list.length;
+  $("stat-largest").textContent = events.length ? "M" + fmtMag(Math.max.apply(null, events.map((k) => k.mag))) : "—";
+  $("stat-peaks").textContent = PEAKS.length + 1;
+  $("stat-speed").textContent = speed;
+  $("updated").textContent = updatedText;
+  $("status").textContent = statusText;
+  $("now-playing").textContent = nowPlayingText;
+  $("btn-fetch").disabled = loading;
+  $("btn-fetch-label").textContent = loading ? "Fetching live feed…" : "Fetch Real Quakes — Last 24h";
+  $("btn-fetch").querySelector(".icon").classList.toggle("spin", loading);
+  $("btn-play").setAttribute("aria-pressed", sequencePlaying ? "true" : "false");
+  $("btn-play-label").textContent = sequencePlaying ? "Ringing the net…" : "Play Bellnet";
+  $("btn-stop-label").textContent = stopCount ? "Stop · " + stopCount : "Stop";
+  show("home-rang", homeRang);
+  /* near-home banner */
+  if (nearHome.length) {
+    show("near-banner", true, "flex");
+    show("near-none", false);
+    $("near-banner-title").textContent = "Near home — " + nearHome.length + " event" + (nearHome.length === 1 ? "" : "s") + " within 1,000 km of Jay Valley";
+    $("near-banner-list").textContent = nearHome.map((x) => x.q.place + " · " + Math.round(x.km) + " km").join(" · ");
+  } else {
+    show("near-banner", false);
+    show("near-none", true);
+  }
+  /* table */
+  const tb = $("tbody");
+  tb.innerHTML = list.map((k) => {
+    const freq = bellFreq(k), decay = bellDecay(k);
+    const km = haversineKm(k.lat, k.lon, HOME.lat, HOME.lon);
+    const near = km <= 1000;
+    const place = k.url
+      ? '<a href="' + esc(k.url) + '" target="_blank" rel="noopener">' + esc(k.place) + "</a>"
+      : esc(k.place);
+    return '<tr class="' + (playingId === k.id ? "is-playing" : "") + (near ? " near-home" : "") + '">' +
+      '<td><span class="mag mag-' + Math.floor(k.mag) + '">M' + fmtMag(k.mag) + "</span></td>" +
+      '<td class="place"><strong>' + place + "</strong>" +
+        (near ? '<span class="near-tag">● NEAR HOME · ' + Math.round(km) + " km</span>" : "") +
+        "<small>" + k.lat.toFixed(2) + "°, " + k.lon.toFixed(2) + "° · pan " + (bellPan(k) >= 0 ? "right" : "left") + " · " + Math.round(km) + " km from Jay Valley</small></td>" +
+      "<td>" + esc(fmtTime(k.time)) + "</td>" +
+      "<td>" + k.depth.toFixed(1) + " km</td>" +
+      '<td><span class="bell-spec">' + freq + " Hz · " + decay.toFixed(1) + "s</span></td>" +
+      '<td><button class="play-row" data-id="' + esc(k.id) + '" aria-label="Play bell for ' + esc(k.place) + '">' +
+        (playingId === k.id ? icon("stop", 15) : icon("play", 15)) + " " + (playingId === k.id ? "Ringing" : "Play Bell") +
+      "</button></td></tr>";
+  }).join("");
+  show("empty", list.length === 0);
+  tb.querySelectorAll(".play-row").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const k = events.find((e) => e.id === btn.dataset.id);
+      if (k) playOne(k);
+    });
+  });
+}
+
+function renderCentury() {
+  const active = centuryActiveList();
+  $("century-loaded").textContent = centuryEvents.length ? centuryEvents.length.toLocaleString() : "—";
+  $("century-declustered").textContent = active.length ? active.length.toLocaleString() : "—";
+  $("century-rate").textContent = CENTURY_RATE;
+  $("century-rate-text").textContent = CENTURY_RATE;
+  $("century-status-word").textContent = centuryLoaded ? "Ready" : "Not loaded";
+  $("century-count").textContent = centuryCount.toLocaleString();
+  $("century-total").textContent = active.length ? active.length.toLocaleString() : "—";
+  $("century-bar").style.width = centuryPct + "%";
+  $("century-track").setAttribute("aria-valuenow", centuryPct);
+  $("century-pct").textContent = centuryPct;
+  $("century-play-state").textContent = centuryPlaying ? "playing" : "paused";
+  $("century-player-mode").textContent = centuryPlaying ? (centuryMode === "shuffled" ? "SHUFFLE TEST · RANDOM ORDER" : "NOW PLAYING · REAL ORDER") : "CENTURY TIMELINE";
+  $("century-player-title").textContent = centuryPlaying
+    ? (centuryMode === "shuffled" ? "Shuffled order — no calendar order" : "Year " + centuryYear)
+    : (centuryLoaded ? "Ready — press Play Century in 10 Minutes" : "Load the archive to begin");
+  $("btn-century-load").disabled = centuryLoading;
+  $("btn-century-load-label").textContent = centuryLoading ? "Loading Century…" : "Load Century M6+ Since 1900";
+  $("btn-century-load").querySelector(".icon").classList.toggle("spin", centuryLoading);
+  $("btn-century-play").disabled = centuryPlaying;
+  $("btn-century-play-label").textContent = centuryPlaying && centuryMode === "real" ? "Playing Century…" : "Play Century in 10 Minutes";
+  $("btn-century-shuffle").disabled = centuryPlaying;
+  $("btn-century-shuffle-label").textContent = centuryPlaying && centuryMode === "shuffled" ? "Playing Shuffled…" : "Play Shuffled Version";
+  const removed = centuryEvents.length - active.length;
+  $("decluster-count").textContent = centuryLoaded
+    ? (removed.toLocaleString() + " event" + (removed === 1 ? "" : "s") + " removed.")
+    : "Load the archive to see how many are removed.";
+}
+
+function renderPeaks() {
+  $("peak-grid").innerHTML = PEAKS.map((k, i) =>
+    '<article class="peak-card">' +
+      '<div class="peak-top"><span class="peak-index">0' + (i + 1) + '</span><span class="peak-elev">' + esc(k.elevation) + "</span></div>" +
+      "<h3>" + esc(k.name) + "</h3>" +
+      '<p class="range">' + esc(k.range) + "</p>" +
+      '<div class="note-row"><span class="note">' + esc(k.note) + '</span><div><small>BELL NOTE</small><strong>' + esc(k.freq) + "</strong></div></div>" +
+      '<p class="mode">' + esc(k.mode) + "</p>" +
+      '<p class="timbre">' + esc(k.timbre) + "</p>" +
+      '<div class="peak-wave" aria-hidden="true">' +
+        '<span style="height:' + (52 - i * 4) + 'px"></span>' +
+        '<span style="height:' + (78 - i * 3) + 'px"></span>' +
+        '<span style="height:' + (40 + i * 4) + 'px"></span>' +
+        '<span style="height:66px"></span><span style="height:34px"></span>' +
+      "</div></article>"
+  ).join("");
+}
+
+function renderStars() {
+  const stars = Array.from({ length: 34 }, (_, n) => ({
+    left: ((n * 37 + 11) % 100) + "%",
+    top: ((n * 23 + 7) % 62) + "%",
+    size: 2 + n % 3,
+    delay: (n % 7 * 0.45) + "s",
+    dur: (2.2 + n % 5 * 0.6) + "s"
+  }));
+  $("stars").innerHTML = stars.map((s) =>
+    '<i class="star" style="left:' + s.left + ";top:" + s.top + ";width:" + s.size + "px;height:" + s.size + "px;animation-delay:" + s.delay + ";animation-duration:" + s.dur + '"></i>').join("");
+}
+
+/* ---- Controls ---- */
+$("btn-fetch").addEventListener("click", () => fetchLive(false));
+$("btn-play").addEventListener("click", () => { if (sequencePlaying) stopEverything(); else playAll(); });
+$("btn-stop").addEventListener("click", stopEverything);
+$("btn-century-stop").addEventListener("click", stopEverything);
+$("night-toggle").addEventListener("click", () => setNightMode(!nightMode));
+$("btn-night").addEventListener("click", () => setNightMode(!nightMode));
+$("btn-home-ring").addEventListener("click", () => ringHomeBell());
+$("btn-home-ring-again").addEventListener("click", () => ringHomeBell());
+$("btn-rec-start").addEventListener("click", startRecording);
+$("btn-rec-stop").addEventListener("click", stopRecording);
+$("btn-century-load").addEventListener("click", loadCentury);
+$("btn-century-play").addEventListener("click", () => playCentury(false));
+$("btn-century-shuffle").addEventListener("click", () => playCentury(true));
+$("speed").addEventListener("input", (e) => { speed = Number(e.target.value); $("speed-val").textContent = speed; render(); });
+$("volume").addEventListener("input", (e) => {
+  volume = Number(e.target.value);
+  $("vol-val").textContent = volume;
+  if (masterGain && audioCtx) masterGain.gain.setTargetAtTime(volume / 100, audioCtx.currentTime, 0.03);
+});
+$("minmag").addEventListener("input", (e) => {
+  minMag = Number(e.target.value);
+  $("minmag-val").textContent = minMag.toFixed(1);
+  render();
+});
+$("sort-time").addEventListener("click", () => { sortMode = "time"; $("sort-time").classList.add("active"); $("sort-mag").classList.remove("active"); render(); });
+$("sort-mag").addEventListener("click", () => { sortMode = "mag"; $("sort-mag").classList.add("active"); $("sort-time").classList.remove("active"); render(); });
+$("decluster").addEventListener("change", (e) => { centuryDecluster = e.target.checked; renderCentury(); });
+$("bias-toggle").addEventListener("click", () => {
+  centuryBiasShown = !centuryBiasShown;
+  show("bias-body", centuryBiasShown);
+  show("bias-hidden-note", !centuryBiasShown);
+  $("bias-toggle").textContent = centuryBiasShown ? "Hide Warning" : "Show Instrument Bias Warning";
+  $("bias-toggle").classList.toggle("active", centuryBiasShown);
+  $("bias-toggle").setAttribute("aria-pressed", centuryBiasShown ? "true" : "false");
+});
+if (!recSupported) show("rec-fallback", true);
+window.addEventListener("beforeunload", () => { stopEverything(); if (recUrl) URL.revokeObjectURL(recUrl); });
+
+/* ---- Init: sample mode on load, same as v1/v2 (no auto-fetch until the user asks). ---- */
+renderStars();
+renderPeaks();
+renderCentury();
+render();
+</script>
+</body>
+</html>
