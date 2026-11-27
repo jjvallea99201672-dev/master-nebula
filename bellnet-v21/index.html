@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BellNet v2.1 Source — Jay Vallea</title>
+<meta name="description" content="BellNet v2.1 encoder and decoder: a framed bell-tone protocol with dyads on a whole-tone grid from 300 Hz.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>BellNet v2.1</h1>
+  <p class="subtitle">Framed bell-tone protocol — encoder and decoder</p>
+  <p>BellNet v2.1 is a framed bell-tone protocol: every payload or control symbol is a dyad (one low tone and one high tone struck together) on a whole-tone grid from 300 Hz. This is the encoder and decoder. Related: the <a href="../bellnet-diagnostics/">diagnostics and WiFi radar</a> dashboard, and a 33-second <a href="../#music">tone clip</a> whose frequencies match this grid.</p>
+  <p>Usage: <code>python3 bellnet21.py encode &quot;Hello lattice 432&quot; out.wav</code> or <code>python3 bellnet21.py decode in.wav</code>. Needs NumPy and soundfile. Full source, readable and downloadable. No keys are included.</p>
+  <div class="row"><a class="btn" href="bellnet21.py" download>Download the .py</a></div>
+  <div style="white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)">&quot;&quot;&quot;BellNet v2.1 - framed bell-tone protocol with digits (encoder + decoder).
+
+Every payload/control symbol is a DYAD: one LOW tone + one HIGH tone struck together.
+All tones sit on a whole-tone grid from 300 Hz, so no tone is within 1 semitone of any
+other tone&#x27;s 1.5f overtone (overtones land on odd semitones, every tone on even ones).
+
+Frame: SYNC(5 single bells 378-600-952-600-378) &lt;VER21&gt; LEN(2 letters) CLEN(1 letter)
+       &lt;START&gt; PAYLOAD(a-z, 0-9, &lt;WORD&gt;) &lt;CHECK&gt; CRC(CLEN letters) &lt;END&gt;
+Usage:  python3 bellnet21.py encode &quot;Hello lattice 432&quot; out.wav
+        python3 bellnet21.py decode in.wav
+&quot;&quot;&quot;
+import sys, json, zlib, string
+import numpy as np, soundfile as sf
+
+SR, SLOT, BELL_LEN, LEAD, TAIL = 44100, 0.50, 0.46, 1.0, 1.0
+BASE = 300.0
+st = lambda s: BASE * 2 ** (s / 12)
+LOW = [st(s) for s in (0, 4, 8, 12, 16, 20, 24)]        # 300 .. 1200 Hz (major-third steps)
+HIGH = [st(s) for s in (26, 30, 34, 38, 42, 46)]        # 1347 .. 4276 Hz
+TONES = LOW + HIGH
+SYNC = [1, 3, 5, 3, 1]                                  # LOW indices: 378, 600, 952, 600, 378 Hz
+
+ALPHA = list(string.ascii_lowercase) + list(string.digits) + \
+        [&quot;&lt;WORD&gt;&quot;, &quot;&lt;VER21&gt;&quot;, &quot;&lt;START&gt;&quot;, &quot;&lt;CHECK&gt;&quot;, &quot;&lt;END&gt;&quot;, &quot;&lt;RSV&gt;&quot;]   # 42 codes = 7 x 6
+CODE = {s: i for i, s in enumerate(ALPHA)}
+DYAD = {s: (i // 6, i % 6) for s, i in CODE.items()}    # (low index, high index)
+FROM_DYAD = {v: k for k, v in DYAD.items()}
+LETTERS = set(string.ascii_lowercase)
+PAYLOAD_OK = set(string.ascii_lowercase + string.digits)
+CRC_LEN_DEFAULT, MAX_LEN = 3, 26 ** 2 - 1
+
+
+def normalize(text):
+    if not isinstance(text, str): raise TypeError(&quot;payload must be a string&quot;)
+    msg = text.strip().lower()
+    bad = sorted(set(msg) - PAYLOAD_OK - {&quot; &quot;})
+    if bad: raise ValueError(f&quot;unsupported characters: {bad!r} (only a-z, 0-9, space)&quot;)
+    if not msg: raise ValueError(&quot;empty payload&quot;)
+    if len(msg) &gt; MAX_LEN: raise ValueError(f&quot;payload too long ({len(msg)} &gt; {MAX_LEN})&quot;)
+    return msg
+
+
+def to_b26(n, w):
+    out = []
+    for _ in range(w): out.append(chr(97 + n % 26)); n //= 26
+    return out[::-1]
+
+
+def from_b26(ls):
+    n = 0
+    for c in ls: n = n * 26 + ord(c) - 97
+    return n
+
+
+def crc_value(text, clen): return zlib.crc32(text.encode()) % 26 ** clen
+
+
+def frame_symbols(text, clen=CRC_LEN_DEFAULT):
+    msg = normalize(text)
+    payload = [&quot;&lt;WORD&gt;&quot; if c == &quot; &quot; else c for c in msg]
+    return ([(&quot;SYNC&quot;, i) for i in SYNC] + [&quot;&lt;VER21&gt;&quot;] + to_b26(len(payload), 2) + to_b26(clen, 1)
+            + [&quot;&lt;START&gt;&quot;] + payload + [&quot;&lt;CHECK&gt;&quot;] + to_b26(crc_value(msg, clen), clen) + [&quot;&lt;END&gt;&quot;])
+
+
+def _bell(f, amp):
+    t = np.arange(int(BELL_LEN * SR)) / SR
+    return np.minimum(1, 30 * t) * np.exp(-4.2 * t) * amp * (
+        np.sin(2 * np.pi * f * t) + 0.10 / 0.34 * np.sin(2 * np.pi * 1.5 * f * t))
+
+
+def synth(symbols):
+    y = np.zeros(int((LEAD + (len(symbols) - 1) * SLOT + BELL_LEN + TAIL) * SR))
+    for i, s in enumerate(symbols):
+        if isinstance(s, tuple): b = _bell(LOW[s[1]], 0.34)                  # sync: single bell
+        else:
+            lo, hi = DYAD[s]; b = _bell(LOW[lo], 0.24) + _bell(HIGH[hi], 0.24)
+        i0 = int(round((LEAD + i * SLOT) * SR)); y[i0:i0 + len(b)] += b
+    return y
+
+
+def encode(text, path=None, clen=CRC_LEN_DEFAULT):
+    y = synth(frame_symbols(text, clen))
+    if path: sf.write(path, y.astype(np.float32), SR, subtype=&quot;PCM_16&quot;)
+    return y
+
+
+# ------------------------------------------------------------------ decoder
+WIN, HOP, NFFT, TOL, PRESENCE = 0.24, 0.01, 16384, 0.006, 10.0
+
+
+class Analyzer:
+    def __init__(self, x, sr):
+        self.sr, self.win, self.hop = sr, int(WIN * sr), int(HOP * sr)
+        fr = np.array(TONES); freqs = np.concatenate([fr, fr * 1.5]); self.nt = len(fr)
+        bins = np.fft.rfftfreq(NFFT, 1 / sr)
+        cols = [np.where(np.abs(bins - f) &lt;= max(f * TOL, sr / NFFT))[0] for f in freqs]
+        band = (bins &gt; 150) &amp; (bins &lt; 7500); w = np.hanning(self.win)
+        nfr = max(0, (len(x) - self.win) // self.hop + 1)
+        self.M = np.zeros((nfr, len(freqs))); self.floor = np.zeros(nfr)
+        for a in range(0, nfr, 200):
+            idx = np.arange(a, min(nfr, a + 200))
+            S = np.abs(np.fft.rfft(np.stack([x[i * self.hop:i * self.hop + self.win] * w for i in idx]), NFFT))
+            self.M[idx] = np.stack([S[:, c].max(1) for c in cols], 1)
+            self.floor[idx] = np.median(S[:, band], 1)
+
+    def _fr(self, t):
+        i = int(round(t * self.sr / self.hop)); return i if 0 &lt;= i &lt; len(self.M) else None
+
+    def tones(self, t, fallback=False):
+        &quot;&quot;&quot;(low idx | None, high idx | None, low ratio) from the rise in energy at slot time t.
+        fallback: if one band clearly rose but the other did not (a repeated tone can partly cancel
+        against its own reverb tail), read the quiet band from raw energy instead of the rise.&quot;&quot;&quot;
+        ic, ip = self._fr(t + 0.01), self._fr(t - 0.01 - WIN)
+        if ic is None: return None, None, 0.0
+        cur = self.M[ic]; prev = self.M[ip] if ip is not None else 0 * cur
+        nov = np.maximum(0, cur - prev); fund = nov[:self.nt]; sc = fund + 0.3 * nov[self.nt:]
+        fl = max(self.floor[ic], 1e-9); out = []
+        for lo, hi in ((0, len(LOW)), (len(LOW), self.nt)):
+            k = lo + int(np.argmax(sc[lo:hi])); r = fund[k] / fl
+            out.append((k - lo, r) if fund[k] &gt; 1e-4 and r &gt;= PRESENCE else (None, r))
+        if fallback and (out[0][0] is None) != (out[1][0] is None):
+            raw = cur[:self.nt] + 0.3 * cur[self.nt:]
+            for b, (lo, hi) in enumerate(((0, len(LOW)), (len(LOW), self.nt))):
+                if out[b][0] is None:
+                    k = lo + int(np.argmax(raw[lo:hi]))
+                    if cur[k] / fl &gt;= PRESENCE: out[b] = (k - lo, cur[k] / fl)
+        return out[0][0], out[1][0], out[0][1]
+
+    def symbol(self, t):
+        lo, hi, _ = self.tones(t, fallback=True)
+        if lo is None and hi is None: return None          # silence / past end of stream
+        if lo is None or hi is None: return &quot;&lt;ERR&gt;&quot;        # a bell is there but unreadable
+        return FROM_DYAD[(lo, hi)]
+
+
+def find_sync(an):
+    best, bt = 0.0, None
+    for i in range(len(an.M)):
+        t, sc = i * HOP, 0.0
+        for j, want in enumerate(SYNC):
+            lo, hi, r = an.tones(t + j * SLOT)
+            if lo != want or hi is not None: sc = None; break
+            sc += r
+        if sc and sc &gt; best: best, bt = sc, t
+    return bt
+
+
+def classify_frame(end_seen, complete, crc):
+    if crc == &quot;CRC_VALID&quot;: return &quot;valid&quot; if end_seen else &quot;truncated_valid&quot;
+    if crc == &quot;CRC_INVALID&quot;: return &quot;corrupt&quot;
+    if crc == &quot;CRC_INCOMPLETE&quot;: return &quot;integrity_unknown&quot; if complete else &quot;truncated_unknown&quot;
+    if crc == &quot;CRC_MISSING&quot;: return &quot;unverified&quot; if complete else &quot;truncated_unverified&quot;
+    return &quot;unknown&quot;
+
+
+def decode(src, sr=SR):
+    x, sr = sf.read(src) if isinstance(src, str) else (src, sr)
+    x = np.asarray(x, float); x = x.mean(1) if x.ndim &gt; 1 else x
+    an = Analyzer(x, sr); t0 = find_sync(an)
+    res = dict(message=&quot;&quot;, end_seen=False, payload_complete=False, crc_status=&quot;CRC_MISSING&quot;,
+               frame_status=&quot;no_sync&quot;, reason=&quot;&quot;, sync_time=t0, symbols=[])
+    if t0 is None: res[&quot;reason&quot;] = &quot;sync pattern not found&quot;; return res
+    k = len(SYNC)
+    def nxt():
+        nonlocal k
+        s = an.symbol(t0 + k * SLOT); k += 1; res[&quot;symbols&quot;].append(s); return s
+    def header_fail(why, s):
+        res.update(frame_status=&quot;truncated_unverified&quot; if s is None else &quot;corrupt&quot;, reason=why); return res
+    v = nxt()
+    if v != &quot;&lt;VER21&gt;&quot;: return header_fail(f&quot;version symbol missing/wrong: {v}&quot;, v)
+    hdr = [nxt() for _ in range(3)]
+    if any(h not in LETTERS for h in hdr):
+        return header_fail(f&quot;header unreadable: {hdr}&quot;, None if None in hdr else &quot;x&quot;)
+    plen, clen = from_b26(hdr[:2]), from_b26(hdr[2:])
+    s = nxt()
+    if s != &quot;&lt;START&gt;&quot;: return header_fail(f&quot;START bell missing/wrong: {s}&quot;, s)
+    res.update(payload_length=plen, crc_length=clen)
+    payload, stop = [], None
+    while len(payload) &lt; plen:                       # priority 1: declared length
+        s = nxt()
+        if s is None: stop = &quot;stream ended inside payload&quot;; break
+        if s == &quot;&lt;WORD&gt;&quot;: payload.append(&quot; &quot;)
+        elif s in PAYLOAD_OK: payload.append(s)
+        elif s == &quot;&lt;ERR&gt;&quot;: payload.append(&quot;?&quot;)       # damaged bell: CRC will reject it
+        else: stop = f&quot;unexpected {s} inside payload&quot;; k -= 1; res[&quot;symbols&quot;].pop(); break
+    msg = &quot;&quot;.join(payload); res[&quot;message&quot;] = msg; res[&quot;payload_complete&quot;] = len(payload) == plen
+    digits, damaged = [], False
+    if stop is None or &quot;unexpected&quot; in stop:
+        if nxt() == &quot;&lt;CHECK&gt;&quot;:                       # priority 2: CRC of declared length
+            while len(digits) &lt; clen:
+                s = nxt()
+                if s is None: break
+                if s not in LETTERS: damaged = True
+                digits.append(s)
+    if damaged: crc = &quot;CRC_INVALID&quot;                  # bell present but not a letter = damage
+    elif not digits: crc = &quot;CRC_MISSING&quot;
+    elif len(digits) &lt; clen: crc = &quot;CRC_INCOMPLETE&quot;  # never reported as invalid
+    else:
+        calc = crc_value(msg, clen)
+        res.update(crc_supplied=&quot;&quot;.join(digits), crc_calculated=&quot;&quot;.join(to_b26(calc, clen)))
+        crc = &quot;CRC_VALID&quot; if from_b26(digits) == calc and res[&quot;payload_complete&quot;] and &quot;?&quot; not in msg else &quot;CRC_INVALID&quot;
+    res[&quot;crc_status&quot;] = crc
+    if crc in (&quot;CRC_VALID&quot;, &quot;CRC_INVALID&quot;): res[&quot;end_seen&quot;] = nxt() == &quot;&lt;END&gt;&quot;   # priority 3
+    res[&quot;frame_status&quot;] = classify_frame(res[&quot;end_seen&quot;], res[&quot;payload_complete&quot;], crc)
+    res[&quot;reason&quot;] = (f&quot;{stop} ({len(payload)}/{plen} payload symbols)&quot; if stop else
+                     &quot;unreadable bell in checksum&quot; if damaged else
+                     &quot;payload complete, no checksum received&quot; if crc == &quot;CRC_MISSING&quot; else
+                     f&quot;checksum clipped ({len(digits)}/{clen} letters)&quot; if crc == &quot;CRC_INCOMPLETE&quot; else
+                     &quot;checksum mismatch&quot; if crc == &quot;CRC_INVALID&quot; else
+                     &quot;complete frame&quot; if res[&quot;end_seen&quot;] else
+                     &quot;END bell missing; length + CRC verified (priority 4: stream end)&quot;)
+    return res
+
+
+if __name__ == &quot;__main__&quot;:
+    if sys.argv[1] == &quot;encode&quot;:
+        y = encode(sys.argv[2], sys.argv[3]); print(f&quot;wrote {sys.argv[3]} ({len(y)/SR:.2f} s)&quot;)
+    else:
+        print(json.dumps(decode(sys.argv[2]), indent=1, default=str))
+</div>
+
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Full source, no keys.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>

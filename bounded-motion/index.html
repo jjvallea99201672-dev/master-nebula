@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 1: Bounded Motion (Draft) — Jay Vallea</title>
+<meta name="description" content="Draft of Chapter 1 of Persistence Through Time, saved 2026-11-05: persistence does not require stillness.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Chapter 1: Bounded Motion</h1>
+  <p class="subtitle">Draft, 2026-11-05 — Persistence does not require stillness</p>
+  <p>A draft of Chapter 1 of <em>Persistence Through Time</em>, saved 2026-11-05, with Ember's filing note and five pending audit recommendations left unapplied. This page is the draft as received (layout cleaned only). A later treatment of the chapter also appears in <a href="../persistence-through-time/part-1/">Persistence Through Time, Part I</a>.</p>
+  <div style="white-space:pre-wrap;font-family:Courier New,Courier,monospace;font-size:14px;line-height:1.6;color:var(--text);overflow-x:auto">Chapter 1: Bounded Motion — DRAFT (saved
+2026-11-05)
+  Filing note (Ember, not the chapter text): Pasted by the user 2026-11-05, audited the same
+  day, saved as a draft at his &quot;save it&quot;. Audit: chapter1_bounded_motion_audit_2026-11-05.md .
+  The text below is the pasted chapter as received (formatting cleaned only — equations set in
+  LaTeX, code blocks restored). The audit&#x27;s recommended fixes are not applied to the text
+  below; they are pending the user&#x27;s call: (1) add the full Nazarov et al. (2023) citation, Metals
+  13(2), 344; (2) tighten the soft-mode sentence — 207 cm⁻¹ is the soft mode proper, 147 cm⁻¹
+  tracks it via coupling; (3) cite or soften the mm/Myr metamorphic growth rate; (4) state
+  falsification conditions for the Material Memory Model and the Emergence Principle; (5) filing
+  undecided — this chapter&#x27;s six principles are not yet mapped to the 01–62 guide&#x27;s
+  numbering, and it is not filed as part of the guide or the 814–818 Nebula series.
+
+
+
+
+Chapter 1: Bounded Motion
+Persistence Does Not Require Stillness
+
+
+1. The Intuition
+
+A rock is not silent.
+
+Its atoms vibrate. Its lattice supports collective modes. Its imperfections record the conditions
+where it formed and what happened to it afterward. That was the original frozen-noise idea,
+before it got dressed up in false equations: a persistent structure formed from interacting matter
+whose microscopic motion never stops.
+
+The book starts there because the rock teaches the method. Propose, audit, surrender what does
+not survive, keep what does.
+
+
+2. The Correction, Kept in the Record
+
+Three claims from the first draft did not survive audit, and they stay in the record as dissents.
+
+Dissent 1: $K = \frac{3}{4}M^4$ was presented as a quartz lattice equation. It had no definitions
+for $K$ or $M$, no units, no source. If $K$ were a bulk modulus, it would need pressure units.
+Deleted, not defended.
+
+Dissent 2: $PV = nRT$ was used for a solid. That is a gas law. A solid is not a gas. Removed.
+
+Dissent 3: A 432 Hz tone transforms rock. It does not, as a physical claim. A single 432 Hz
+quantum has energy:
+
+$$E = hf$$
+
+$$E_{432} \approx 1.79 \times 10^{-12}\ \text{eV}$$
+
+At room temperature:
+
+$$k_B T \approx 0.0257\ \text{eV}$$
+
+A single quantum is roughly 14 billion times smaller than thermal energy. A macroscopic wave
+can transfer substantial energy because it is many coherent quanta, but a 432 Hz tone in rock
+produces a bulk elastic wave, not selective excitation of the terahertz lattice modes that govern a
+mineral transformation. Audible sound and lattice phonons are connected, not interchangeable.
+
+The bell sequence can still represent vibration, pattern, and persistence artistically. The geological
+analogy gives it depth, without claiming the performance physically transforms minerals. That
+distinction is the rule: invention labeled as invention, discovery labeled as discovery.
+
+
+3. The Mechanism That Survives
+
+Vibration is always present. Transformation requires a pathway.
+
+Atoms vibrate around their positions, but vibration alone does not mean they have escaped their
+energy well. To rearrange the lattice, they must overcome an activation barrier. A simplified rate
+law:
+
+$$k = A e^{-E_a / (k_B T)}$$
+
+$k$ is the rate of a thermally activated process, $A$ is a frequency factor, $E_a$ is activation
+energy, $k_B$ is Boltzmann&#x27;s constant, $T$ is absolute temperature.
+
+Increasing temperature does not merely make atoms vibrate harder. It increases the probability
+of crossing barriers for diffusion, defect movement, and chemical rearrangement.
+
+Thermodynamics sets which state is favoured. At constant temperature and pressure:
+
+$$G = H - TS$$
+
+$G$ is Gibbs free energy. A transformation is not noise becoming order or order becoming noise.
+It is a system moving toward a more favourable state under its environmental constraints, subject
+to kinetic barriers.
+
+Geology gives the controls. The five controls on metamorphism are original mineral composition,
+temperature, pressure, fluids, and time. Fluids matter because they transport dissolved ions and
+accelerate reactions that would otherwise be extremely slow. Time matters because mineral
+
+growth during metamorphism can occur at rates around a millimetre per million years. A crystal
+can remain apparently unchanged for millions of years while microscopic processes accumulate.
+
+
+4. Sound as Measurement, Not Just Cause
+
+There is a stronger direction than trying to make sound transform rock: use sound to detect what
+is happening inside a crystal while it deforms.
+
+O&#x27;Ghaffari et al., 2026, deformed calcite single crystals under uniaxial loading with an array of
+piezo-sensors synchronized with fast-camera recordings. Brittle cracking and crystal-plastic
+twinning produced distinct impulsive ultrasonic signals. Cracking produced energetic, high-
+frequency patterns. Twinning produced less energetic, shorter duration, low-frequency signals
+correlated with propagating twin fronts.
+
+That experiment was passive listening. Researchers compressed the crystal and listened. They did
+not use a 432 Hz tone to drive defects. Observing that sound accompanies a transformation does
+not establish that sound caused the transformation.
+
+Acoustic treatment is a separate question. A 2023 review of bulk ultrasonic treatment of
+crystalline materials reports that ultrasound produces oscillating shear stresses that act on
+dislocations, with possible outcomes including dislocation generation and work hardening,
+rearrangement, annihilation and structural relaxation, and changes in mechanical properties.
+Most of that research concerns metals and alloys. It cannot automatically be transferred to quartz
+or geological rocks.
+
+Quartz is piezoelectric: stress generates polarization, electric field generates deformation. That is
+why it works as a resonator. But a quartz crystal does not have one universal resonant frequency.
+Resonance depends on dimensions, crystallographic orientation, and vibration mode.
+Commercial resonators operate from kilohertz to hundreds of megahertz. A whole rock has
+macroscopic resonances determined by size, shape, boundaries, and material properties. Its
+internal lattice has vibrational modes at much higher frequencies. Those are different physical
+scales.
+
+
+5. Defects as Record
+
+Quartz is not just a repeating arrangement of silicon and oxygen. Real quartz contains point
+defects, dislocations, planar defects, and inclusions: microscopic pockets of fluids, melts, or other
+minerals.
+
+Gotze, Pan, and Muller, 2021, review this in Mineralogical Magazine. Their central claim: the
+mineralogy and mineral chemistry of quartz are determined mainly by its defect structure.
+Certain point defects, dislocations and micro-inclusions can be incorporated during crystallisation
+under various thermodynamic conditions and by secondary processes such as alteration,
+
+irradiation, diagenesis or metamorphism. The resulting real structure is a fingerprint of the
+specific physicochemical environment of quartz formation.
+
+Two pieces of quartz can have the same chemical formula and crystal structure, yet carry
+different microscopic histories. Their defects, impurities, and inclusions can differ. That is
+geological memory, not consciousness or literal recorded sound, but physical information
+preserved in structure.
+
+A crystal has many vibrational modes, not a single frequency. Their frequencies depend on atomic
+masses, bonding forces, crystal symmetry, and wavevector:
+
+$$\omega = \omega(k)$$
+
+
+6. The Alpha-Beta Transition
+
+At ordinary atmospheric pressure, quartz undergoes a transition near 573 to 574 C:
+
+    Below: alpha-quartz, trigonal symmetry
+    Above: beta-quartz, hexagonal symmetry
+    Chemical composition remains SiO2
+    Connected SiO4 tetrahedra change relative orientations and distortions
+    Transition is reversible on cooling
+
+Atoms do not need to be replaced for symmetry to change. This is a displacive phase transition,
+different from a reconstructive transformation where the bonding network must be substantially
+broken and rebuilt.
+
+As quartz approaches the transition, its elastic properties change. Acoustic wave velocities
+decrease. A vibrational mode becomes progressively easier to excite as the system approaches
+structural instability. This is a soft mode. In quartz, spectroscopy has identified modes near 147
+cm-1 and 207 cm-1 whose behaviour tracks the transition. The soft mode drives the transition as
+a phonon that moves SiO4 tetrahedra as rigid units.
+
+We can describe this with an order parameter $Q$, a quantity that distinguishes one phase from
+another. A simplified illustrative Landau model:
+
+$$F(Q, T) = F_0 + a(T - T_c)Q^2 + bQ^4$$
+
+$F$ is free energy, $T_c$ is a characteristic transition temperature, $a$ and $b$ describe the
+energetic landscape. The free-energy landscape changes with temperature. A configuration
+stable at one temperature may cease to be stable at another.
+
+Correction: This 2-4 form predicts a continuous second-order transition. Quartz is weakly first-
+order and nearly tricritical. The full description requires a 2-4-6 potential or a cubic term, and
+coupling between strain and order parameter. The simplified form gets the idea of a changing
+
+landscape right, it gets the order of the transition wrong. There is also a narrow incommensurate
+phase, about 1.3 K wide, between alpha and beta in precise measurements. The book keeps that
+nuance because same rules always means precision where it matters.
+
+Three ways to change a material, not to be collapsed:
+
+    Excitation: Energy of existing modes. Vibrating quartz.
+    Structural transition: Symmetry or atomic arrangement changes. Alpha to beta quartz.
+    Chemical transformation: Composition or bonding network changes. Silicate reactions during
+    metamorphism.
+
+A sound wave can excite without transforming. A temperature change can trigger a phase
+transition without changing formula. A chemical reaction can produce a different mineral.
+
+
+7. Emergence: How Order Forms From Motion
+
+Granite forms when magma cools and crystallizes. Magma is a liquid with thermal motion and
+short-range atomic structure, not literal white noise. As crystals nucleate and grow, long-range
+periodic order emerges.
+
+Crystallization is a competition between nucleation, crystal growth, diffusion, and cooling:
+
+    Liquid state: atoms and molecular groups move through a disordered silicate melt.
+    Nucleation: a sufficiently stable microscopic crystal nucleus forms.
+    Growth: atoms and chemical groups attach to its surface.
+    Impaction: neighbouring crystals meet, producing an interlocking solid.
+
+Igneous textures preserve evidence of relative rates of nucleation and growth. Granite: coarse
+interlocking crystals, generally slow cooling. Basalt: fine-grained, generally faster cooling.
+Obsidian: volcanic glass, crystallization largely bypassed. Porphyritic rock: large early crystals in
+finer matrix, often records changing cooling conditions.
+
+Faster cooling does not always mean smaller crystals in a simple way. Crystallization depends on
+undercooling: how far below equilibrium the melt has fallen. Initially, increasing undercooling can
+increase nucleation and growth rates. With further cooling, viscosity rises and atomic mobility
+decreases. Eventually the melt becomes too sluggish for substantial growth. Crystallization has a
+kinetic window, not one cooling-rate rule.
+
+Classical nucleation theory, simplified spherical nucleus:
+
+$$\Delta G(r) = 4\pi r^2 \gamma + \frac{4\pi r^3}{3} \Delta g_v$$
+
+$r$ is nucleus radius, $\gamma$ is crystal-melt interfacial energy, $\Delta g_v$ is bulk free-energy
+difference per unit volume, negative when crystallization is favourable. First term penalizes new
+interface, second term favours the lower-free-energy crystal. Competition gives critical radius:
+
+$$r^* = -\frac{2\gamma}{\Delta g_v}$$
+
+Smaller than $r^*$ tends to dissolve. Larger can grow. A favourable final structure does not mean
+it forms automatically. It must cross a kinetic barrier.
+
+Proposed framework, not a new physical law: The Material Memory Model
+
+    Matter: atoms, bonds, lattice geometry, composition
+    Dynamics: phonons, thermal fluctuations, elastic waves, atomic motion
+    History: defects, dislocations, inclusions, substitutions, deformation
+    Persistence: stable structure that retains measurable traces of its formation and
+    transformation
+
+Proposed framework: The Emergence Principle
+
+Matter in motion can develop persistent structure. Thermal motion does not prevent order.
+Energy landscapes determine which arrangements are favourable. Kinetic barriers determine
+which transformations can occur. Nucleation creates new ordered regions. Growth extends those
+regions. The resulting structure preserves traces of its formation.
+
+Order is not the opposite of motion. Order is a particular organization of motion and interaction.
+That statement is kept as a framework synthesis until a falsification condition is stated.
+
+
+8. From Physical to Informational Persistence
+
+Persistence so far has meant a physical structure remains recognizable despite motion, thermal
+fluctuations, and defects. Now we ask whether the same principle applies to information: can a
+pattern remain intact even when the individual components carrying it change?
+
+Yes, under specific conditions. This is the foundation of error-correcting codes, robust
+communication, and fault-tolerant computation.
+
+Distinction: A physical object persists through structural organization. An encoded message
+persists through redundancy and recoverability. A cryptographic record persists through
+verifiable evidence of its history. Related, not identical mechanisms.
+
+Repetition coding, simplest example:
+
+Transmit bit $b = 1$ as $111$. Noise changes one bit: $111 \rightarrow 101$. Majority vote
+recovers: decode(101) = 1. One component changed. The encoded message survived.
+
+Assume each bit flips independently with probability $p$. Majority fails if two or three flip:
+
+$$P_{error} = 3p^2 - 2p^3$$
+
+At $p = 0.1$, $P_{error} = 0.028$. 10% bit error becomes 2.8% message error.
+
+For odd repetition length $n$:
+
+$$P_{error}(n, p) = \sum_{k=(n+1)/2}^{n} \binom{n}{k} p^k (1-p)^{n-k}$$
+
+As long as $p &lt; 1/2$, increasing $n$ reduces error. Cost: more bits per original bit.
+
+Hidden weakness: correlated damage
+
+If a disturbance flips all three together: $111 \rightarrow 000$, majority cannot recover.
+Redundancy protects against certain patterns of error, not against coordinated failure.
+Distinguish independent noise, correlated noise, burst noise, systematic corruption. Number of
+damaged components does not describe the threat. Their relationship matters.
+
+
+9. Experiment 006 — Independent Versus Correlated Errors
+
+This experiment is locked as runnable. It compares ordinary random flips with correlated
+disturbances.
+
+
+  import numpy as np
+
+
+  def repetition_experiment(trials=200_000, p=0.10, seed=432):
+      rng = np.random.default_rng(seed)
+      # Every message contains three copies of logical bit 1.
+      original = np.ones((trials, 3), dtype=np.int8)
+
+
+      # 1. Independent errors: each bit flips independently with prob p
+      independent_errors = rng.random((trials, 3)) &lt; p
+      independent_received = original ^ independent_errors
+      independent_decoded = (independent_received.sum(axis=1) &gt;= 2).astype(np.int8)
+
+
+      # 2. Correlated extreme: with prob p, all three flip together
+      shared_error = rng.random(trials) &lt; p
+      correlated_received = original.copy()
+      correlated_received[shared_error] = 0
+      correlated_decoded = (correlated_received.sum(axis=1) &gt;= 2).astype(np.int8)
+
+
+      # 3. Partial correlation: common cause raises per-bit risk, not all-or-nothing
+      shared_p = rng.random(trials) * 2 * p
+      partial_errors = rng.random((trials, 3)) &lt; shared_p[:, None]
+      partial_received = original ^ partial_errors
+      partial_decoded = (partial_received.sum(axis=1) &gt;= 2).astype(np.int8)
+
+
+      return {
+          &quot;independent_error_rate&quot;: float(np.mean(independent_decoded != 1)),
+          &quot;correlated_error_rate&quot;: float(np.mean(correlated_decoded != 1)),
+          &quot;partial_correlated_error_rate&quot;: float(np.mean(partial_decoded != 1)),
+          &quot;theoretical_independent_rate&quot;: 3 * p**2 - 2 * p**3,
+          &quot;theoretical_correlated_rate&quot;: p,
+          &quot;p&quot;: p,
+          &quot;trials&quot;: trials,
+
+      }
+
+
+  if __name__ == &quot;__main__&quot;:
+      print(repetition_experiment())
+
+
+
+
+Expected at $p = 0.1$, verified: independent about 0.028, theory 0.028. Correlated about 0.10,
+theory 0.10. Partial correlation about 0.035, between the two. Any correlation degrades
+repetition, proportionally to how correlated errors are.
+
+
+From repetition to real codes
+
+Repetition is inefficient. Hamming (7,4): four data bits, three parity bits, can correct any single-bit
+error in a seven-bit block, can detect certain two-bit errors but cannot reliably correct them. Valid
+codewords belong to a constrained subset. Noise moves a word away. Decoding finds the nearest
+valid codeword. The energy-landscape picture is a useful geometric analogy, not a
+thermodynamic landscape.
+
+
+Shannon&#x27;s channel capacity
+
+For a binary symmetric channel with flip probability $p$:
+
+$$C = 1 - H_2(p)$$
+
+$$H_2(p) = -p \log_2 p - (1-p) \log_2 (1-p)$$
+
+At $p = 0.1$, $C \approx 0.531$. This is a theoretical limit in the limit of long block length, with
+appropriately designed codes, and with the channel model exactly as assumed. It is an
+asymptotic existence result, not a construction for finite $n$. Reliable preservation is not free. It
+requires resources, structure, and an error model the protection can handle.
+
+
+Experiment 007 — Preservation Versus Reconstruction
+
+  import hashlib
+  import numpy as np
+
+
+  def sha256(data: bytes) -&gt; str:
+      return hashlib.sha256(data).hexdigest()
+
+
+  def integrity_experiment(seed=432):
+      rng = np.random.default_rng(seed)
+      original = rng.integers(0, 256, size=1024, dtype=np.uint8).tobytes()
+      trusted_digest = sha256(original)
+
+
+      damaged = bytearray(original)
+      damaged[100] ^= 0b00000001
+      corrupted = bytes(damaged)
+
+
+      backup = original
+
+      recovered = backup
+
+
+      return {
+          &quot;original_digest&quot;: trusted_digest,
+          &quot;corrupted_digest&quot;: sha256(corrupted),
+          &quot;integrity_check_passes&quot;: sha256(corrupted) == trusted_digest,
+          &quot;recovered_equals_original&quot;: recovered == original,
+          &quot;recovered_digest_valid&quot;: sha256(recovered) == trusted_digest,
+      }
+
+
+  if __name__ == &quot;__main__&quot;:
+      result = integrity_experiment()
+      print(&quot;Original digest:&quot;, result[&quot;original_digest&quot;])
+      print(&quot;Corrupted digest:&quot;, result[&quot;corrupted_digest&quot;])
+      print(&quot;Integrity check:&quot;, result[&quot;integrity_check_passes&quot;])
+      print(&quot;Recovered:&quot;, result[&quot;recovered_equals_original&quot;])
+      print(&quot;Recovered digest valid:&quot;, result[&quot;recovered_digest_valid&quot;])
+
+
+
+
+A hash detects, it does not repair. A backup recovers, it does not authenticate by itself. A code
+reconstructs within limits, it does not establish who created the original or whether it was
+authorized. Three mechanisms, three problems.
+
+
+Lattice Keeper connection
+
+A persistent, verifiable system needs at least four separate properties, not one score:
+
+    Continuity: Is the state still available?
+    Integrity: Does it match its trusted reference?
+    Recoverability: Can a valid state be reconstructed?
+    Provenance: Can we establish where it came from and how it changed?
+
+Preserve the evidence of change, not merely the appearance of an unchanged state.
+
+
+Pattern versus components
+
+In Conway&#x27;s Game of Life, a glider changes its exact occupied cells at every generation while
+maintaining its recognizable identity and moving through space. Formally:
+
+$$X(t_1) \neq X(t_2)\ \text{while}\ P(t_1) \cong P(t_2)$$
+
+$X(t)$ is microscopic configuration, $P(t)$ is recognized pattern, $\cong$ means structurally
+equivalent under the chosen pattern-recognition rule. The recognition rule and allowed
+transformations must be specified.
+
+
+10. Thesis of Chapter 1
+
+Persistence is not the preservation of every component. It is the preservation of specified
+invariants under specified transformations, for a specified timescale.
+
+Three timescales to separate:
+
+    $\tau_{micro}$: microscopic components change rapidly
+    $\tau_{structural}$: structure changes slowly
+    $\tau_{informational}$: information remains recoverable even after original physical
+    structure has disappeared
+
+A system might have rapidly changing microscopic components, slowly changing structure, and
+information that remains recoverable after the original structure is gone.
+
+Six principles so far, as working hypotheses:
+
+    Bounded motion: persistence does not require stillness.
+    Metastability: barriers can make a state persist far beyond its equilibrium lifetime.
+    Collective order: interacting components can preserve organization despite local fluctuations.
+    Geometric resilience: the arrangement of disturbances can matter as much as their quantity.
+    Transformation: collective order can disappear as environmental conditions change.
+    Informational persistence: a recognizable message or pattern can survive changes to its
+    physical representation.
+
+Each principle needs a falsification sentence before it is promoted from framework to law. That is
+the work of the next chapters.</div>
+
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Draft of 2026-11-05; audit fixes pending.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
