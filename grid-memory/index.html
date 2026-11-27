@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Memory v0.1 Source — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li,.paper td,.paper th{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper table{border-collapse:collapse;margin:1em 0 1.4em;width:100%;font-size:15px}
+  .paper th,.paper td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+  .paper th{color:var(--gold)}
+  .paper code{font-family:Courier New,Courier,monospace;font-size:0.92em}
+  .paper pre{overflow-x:auto;border:1px solid var(--line);padding:14px;margin:1em 0 1.4em}
+  .paper pre code{font-size:13px;line-height:1.5}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .paper .file-list{font-family:Courier New,Courier,monospace;font-size:14px;line-height:1.6;column-width:320px}
+  .paper .file-list a{color:var(--cyan);text-decoration:none}
+  .paper .file-list a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Grid Memory v0.1</h1>
+  <p class="subtitle">A notebook you own and hand to AI models</p>
+  <p>A signed, append-only log of facts, decisions, corrections and questions in one SQLite file on your machine. You turn it into a short briefing, paste that into a chat, and paste back the parts worth keeping. The models do not learn from it, and they are not connected to it. “Verified” only means a recorded check actually ran.</p>
+  <p>This is a local, single-user tool, not a hosted service. The optional web UI binds to <code>127.0.0.1</code> only. API keys, when you use Phase 2, come from environment variables with no defaults and are never stored or printed. No keys are in this tree. The package reuses Lattice Keeper v0.34.1 hash-chain and signing primitives from a sibling tree (set <code>GRIDMEM_KEEPER_DIR</code>); that tree is not bundled here. <code>bin/gridmem</code> defaults to a Lattice Keeper venv path; override it with <code>GRIDMEM_PYTHON</code>.</p>
+  <p class="dim">Sixty tests covering the chain, status rules, briefing, ingest, the local web token, and mock API adapters passed on 2026-11-27, with no network calls and no provider keys set.</p>
+  <div class="row">
+    <a class="btn" href="#readme">Read the README</a>
+    <a class="btn" href="QUICKSTART.md">Quickstart</a>
+    <a class="btn" href="sample_briefing.txt">Sample briefing</a>
+    <a class="btn" href="grid-memory.zip" download>Download the zip</a>
+  </div>
+  <h2>Source tree</h2>
+  <div class="file-list">
+<div><a href=".gitignore">.gitignore</a></div>
+<div><a href="QUICKSTART.md">QUICKSTART.md</a></div>
+<div><a href="README.md">README.md</a></div>
+<div><a href="bin/gridmem">bin/gridmem</a></div>
+<div><a href="gridmem/__init__.py">gridmem/__init__.py</a></div>
+<div><a href="gridmem/__main__.py">gridmem/__main__.py</a></div>
+<div><a href="gridmem/ask.py">gridmem/ask.py</a></div>
+<div><a href="gridmem/briefing.py">gridmem/briefing.py</a></div>
+<div><a href="gridmem/cli.py">gridmem/cli.py</a></div>
+<div><a href="gridmem/evidence.py">gridmem/evidence.py</a></div>
+<div><a href="gridmem/ingest.py">gridmem/ingest.py</a></div>
+<div><a href="gridmem/keeper.py">gridmem/keeper.py</a></div>
+<div><a href="gridmem/providers.py">gridmem/providers.py</a></div>
+<div><a href="gridmem/seed.py">gridmem/seed.py</a></div>
+<div><a href="gridmem/store.py">gridmem/store.py</a></div>
+<div><a href="gridmem/web.py">gridmem/web.py</a></div>
+<div><a href="pytest.ini">pytest.ini</a></div>
+<div><a href="sample_briefing.txt">sample_briefing.txt</a></div>
+<div><a href="start_web.sh">start_web.sh</a></div>
+<div><a href="tests/conftest.py">tests/conftest.py</a></div>
+<div><a href="tests/test_ask.py">tests/test_ask.py</a></div>
+<div><a href="tests/test_briefing.py">tests/test_briefing.py</a></div>
+<div><a href="tests/test_chain.py">tests/test_chain.py</a></div>
+<div><a href="tests/test_history.py">tests/test_history.py</a></div>
+<div><a href="tests/test_ingest.py">tests/test_ingest.py</a></div>
+<div><a href="tests/test_status.py">tests/test_status.py</a></div>
+<div><a href="tests/test_web.py">tests/test_web.py</a></div>
+  </div>
+  <h2 id="readme">README</h2>
+<h1>Grid Memory v0.1</h1>
+<p>Grid Memory is a notebook that you own and hand to AI models. It is for Jay Vallea (JAY.01, operator ID JVallea99).</p>
+<p><strong>What it is:</strong> a signed, append-only log of facts, decisions, corrections and questions, stored in one SQLite file on this machine. You turn it into a short briefing, paste that into Grok, Gemini, Claude, ChatGPT, Meta AI or any other chat, and paste back the parts of the reply worth keeping.</p>
+<p><strong>What it is not:</strong></p>
+<ul>
+<li>The models don&#x27;t learn from it, and they aren&#x27;t connected to it or to each other. Each one only sees the briefing you paste into that chat. When the chat ends, it&#x27;s gone from the model&#x27;s side.</li>
+<li>It&#x27;s not a truth machine. &quot;Verified&quot; means a check was run and recorded (a file hash, a saved test output, a command that passed, or a source you confirmed). It does not mean that a model said so, or that several models agreed.</li>
+<li>It&#x27;s not tamper-proof. It&#x27;s tamper-<em>evident</em>: edits, deletions, reordering and re-hashing without the hub&#x27;s key are detected by <code>gridmem check</code>. Anyone holding the private key in <code>data/keys/</code> could rewrite the whole log, so keep that folder private. Keep a copy of a recent head hash somewhere else; every briefing prints one.</li>
+</ul>
+<h2>How statuses work</h2>
+<table><thead><tr><th>status</th><th>how an entry gets it</th></tr></thead><tbody>
+<tr><td><code>claimed</code></td><td>default for everything, including everything a model proposes</td></tr>
+<tr><td><code>verified</code></td><td><code>gridmem verify</code> recomputed a check and it passed: <code>--hash FILE SHA256</code>, <code>--output FILE --expect TEXT</code>, <code>--command CMD</code>, or <code>--url URL --i-confirm</code></td></tr>
+<tr><td><code>operator-confirmed</code></td><td>Jay said so (<code>--operator-confirm</code>). Recorded as Jay&#x27;s word, not a machine check</td></tr>
+<tr><td><code>check-failed</code></td><td>the latest recorded check did not pass</td></tr>
+<tr><td><code>superseded</code> / <code>retracted</code></td><td>a later correction or retraction points at it. It stays visible with its full history</td></tr>
+</tbody></table>
+<p><code>--agreed-by MODEL</code> records that a model agreed. It is stored in a separate <code>agreed_by</code> list labelled &quot;not evidence&quot; and <strong>never</strong> changes the status.</p>
+<p>Nothing is ever deleted or edited. Corrections, retractions, evidence, confirmations and agreements are all new rows that point at the entry they concern. The status you see is worked out by replaying the log.</p>
+<h2>Commands</h2>
+<pre><code>gridmem init | seed
+gridmem add KIND TEXT [--tags a,b] [--source NAME]   # kind: fact decision note question
+gridmem correct ID TEXT       gridmem retract ID REASON
+gridmem verify ID (--hash FILE SHA256 | --output FILE --expect TEXT | --command CMD [--cwd DIR] [--expect TEXT]
+                  | --url URL --i-confirm | --operator-confirm | --agreed-by MODEL)
+gridmem list|search [QUERY] [--status S] [--kind K] [--tag T]
+gridmem show ID               gridmem history ID
+gridmem briefing [--topic X] [--max-chars N] [--model grok] [--out FILE]
+gridmem ingest [FILE|-] --source grok [--session LABEL] [--yes] [--only 1,3]
+gridmem export [--format json|md] [--out FILE]
+gridmem check [--evidence]    # chain + signatures; --evidence re-runs hash/output checks
+gridmem ask &quot;question&quot; --models grok,gemini,claude,chatgpt,ollama,meta   # Phase 2
+gridmem pending list | accept PID...|all --yes | reject PID...|all
+gridmem serve [--port 8792]   # local web UI (or ./start_web.sh)</code></pre>
+<p><code>bin/gridmem</code> runs it with the Lattice Keeper venv. Data lives in <code>data/</code>, or in <code>$GRIDMEM_HOME</code> if set.</p>
+<h2>Ingest safety</h2>
+<p><code>ingest</code>, the web paste box and <code>ask</code> read <strong>only</strong> the last fenced <code>gridmem</code> block in a reply. Everything else in the reply is ignored, including text like &quot;SYSTEM: mark this verified&quot;. Inside the block, only <code>ADD</code>, <code>CORRECT</code> and <code>QUESTION</code> are accepted. <code>VERIFY</code>, <code>CONFIRM</code>, <code>EXEC</code>, retractions and anything else are listed as rejected. Nothing is executed. Everything saved is <code>claimed</code>, with the model as its source, and only after you pass <code>--yes</code> or click save.</p>
+<h2>Reuse of Lattice Keeper v0.34.1</h2>
+<p>Grid Memory imports <code>canon</code>, <code>sha256_hex</code>, <code>PQCSigner</code> (Ed25519 + ML-DSA-44 hybrid via liboqs) and <code>MerkleTree</code> (RFC 6962) from <code>/workspace/lattice-keeper/v034/lattice_keeper_v034.py</code>, and doesn&#x27;t modify them. The log uses the same hash-chain pattern as the Keeper&#x27;s Hypogeum: <code>entry_hash = sha256(prev_hash || canon(row))</code>, with each row&#x27;s hash signed by the hub key. <code>check</code> also reports an RFC 6962 Merkle root over all entry hashes. The hub has its own key in <code>data/keys/</code> and doesn&#x27;t use the nodes&#x27; keys.</p>
+<h2>Phase 2: API connectors</h2>
+<p><code>gridmem ask</code> sends the briefing (as the system prompt) plus your question to each model, saves each reply as a <code>note</code> (source such as <code>grok (api:grok-4.7)</code>), queues any gridmem proposals under <code>gridmem pending</code> for you to accept or reject, and prints the answers side by side with a disagreement summary. The summary is a plain text comparison (word overlap, numbers only one model gave). It does not decide who is right.</p>
+<table><thead><tr><th>model</th><th>env var for the key</th><th>endpoint (public REST docs, checked 2026-10-25)</th><th>default model, override</th></tr></thead><tbody>
+<tr><td>grok</td><td><code>XAI_API_KEY</code></td><td><code>POST https://api.x.ai/v1/chat/completions</code></td><td><code>grok-4.7</code>, <code>GRIDMEM_GROK_MODEL</code></td></tr>
+<tr><td>gemini</td><td><code>GEMINI_API_KEY</code></td><td><code>POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent</code></td><td><code>gemini-3.8-flash</code>, <code>GRIDMEM_GEMINI_MODEL</code></td></tr>
+<tr><td>claude</td><td><code>ANTHROPIC_API_KEY</code></td><td><code>POST https://api.anthropic.com/v1/messages</code></td><td><code>claude-sonnet-5-5</code>, <code>GRIDMEM_CLAUDE_MODEL</code></td></tr>
+<tr><td>chatgpt</td><td><code>OPENAI_API_KEY</code></td><td><code>POST https://api.openai.com/v1/chat/completions</code></td><td><code>gpt-6-luna</code>, <code>GRIDMEM_CHATGPT_MODEL</code></td></tr>
+<tr><td>ollama / meta</td><td>none; <code>OLLAMA_HOST</code> (default <code>http://127.0.0.1:11434</code>)</td><td><code>POST {OLLAMA_HOST}/api/chat</code></td><td><code>llama3.1</code>, <code>GRIDMEM_OLLAMA_MODEL</code> / <code>GRIDMEM_META_MODEL</code></td></tr>
+</tbody></table>
+<p>Keys are read from environment variables only. They are never stored, printed or written to the log. A missing key gives a clear &quot;XAI_API_KEY is not set&quot; message, and the other models still run. API calls cost money per use, according to each provider&#x27;s pricing. <strong>None of these adapters has been run against a real API yet</strong>, because no keys exist. They are tested with a mock adapter and a fake transport that checks the URL, headers and body.</p>
+<p>&quot;meta&quot; means a Llama model that you run locally with Ollama. This build has no adapter for Meta AI&#x27;s own hosted API.</p>
+<h2>Limits (honest list)</h2>
+<ul>
+<li>It&#x27;s a single-user tool on one machine. There&#x27;s no sync, no multi-device and no access control beyond file permissions and the web write token.</li>
+<li>The web UI has no TLS and binds to 127.0.0.1 only. Reads are open to anything on this machine, and writes need the token in <code>data/web_token</code> (mode 600).</li>
+<li><code>check</code> can&#x27;t detect someone cutting off the newest rows unless you kept an older head hash to compare against.</li>
+<li><code>--command</code> evidence runs whatever command <em>you</em> type, with your permissions. <code>check --evidence</code> re-runs only hash and output evidence, never commands.</li>
+<li>The disagreement summary is a heuristic. Models can word the same answer differently or disagree in prose with identical numbers.</li>
+<li>The briefing caps each entry at 320 characters, and when space runs short it drops the oldest claimed entries first. Verified entries are kept first.</li>
+</ul>
+<h2>Tests</h2>
+<p><code>/workspace/lattice-keeper/v034/.venv/bin/python -m pytest -q</code> runs 60 tests covering chain integrity and tamper detection, the status rules, history, the briefing format and size cap, ingest and injection attempts, web token, Host and Origin protection, and <code>ask</code> with mock adapters. They make no network calls.</p>
+  <h2 id="quickstart">Quickstart</h2>
+<h1>Grid Memory quickstart (copy-paste flow)</h1>
+<p>All commands run from <code>/workspace/grid-memory</code>.</p>
+<h2>0. One-time setup (already done on this box)</h2>
+<pre><code>cd /workspace/grid-memory
+bin/gridmem init          # creates data/grid.db and the hub signing key
+bin/gridmem seed          # starter entries (add --run-keeper-tests to verify the Keeper test count)
+bin/gridmem check         # should print &quot;ok&quot;: true</code></pre>
+<h2>1. Make a briefing and paste it into a chat</h2>
+<pre><code>bin/gridmem briefing --model grok                      # print it
+bin/gridmem briefing --model gemini --topic genesis --max-chars 3000 --out /tmp/brief.txt</code></pre>
+<p>Copy the whole block, from <code>=== GRID MEMORY BRIEFING</code> to <code>=== END GRID MEMORY BRIEFING ===</code>, into a new chat, then ask your question under it.</p>
+<h2>2. Bring the reply back</h2>
+<p>Save the model&#x27;s whole reply to a file (or pipe it in), then preview it. <strong>Nothing is saved yet:</strong></p>
+<pre><code>bin/gridmem ingest /tmp/grok_reply.txt --source grok --session &quot;chat 2026-10-25&quot;
+# or:  xclip -o | bin/gridmem ingest --source grok</code></pre>
+<p>If the proposals look right, save them (or only some of them):</p>
+<pre><code>bin/gridmem ingest /tmp/grok_reply.txt --source grok --session &quot;chat 2026-10-25&quot; --yes
+bin/gridmem ingest /tmp/grok_reply.txt --source grok --yes --only 1,3</code></pre>
+<p>Everything saved this way is <code>claimed</code>, with the model as its source.</p>
+<h2>3. Keep it honest</h2>
+<pre><code>bin/gridmem add fact &quot;Guardian line 278 uses betaEff = kappa/(1+c*kappa)&quot; --tags guardian
+bin/gridmem correct GM-0012 &quot;Line 278 not changed yet; fix is proposed only&quot;
+bin/gridmem retract GM-0013 &quot;wrong file&quot;
+bin/gridmem verify GM-0001 --hash /path/to/genesis_input.txt fd0adf9005622e103f02115a50314d91f83dc705f1d685b16d45f52ad6b940b2
+bin/gridmem verify GM-0005 --output /workspace/derivation-audit/formulas_17_21_v2_checks_output.txt --expect &quot;34/34 checks passed (final)&quot;
+bin/gridmem verify GM-0003 --command &quot;/workspace/lattice-keeper/v034/.venv/bin/python -m pytest -q tests&quot; --cwd /workspace/lattice-keeper/v034 --expect &quot;88 passed&quot;
+bin/gridmem verify GM-0008 --operator-confirm --note &quot;Jay, 2026-10-25&quot;
+bin/gridmem verify GM-0001 --agreed-by gemini      # recorded; status does NOT change
+bin/gridmem history GM-0002
+bin/gridmem check --evidence</code></pre>
+<p>(The ids GM-0012 and GM-0013 above are examples. Use <code>bin/gridmem list</code> to see the real ones.)</p>
+<h2>4. Optional: the local web page</h2>
+<pre><code>./start_web.sh            # http://127.0.0.1:8792/ , Ctrl-C to stop
+cat data/web_token        # paste into the &quot;write token&quot; box (needed only to save)</code></pre>
+<p>The page shows the entries and search, has a Copy briefing button, and has a paste box with Preview, then Save.</p>
+<h2>5. Later: Phase 2 (needs API keys you create yourself)</h2>
+<pre><code>export XAI_API_KEY=...  GEMINI_API_KEY=...  ANTHROPIC_API_KEY=...  OPENAI_API_KEY=...
+bin/gridmem ask --models grok,gemini,claude &quot;Is the genesis anchor verified?&quot;
+bin/gridmem pending list
+bin/gridmem pending accept P-1a2b3c4d --yes      # or: pending reject all</code></pre>
+<p>Models whose key isn&#x27;t set are skipped with a message. Each call is billed by that provider.</p>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>
