@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Persistence Through Time · One-Page Map Source — Jay Vallea</title>
+<meta name="description" content="Source for the Persistence Through Time one-page map: a React and Tailwind field-guide of seven movements, key numbers, and 92 theses.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>One-Page Map</h1>
+  <p class="subtitle">Source for the Persistence Through Time field-guide map</p>
+  <p>A static React page that maps the whole arc of <em>Persistence Through Time</em>: seven movements, a table of key numbers, and all 92 theses, with the gaps honestly kept. There is a live build at <a href="../persistence-map/">persistence-map/</a>. No keys are included.</p>
+  <div class="row">
+    <a class="btn gold" href="../persistence-map/">Open the map</a>
+    <a class="btn" href="App.tsx" download>Download App.tsx</a>
+    <a class="btn" href="index.css" download>Download index.css</a>
+  </div>
+  <h2>App.tsx</h2>
+  <div class="src">import React from &quot;react&quot;;
+
+const movements = [
+  {
+    n: &quot;I&quot;,
+    title: &quot;Foundations&quot;,
+    range: &quot;1–15&quot;,
+    text: &quot;Persistence begins with bounded motion, not with staying still. Boundaries govern what enters and leaves, feedback keeps a system near its course, and coupling decides whether a network holds or breaks. Identity here is lineage: what continues is a chain of exchanges, checks, and repairs.&quot;,
+  },
+  {
+    n: &quot;II&quot;,
+    title: &quot;Evidence &amp; Truth&quot;,
+    range: &quot;16–30&quot;,
+    text: &quot;Evidence is only as strong as its independence, calibration, and provenance. Noise can imitate signal, consensus can be mistaken, and a hash or signature proves agreement or a key — never truth by itself. A claim must travel with its uncertainty, its domain, and a test that could actually fail.&quot;,
+  },
+  {
+    n: &quot;III&quot;,
+    title: &quot;Information &amp; Computation&quot;,
+    range: &quot;31–45&quot;,
+    text: &quot;Erasure has a physical price, while reversible computation can avoid paying it. Codes, constants, and models protect only what they were designed to protect, and universality does not identify a mechanism. Translation, scaling, and formal proof all preserve less than they appear to promise.&quot;,
+  },
+  {
+    n: &quot;IV&quot;,
+    title: &quot;Institutions &amp; Collective&quot;,
+    range: &quot;46–60&quot;,
+    text: &quot;Constraints are not trade-offs, and guardians, constitutions, and verifiers need bounds and amendment rules of their own. Cooperation, harvesting, and shared resources depend on rates, floors, and the independence of observers. When recovery slows, a system may be approaching a fold it cannot see from the inside.&quot;,
+  },
+  {
+    n: &quot;V&quot;,
+    title: &quot;Mind, Music &amp; Meaning&quot;,
+    range: &quot;61–73&quot;,
+    text: &quot;Sound is pattern in a medium, and transposition preserves intervals without preserving meaning. Festivals, authorship, and custodianship preserve by reuse and provenance rather than by freezing a single form. Adaptation, gain, and wonder all need humility about blind spots, distribution shift, and what remains open.&quot;,
+  },
+  {
+    n: &quot;VI&quot;,
+    title: &quot;Measurement &amp; Inheritance&quot;,
+    range: &quot;74–83&quot;,
+    text: &quot;Two cycles at 136.1 and 194.18 Hz are different cycles, and a power peak need not sit where amplitude peaks. Exact constants do not make measurements exact, and digits must match uncertainty rather than outrun it. Locking is a fixed lag, not identical phase, and proportional control still leaves steady error.&quot;,
+  },
+  {
+    n: &quot;VII&quot;,
+    title: &quot;Endings &amp; Stewardship&quot;,
+    range: &quot;84–92&quot;,
+    text: &quot;Learning must be bounded, coexistence needs room, and drift eventually beats noise. Two copies that fail together are one copy, and a successor must contain what the task actually requires. Stewardship settles where growth meets decay, and a self-confirming learner can lock in below what exploration would find.&quot;,
+  },
+];
+
+const numbers = [
+  { value: &quot;2.871e−21 J&quot;, label: &quot;Landauer limit at 300 K&quot; },
+  { value: &quot;136.1 vs 194.18 Hz&quot;, label: &quot;Different cycles&quot; },
+  { value: &quot;48.6°&quot;, label: &quot;Locked lag&quot; },
+  { value: &quot;1.58u / 2.54u&quot;, label: &quot;Accumulated kicks&quot; },
+  { value: &quot;0.58 vs 0.80&quot;, label: &quot;Quadrature vs linear&quot; },
+  { value: &quot;3/n&quot;, label: &quot;Rule of three&quot; },
+  { value: &quot;69%&quot;, label: &quot;Newtonian shortfall at 0.9c&quot; },
+  { value: &quot;0.0001 → 0.0011&quot;, label: &quot;Joint failure at ρ = 0.1&quot; },
+  { value: &quot;1.25&quot;, label: &quot;True value of best-of-100 at r = 0.5&quot; },
+  { value: &quot;β = 5/6&quot;, label: &quot;Ranking reversal&quot; },
+  { value: &quot;G/d = 50&quot;, label: &quot;Steady stewardship level&quot; },
+  { value: &quot;0.50 vs 0.59&quot;, label: &quot;Locked vs exploring&quot; },
+];
+
+const theses: string[] = [
+  &quot;Bounded motion persists.&quot;,
+  &quot;Energy books balance at boundaries.&quot;,
+  &quot;Erasure costs, reversibility avoids it.&quot;,
+  &quot;Networks hold or break by coupling.&quot;,
+  &quot;Boundaries are controlled exchange.&quot;,
+  &quot;Repetition alone does not guarantee cooperation.&quot;,
+  &quot;Windows hide slow change.&quot;,
+  &quot;Folds give hysteresis.&quot;,
+  &quot;Noise can look like signal.&quot;,
+  &quot;Hash proves agreement not truth.&quot;,
+  &quot;Signature proves key signed not truth.&quot;,
+  &quot;Feedback needs margins.&quot;,
+  &quot;Redundancy needs independence.&quot;,
+  &quot;Clocks order events, not time itself.&quot;,
+  &quot;Coupled reliable parts can run away.&quot;,
+  &quot;Degradation and recovery are rates.&quot;,
+  &quot;Identity is lineage not sameness.&quot;,
+  &quot;Memory reconstructs.&quot;,
+  &quot;Survival is not success.&quot;,
+  &quot;Uncertainty travels with the number.&quot;,
+  &quot;Observation needs a model.&quot;,
+  &quot;Consensus is not truth.&quot;,
+  &quot;Evidence needs independence.&quot;,
+  &quot;Standards need realization not just definition.&quot;,
+  &quot;Debt is not currency.&quot;,
+  &quot;Totals hide flows.&quot;,
+  &quot;Authority is not verification.&quot;,
+  &quot;Shared causes defeat redundancy.&quot;,
+  &quot;Symmetry gives conservation, with scope.&quot;,
+  &quot;Retirement is part of control.&quot;,
+  &quot;Provenance decides trust.&quot;,
+  &quot;Testing needs replication.&quot;,
+  &quot;Universality does not identify mechanism.&quot;,
+  &quot;Scaling needs a valid model.&quot;,
+  &quot;Formal proof needs sound interpretation.&quot;,
+  &quot;Merge needs laws plus dissemination.&quot;,
+  &quot;Identity is criterion-relative.&quot;,
+  &quot;Proxy optimization distorts.&quot;,
+  &quot;Calibration is on a distribution.&quot;,
+  &quot;Translation preserves only what it was designed to preserve.&quot;,
+  &quot;Reproducibility has levels.&quot;,
+  &quot;Constants: defined vs measured.&quot;,
+  &quot;Horizons are distinct.&quot;,
+  &quot;Codes protect only specified errors.&quot;,
+  &quot;Trajectories need time order.&quot;,
+  &quot;Constraints are not trade-offs.&quot;,
+  &quot;Absence needs a detection model.&quot;,
+  &quot;Contradiction needs classes.&quot;,
+  &quot;Capability needs bottlenecks checked.&quot;,
+  &quot;Options have value and expiry.&quot;,
+  &quot;Guardians need bounds.&quot;,
+  &quot;Constitutions need amendment rules.&quot;,
+  &quot;Verifiers need accountability.&quot;,
+  &quot;Harvest needs a sustainable rate.&quot;,
+  &quot;Slowing recovery warns.&quot;,
+  &quot;Forgetting needs importance weights.&quot;,
+  &quot;Arrow is counting plus low-entropy past.&quot;,
+  &quot;Flourishing needs floors.&quot;,
+  &quot;Correlated observers add little.&quot;,
+  &quot;Tipping needs a fold model.&quot;,
+  &quot;Sound is pattern in a medium.&quot;,
+  &quot;Transposition preserves intervals not meaning.&quot;,
+  &quot;Entropy is not complexity.&quot;,
+  &quot;Festivals preserve by reuse.&quot;,
+  &quot;Authorship needs provenance.&quot;,
+  &quot;Diversity needs response diversity.&quot;,
+  &quot;Custodians need independence.&quot;,
+  &quot;Wonder needs humility.&quot;,
+  &quot;Correlation is not causation.&quot;,
+  &quot;Gain has a stable range.&quot;,
+  &quot;Adaptation needs distribution shift checked.&quot;,
+  &quot;Consciousness is open.&quot;,
+  &quot;Blind spots need independent instruments.&quot;,
+  &quot;Consensus needs independent verification.&quot;,
+  &quot;Exact constants do not make measurements exact.&quot;,
+  &quot;Capability decays without practice.&quot;,
+  &quot;Prediction is not explanation.&quot;,
+  &quot;Locking is fixed lag not identical phase.&quot;,
+  &quot;Proportional control leaves steady error.&quot;,
+  &quot;Random-tolerant is not targeted-tolerant.&quot;,
+  &quot;Dropping uncertainty changes the number.&quot;,
+  &quot;Digits must match uncertainty.&quot;,
+  &quot;Laws have addresses.&quot;,
+  &quot;Learning must be bounded.&quot;,
+  &quot;Coexistence needs alpha &lt; 1.&quot;,
+  &quot;Drift beats noise after (sigma/mu)^2.&quot;,
+  &quot;Two copies failing together are one copy.&quot;,
+  &quot;Best-by-proxy is worth less than it looks.&quot;,
+  &quot;Successor must contain F_required.&quot;,
+  &quot;Steady reading hides flows.&quot;,
+  &quot;Reversible steps protect only detectable faults.&quot;,
+  &quot;A test that cannot fail is not a test.&quot;,
+];
+
+const evidence = [&quot;ESTABLISHED&quot;, &quot;DEBATED&quot;, &quot;SPECULATIVE&quot;, &quot;FANTASY&quot;];
+
+export default function App() {
+  return (
+    &lt;div
+      data-safe-area-inset-root
+      style={{ boxSizing: &quot;border-box&quot;, paddingTop: &quot;var(--safe-area-inset-top)&quot;, minHeight: &quot;100vh&quot;, background: &quot;var(--paper)&quot;, color: &quot;var(--ink)&quot; }}
+      className=&quot;overflow-x-clip&quot;
+    &gt;
+      &lt;main className=&quot;mx-auto w-full max-w-[980px] px-4 pb-10 pt-5 sm:px-7 sm:pt-8 lg:px-8&quot;&gt;
+        {/* Header */}
+        &lt;header className=&quot;border-t-[3px] border-b border-[var(--rule)] pt-3&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1&quot;&gt;
+            &lt;p className=&quot;mono smallcaps text-[10px] font-semibold text-[var(--muted)]&quot;&gt;Field Guide · Chapters 1–92&lt;/p&gt;
+            &lt;p className=&quot;mono text-[11px] text-[var(--muted)]&quot;&gt;337 pages · 92 chapters&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;h1 className=&quot;mt-5 text-[42px] font-semibold leading-[0.92] tracking-[-0.035em] sm:text-[64px]&quot;&gt;
+            Persistence&lt;br /&gt;Through Time
+          &lt;/h1&gt;
+          &lt;p className=&quot;mt-4 text-[19px] font-medium leading-tight sm:text-[23px]&quot;&gt;One-Page Map of the Whole Arc&lt;/p&gt;
+          &lt;p className=&quot;mt-4 max-w-[860px] text-[15px] leading-relaxed text-[var(--ink-soft)] sm:text-[16px]&quot;&gt;
+            Persistence is not stillness. Persistence is bounded motion.
+          &lt;/p&gt;
+          &lt;div className=&quot;mt-4 flex flex-wrap items-center gap-2&quot;&gt;
+            &lt;span className=&quot;mono inline-block border border-[var(--rule)] bg-[var(--paper-2)] px-2.5 py-1.5 text-[13px] font-semibold sm:text-sm&quot;&gt;P = f(B, C, G, I, τ)&lt;/span&gt;
+            &lt;span className=&quot;mono text-[11px] leading-relaxed text-[var(--muted)] sm:text-xs&quot;&gt;Boundary · Correlation / Constraint · Geometry / Growth · Information · Time&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;p className=&quot;mt-4 border-t border-[var(--rule-soft)] py-3 text-[12px] leading-relaxed text-[var(--ink-soft)] sm:text-[13px]&quot;&gt;
+            &lt;span className=&quot;font-bold text-[var(--ink)]&quot;&gt;Keeper Axiom:&lt;/span&gt; Truth first. Evidence always. Integrity by design. Family safe. Peace holds. Mission is good.
+          &lt;/p&gt;
+        &lt;/header&gt;
+
+        {/* 01 — The Rule */}
+        &lt;section aria-labelledby=&quot;rule-heading&quot; className=&quot;mt-6 border border-[var(--rule)] bg-[var(--paper-2)] p-4 sm:p-6&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-baseline justify-between gap-2&quot;&gt;
+            &lt;h2 id=&quot;rule-heading&quot; className=&quot;text-[22px] font-semibold leading-none sm:text-[26px]&quot;&gt;&lt;span className=&quot;mono mr-2 text-[13px] font-semibold text-[var(--accent)]&quot;&gt;01&lt;/span&gt; The Rule&lt;/h2&gt;
+            &lt;p className=&quot;mono smallcaps text-[10px] text-[var(--muted)]&quot;&gt;How to read&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div className=&quot;mt-5 grid grid-cols-2 gap-px border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-4&quot;&gt;
+            {evidence.map((item, i) =&gt; (
+              &lt;div key={item} className=&quot;bg-[var(--paper)] px-3 py-3&quot;&gt;
+                &lt;p className=&quot;mono text-[10px] text-[var(--muted)]&quot;&gt;0{i + 1}&lt;/p&gt;
+                &lt;p className=&quot;mono mt-2 text-[11px] font-bold tracking-[0.08em] sm:text-xs&quot;&gt;{item}&lt;/p&gt;
+              &lt;/div&gt;
+            ))}
+          &lt;/div&gt;
+          &lt;p className=&quot;mt-5 text-[15px] leading-relaxed sm:text-[16px]&quot;&gt;
+            Claims travel with uncertainty, provenance, domain. A hash proves agreement not truth. A signature proves a key signed, not identity / authority / truth. A test that cannot fail is not a test.
+          &lt;/p&gt;
+        &lt;/section&gt;
+
+        {/* 02 — Arc in 7 Movements */}
+        &lt;section aria-labelledby=&quot;arc-heading&quot; className=&quot;mt-8&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-end justify-between gap-2 border-b-2 border-[var(--rule)] pb-3&quot;&gt;
+            &lt;h2 id=&quot;arc-heading&quot; className=&quot;text-[26px] font-semibold leading-none sm:text-[32px]&quot;&gt;&lt;span className=&quot;mono mr-2 text-[13px] font-semibold text-[var(--accent)]&quot;&gt;02&lt;/span&gt; The Arc in 7 Movements&lt;/h2&gt;
+            &lt;p className=&quot;mono text-[11px] text-[var(--muted)]&quot;&gt;Read top to bottom · Keep the lineage intact&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div&gt;
+            {movements.map((m, idx) =&gt; (
+              &lt;article key={m.n} className=&quot;grid grid-cols-[52px_1fr] gap-3 border-b border-[var(--rule-soft)] py-4 sm:grid-cols-[84px_170px_1fr] sm:gap-5 sm:py-5&quot;&gt;
+                &lt;div className=&quot;flex flex-col&quot;&gt;
+                  &lt;span className=&quot;text-[28px] font-semibold leading-none text-[var(--accent)] sm:text-[34px]&quot;&gt;{m.n}&lt;/span&gt;
+                  &lt;span className=&quot;mono mt-2 text-[10px] text-[var(--muted)]&quot;&gt;MOVEMENT {idx + 1}&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h3 className=&quot;text-[17px] font-semibold leading-tight sm:text-[19px]&quot;&gt;{m.title}&lt;/h3&gt;
+                  &lt;p className=&quot;mono mt-1 text-xs text-[var(--muted)]&quot;&gt;Chapters {m.range}&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;p className=&quot;col-span-2 text-[14px] leading-relaxed text-[var(--ink-soft)] sm:col-span-1 sm:text-[15px]&quot;&gt;{m.text}&lt;/p&gt;
+              &lt;/article&gt;
+            ))}
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* 03 — Key Numbers */}
+        &lt;section aria-labelledby=&quot;numbers-heading&quot; className=&quot;mt-8&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-end justify-between gap-2 border-b-2 border-[var(--rule)] pb-3&quot;&gt;
+            &lt;h2 id=&quot;numbers-heading&quot; className=&quot;text-[26px] font-semibold leading-none sm:text-[32px]&quot;&gt;&lt;span className=&quot;mono mr-2 text-[13px] font-semibold text-[var(--accent)]&quot;&gt;03&lt;/span&gt; Key Numbers&lt;/h2&gt;
+            &lt;p className=&quot;mono smallcaps text-[10px] text-[var(--muted)]&quot;&gt;Carry the number · Carry its conditions&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div className=&quot;mt-4 grid grid-cols-2 gap-px border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-3 lg:grid-cols-4&quot;&gt;
+            {numbers.map((item, i) =&gt; (
+              &lt;div key={item.value} className=&quot;flex min-h-[112px] flex-col justify-between bg-[var(--paper)] p-3 sm:min-h-[124px] sm:p-4&quot;&gt;
+                &lt;span className=&quot;mono text-[10px] text-[var(--muted)]&quot;&gt;{String(i + 1).padStart(2, &quot;0&quot;)}&lt;/span&gt;
+                &lt;div&gt;
+                  &lt;p className=&quot;mono text-[14px] font-semibold leading-snug sm:text-[15px]&quot;&gt;{item.value}&lt;/p&gt;
+                  &lt;p className=&quot;mt-2 text-[12px] leading-snug text-[var(--muted)]&quot;&gt;{item.label}&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            ))}
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* 04 — All 92 Theses */}
+        &lt;section aria-labelledby=&quot;theses-heading&quot; className=&quot;mt-8&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-end justify-between gap-2 border-b-2 border-[var(--rule)] pb-3&quot;&gt;
+            &lt;h2 id=&quot;theses-heading&quot; className=&quot;text-[26px] font-semibold leading-none sm:text-[32px]&quot;&gt;&lt;span className=&quot;mono mr-2 text-[13px] font-semibold text-[var(--accent)]&quot;&gt;04&lt;/span&gt; All 92 Theses&lt;/h2&gt;
+            &lt;p className=&quot;mono smallcaps text-[10px] text-[var(--muted)]&quot;&gt;One line each · Chapter order&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div className=&quot;mt-4 overflow-x-clip border border-[var(--rule)]&quot;&gt;
+            &lt;table className=&quot;w-full border-collapse text-left&quot;&gt;
+              &lt;thead&gt;
+                &lt;tr className=&quot;bg-[var(--ink)] text-[var(--paper)]&quot;&gt;
+                  &lt;th scope=&quot;col&quot; className=&quot;mono w-[86px] px-3 py-2 text-[11px] font-semibold tracking-[0.08em] sm:w-[110px] sm:px-4&quot;&gt;Chapter&lt;/th&gt;
+                  &lt;th scope=&quot;col&quot; className=&quot;mono px-3 py-2 text-[11px] font-semibold tracking-[0.08em] sm:px-4&quot;&gt;Thesis&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody&gt;
+                {theses.map((thesis, i) =&gt; (
+                  &lt;tr key={i + 1} className={i % 2 === 0 ? &quot;bg-[var(--paper)]&quot; : &quot;bg-[var(--paper-2)]&quot;}&gt;
+                    &lt;td className=&quot;mono border-t border-[var(--rule-soft)] px-3 py-[7px] text-[12px] font-semibold tabular-nums sm:px-4&quot;&gt;{i + 1}&lt;/td&gt;
+                    &lt;td className=&quot;border-t border-[var(--rule-soft)] px-3 py-[7px] text-[12.5px] leading-snug sm:px-4 sm:text-[13px]&quot;&gt;{thesis}&lt;/td&gt;
+                  &lt;/tr&gt;
+                ))}
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        {/* 05 — Gaps */}
+        &lt;section aria-labelledby=&quot;gaps-heading&quot; className=&quot;mt-8 border border-[var(--rule)] bg-[var(--paper-3)] p-4 sm:p-6&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-baseline justify-between gap-2&quot;&gt;
+            &lt;h2 id=&quot;gaps-heading&quot; className=&quot;text-[22px] font-semibold leading-none sm:text-[26px]&quot;&gt;&lt;span className=&quot;mono mr-2 text-[13px] font-semibold text-[var(--accent)]&quot;&gt;05&lt;/span&gt; Gaps Honestly Kept&lt;/h2&gt;
+            &lt;p className=&quot;mono smallcaps text-[10px] text-[var(--muted)]&quot;&gt;What is not claimed&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;ul className=&quot;mt-5 space-y-3 text-[14px] leading-relaxed sm:text-[15px]&quot;&gt;
+            &lt;li className=&quot;flex gap-3&quot;&gt;&lt;span className=&quot;mono mt-0.5 text-[var(--accent)]&quot;&gt;—&lt;/span&gt;&lt;span&gt;&lt;strong&gt;Principles 458–477&lt;/strong&gt; and &lt;strong&gt;488–492&lt;/strong&gt; undeveloped.&lt;/span&gt;&lt;/li&gt;
+            &lt;li className=&quot;flex gap-3&quot;&gt;&lt;span className=&quot;mono mt-0.5 text-[var(--accent)]&quot;&gt;—&lt;/span&gt;&lt;span&gt;&lt;strong&gt;628&lt;/strong&gt; and &lt;strong&gt;819&lt;/strong&gt; narrative only.&lt;/span&gt;&lt;/li&gt;
+            &lt;li className=&quot;flex gap-3&quot;&gt;&lt;span className=&quot;mono mt-0.5 text-[var(--accent)]&quot;&gt;—&lt;/span&gt;&lt;span&gt;&lt;strong&gt;1035–1039&lt;/strong&gt; preview only.&lt;/span&gt;&lt;/li&gt;
+            &lt;li className=&quot;flex gap-3&quot;&gt;&lt;span className=&quot;mono mt-0.5 text-[var(--accent)]&quot;&gt;—&lt;/span&gt;&lt;span&gt;&lt;strong&gt;Lattice Keeper:&lt;/strong&gt; proposed design, genesis claimed unverified.&lt;/span&gt;&lt;/li&gt;
+            &lt;li className=&quot;flex gap-3&quot;&gt;&lt;span className=&quot;mono mt-0.5 text-[var(--accent)]&quot;&gt;—&lt;/span&gt;&lt;span&gt;No gap reconstructed.&lt;/span&gt;&lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/section&gt;
+
+        {/* 06 — Ending Sentence */}
+        &lt;section aria-labelledby=&quot;ending-heading&quot; className=&quot;mt-8 border-y-[3px] border-[var(--rule)] py-7 sm:py-9&quot;&gt;
+          &lt;p className=&quot;mono smallcaps text-[10px] text-[var(--muted)]&quot;&gt;06 · The Ending Sentence&lt;/p&gt;
+          &lt;blockquote className=&quot;mt-4 max-w-[900px]&quot;&gt;
+            &lt;p className=&quot;text-[26px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[34px] lg:text-[38px]&quot;&gt;
+              Persistence is not keeping the same thing. It is keeping the &lt;em className=&quot;text-[var(--accent)]&quot;&gt;evidence&lt;/em&gt;, the &lt;em className=&quot;text-[var(--accent)]&quot;&gt;uncertainty&lt;/em&gt;, the &lt;em className=&quot;text-[var(--accent)]&quot;&gt;provenance&lt;/em&gt;, and the ability to check.
+            &lt;/p&gt;
+          &lt;/blockquote&gt;
+        &lt;/section&gt;
+
+        &lt;footer className=&quot;mt-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-[var(--rule-soft)] pt-4&quot;&gt;
+          &lt;p className=&quot;mono text-[11px] leading-relaxed text-[var(--muted)] sm:text-xs&quot;&gt;337 pages · 92 chapters · 120 endnotes · 119 figures&lt;/p&gt;
+          &lt;p className=&quot;text-[12px] leading-relaxed text-[var(--ink-soft)] sm:text-[13px]&quot;&gt;&lt;strong&gt;Editorial draft, not a completed book.&lt;/strong&gt;&lt;/p&gt;
+        &lt;/footer&gt;
+      &lt;/main&gt;
+    &lt;/div&gt;
+  );
+}
+</div>
+  <h2>index.css</h2>
+  <div class="src">@import url(&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap&#x27;);
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #f6efe0;
+  --paper-2: #eee4cd;
+  --paper-3: #e7dbc0;
+  --ink: #1d1912;
+  --ink-soft: #3f382d;
+  --muted: #6b6250;
+  --rule: #1d1912;
+  --rule-soft: #b9ab8d;
+  --accent: #8a2a1e;
+  --accent-soft: #f0d9c8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #211d17;
+    --paper-2: #2a261e;
+    --paper-3: #322d24;
+    --ink: #f1e8d5;
+    --ink-soft: #d9cdb4;
+    --muted: #b3a78f;
+    --rule: #f1e8d5;
+    --rule-soft: #6e6759;
+    --accent: #e08a70;
+    --accent-soft: #3a2a24;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: &quot;Fraunces&quot;, Georgia, &quot;Times New Roman&quot;, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: &quot;IBM Plex Mono&quot;, &quot;Courier New&quot;, monospace; }
+.smallcaps { font-variant: small-caps; letter-spacing: .12em; text-transform: uppercase; }
+.thin-rule { border: 0; border-top: 1px solid var(--rule); }
+.hair-rule { border: 0; border-top: 1px solid var(--rule-soft); }
+
+@media print {
+  body { background: #fffdf6 !important; color: #111 !important; }
+  .no-print-shadow { box-shadow: none !important; }
+}
+
+.mn-back {
+  position: fixed;
+  top: 10px;
+  right: 16px;
+  z-index: 50;
+  color: var(--ink);
+  font: 11px/1.3 &quot;Courier New&quot;, Courier, monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: .72;
+}
+.mn-back:hover { opacity: 1; }
+</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Source as built for the live map; the CSS includes the Master Nebula back-link rule.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
