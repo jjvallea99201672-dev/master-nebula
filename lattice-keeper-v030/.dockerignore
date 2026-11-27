@@ -1,0 +1,16 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+keys/
+.env
+tests/
+dist/
+build/
+rag-docs/
+scripts/
+operator-keys/
+operator_*.key
+firmware/**/secrets.h

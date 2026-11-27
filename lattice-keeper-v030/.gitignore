@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+keys/
+.env
+rag-docs/
+operator-keys/
+operator_*.key
+firmware/**/secrets.h
