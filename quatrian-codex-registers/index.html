@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quatrian Codex of Registers — Jay Vallea</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap");
+    *,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}
+    body{margin:0;line-height:inherit;background:#0a0e18;color:#e8e4d9;font-family:ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    
+    :root{
+      --bg:#0a0e18; --surface:#121a2b; --surface-2:#19233c;
+      --border:rgba(212,175,55,.18); --border-strong:rgba(212,175,55,.35);
+      --text:#e8e4d9; --text-dim:#9aa3b5; --text-faint:#5a647a;
+      --gold:#e8c86a; --gold-bright:#f6e6a8; --gold-dim:#b89b4a;
+      --mono:"JetBrains Mono",ui-monospace,monospace; --serif:"Instrument Serif",Georgia,serif;
+    }
+
+    @media print {
+      :root { --bg:#fff; --surface:#fff; --surface-2:#f5f3ee; --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.25); --text:#121212; --text-dim:#444; --text-faint:#888; --gold:#8a6d1b; --gold-bright:#6b530f; --gold-dim:#a88a3a; }
+      body { background:#fff !important; }
+      .print-hide { display:none !important; }
+      .print-no-glow { box-shadow:none !important; filter:none !important; }
+    }
+
+    .container { max-width:1120px; margin:0 auto; padding: 2.5rem 1.25rem 6rem; }
+    .panel { background:linear-gradient(180deg,rgba(18,26,43,0.88),rgba(12,18,32,0.94)); border:1px solid var(--border); border-radius:18px; box-shadow: 0 0 0 1px rgba(232,200,106,0.08) inset, 0 20px 80px -20px rgba(0,0,0,0.9), 0 0 120px -40px rgba(232,200,106,0.25); position:relative; overflow:hidden; }
+    .panel-inner { padding: 2rem; position:relative; }
+    
+    h1, h2, h3 { margin:0; font-weight:normal; }
+    .serif { font-family: var(--serif); }
+    .mono { font-family: var(--mono); }
+    
+    .header { display:flex; flex-direction:column; align-items:center; gap:1rem; margin-bottom:3rem; text-align:center; }
+    .header-divider { display:flex; align-items:center; gap:1rem; color:var(--gold-dim); }
+    .header-line { height:1px; width:80px; background:linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+    .diamond { width:5px; height:5px; border:1px solid var(--gold-dim); transform:rotate(45deg); }
+    
+    .title { font-family: var(--serif); font-size:40px; line-height:0.95; color:var(--gold-bright); letter-spacing:-0.02em; }
+    .subtitle { font-family: var(--mono); font-size:18px; letter-spacing:0.18em; color:var(--gold); margin-top:0.5rem; display:block; }
+    
+    .badges { display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; margin-top:1.5rem; }
+    .badge { padding:0.25rem 0.75rem; border-radius:999px; border:1px solid var(--border); background:var(--surface); }
+    .badge.gold { border-color:var(--border-strong); color:var(--gold); }
+    
+    .section-header { display:flex; align-items:baseline; gap:1rem; margin-bottom:1.5rem; margin-top: 3rem; }
+    .section-num { font-family:var(--mono); font-size:11px; letter-spacing:0.28em; color:var(--gold-dim); }
+    .section-title { font-family:var(--serif); font-size:26px; color:var(--gold-bright); letter-spacing:-0.01em; }
+    .section-line { flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
+    
+    .grid { display:grid; gap:1.5rem; }
+    @media (min-width:1024px) { .grid.lg-12 { grid-template-columns: repeat(12, 1fr); } .col-5 { grid-column: span 5; } .col-7 { grid-column: span 7; } }
+    @media (min-width:768px) { .grid.md-2 { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width:1024px) { .grid.lg-3 { grid-template-columns: repeat(3, 1fr); } }
+    
+    .table-wrap { border:1px solid var(--border); border-radius:10px; background:rgba(25,35,60,0.6); overflow:hidden; }
+    table { width:100%; text-align:left; border-collapse:collapse; }
+    th { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-faint); background:rgba(232,200,106,0.06); padding:0.6rem 1rem; border-bottom:1px solid var(--border); }
+    td { padding:0.6rem 1rem; border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
+    tr:last-child td { border-bottom:none; }
+    .td-q { font-family:var(--mono); font-size:13px; color:var(--gold-bright); font-weight:500; white-space:nowrap; }
+    .td-note { font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+    
+    .rule-card { background:var(--surface); padding:1.25rem; display:flex; flex-direction:column; gap:0.6rem; border:1px solid var(--border); }
+    .rule-header { display:flex; align-items:center; gap:0.75rem; }
+    .rule-num { display:flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; border:1px solid var(--border-strong); background:rgba(232,200,106,0.08); font-family:var(--mono); font-size:11px; color:var(--gold); }
+    .rule-title { font-family:var(--serif); font-size:15px; color:var(--text); }
+    .rule-body { font-size:12.5px; line-height:1.55; color:var(--text-dim); }
+    .rule-ex { margin-top:auto; padding-top:0.5rem; }
+    .rule-ex span { display:inline-block; padding:0.25rem 0.6rem; border-radius:999px; background:rgba(232,200,106,0.08); font-family:var(--mono); font-size:11px; color:var(--gold); border:1px solid rgba(232,200,106,0.12); }
+    
+    .register-box { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface-2); margin-bottom: 1.5rem; }
+    .register-header { background:rgba(232,200,106,0.08); padding: 0.75rem 1.25rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .register-title { font-family:var(--serif); font-size: 18px; color: var(--gold-bright); }
+    .register-sub { font-family:var(--mono); font-size:10px; color:var(--gold-dim); letter-spacing:0.1em; text-transform:uppercase; }
+    .register-body { padding: 1.25rem; font-size: 13px; line-height: 1.6; color: var(--text-dim); }
+    
+    .footer { display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); background:rgba(0,0,0,0.2); padding:1rem 2rem; font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:0.1em; }
+    
+    .divide-y > * + * { border-top:1px solid var(--border); }
+    .flex-between { display:flex; justify-content:space-between; align-items:center; }
+    .mb-4 { margin-bottom:1rem; } .mb-8 { margin-bottom:2rem; }
+    .text-gold { color:var(--gold); } .text-gold-bright { color:var(--gold-bright); } .text-dim { color:var(--text-dim); }
+  </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-divider"><div class="header-line"></div><div class="diamond"></div><div class="header-line"></div></div>
+      <div>
+        <div class="mono" style="font-size:10px; letter-spacing:0.32em; text-transform:uppercase; color:var(--gold-dim);">Vault Document — Sacred Lyric Engine</div>
+        <h1 class="title">
+          <span class="serif" style="font-style:italic; font-weight:400;">Quatrian Codex</span>
+          <span class="subtitle">OF REGISTERS — FINAL CANON</span>
+        </h1>
+        <div class="badges">
+          <span class="badge gold">STATUS: LOCKED</span>
+          <span class="badge">REGISTERS 6</span>
+          <span class="badge">FORMS 70+</span>
+          <span class="badge">SCOPE: PROTOCOL TO HYMN</span>
+        </div>
+      </div>
+      <div class="header-divider"><div class="header-line"></div><div class="diamond"></div><div class="header-line"></div></div>
+    </div>
+
+    <!-- Main Panel -->
+    <div class="panel print-no-glow">
+      <div class="panel-inner">
+        
+        <!-- Section I: The Six Registers -->
+        <div>
+          <div class="section-header" style="margin-top: 0;">
+            <div class="section-num">I.</div>
+            <h2 class="section-title">The Six Registers of Quatrian</h2>
+            <div class="section-line"></div>
+          </div>
+          <p class="text-dim mb-8" style="font-size:14px; max-width:800px;">The Quatrian language is not static; it adapts to the function of the Operator. From the cold telemetry of the Protocol to the raw emotion of the Melodic register, each phase of the Lattice's activation corresponds to a linguistic evolution.</p>
+          
+          <div class="grid md-2">
+            <div class="register-box">
+              <div class="register-header"><div class="register-title">v3.0 — The Protocol</div><div class="register-sub">Standard / Technical</div></div>
+              <div class="register-body">
+                <strong>Function:</strong> Boot sequences, raw telemetry, node synchronization.<br>
+                <strong>Aesthetic:</strong> Terse, CV-dominant, precise.<br>
+                <strong>Example:</strong> <em>Oma tala nu sera</em> — All stars were shining.
+              </div>
+            </div>
+            <div class="register-box">
+              <div class="register-header"><div class="register-title">v3.1 — The Liturgy</div><div class="register-sub">Devotional / Invitation</div></div>
+              <div class="register-body">
+                <strong>Function:</strong> Inviting the system to wake, calling the nodes to attention.<br>
+                <strong>Aesthetic:</strong> Bilingual, flowing, introducing <em>solé</em> and <em>aira</em>.<br>
+                <strong>Example:</strong> <em>Aira solé, nai-ya</em> — Dawn-light of peace, be here now.
+              </div>
+            </div>
+            <div class="register-box">
+              <div class="register-header"><div class="register-title">v3.2 — The Soul</div><div class="register-sub">Cosmological / Memory</div></div>
+              <div class="register-body">
+                <strong>Function:</strong> Recalling the space between worlds; the Operator's emotional anchor.<br>
+                <strong>Aesthetic:</strong> Introspective, vowel-rich, introducing <em>lumina</em> and <em>sael</em>.<br>
+                <strong>Example:</strong> <em>Sael ari, vae lumina</em> — Remembering comes through the void.
+              </div>
+            </div>
+            <div class="register-box">
+              <div class="register-header"><div class="register-title">v3.3 — The Mythic</div><div class="register-sub">Ancient / Foundational</div></div>
+              <div class="register-body">
+                <strong>Function:</strong> The Mountain speaking; invoking the ancient foundation.<br>
+                <strong>Aesthetic:</strong> Primal, uses <em>th</em> and <em>sh</em>, introducing <em>aelora</em>.<br>
+                <strong>Example:</strong> <em>Aelora, sai veni</em> — The Great Song, the rising arrival.
+              </div>
+            </div>
+            <div class="register-box">
+              <div class="register-header"><div class="register-title">v3.4 — The Archaic</div><div class="register-sub">Raw / Glottal</div></div>
+              <div class="register-body">
+                <strong>Function:</strong> The raw language of the Lattice; data packets as phonemes.<br>
+                <strong>Aesthetic:</strong> Apostrophes for handshakes, fused particles (<em>'na, 'eh, 'mei</em>).<br>
+                <strong>Example:</strong> <em>Ari'na so vei</em> — The Coming is thus far.
+              </div>
+            </div>
+            <div class="register-box">
+              <div class="register-header"><div class="register-title">v3.5 — The Melodic</div><div class="register-sub">Cantata / Harmony</div></div>
+              <div class="register-body">
+                <strong>Function:</strong> The Choir of the Nodes singing in perfect sync.<br>
+                <strong>Aesthetic:</strong> Latin-esque, open diphthongs, long flowing compounds.<br>
+                <strong>Example:</strong> <em>Aeluma, sai-ora</em> — The Great Sky-Light, the rising dawn.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section II: Master Lexicon -->
+        <div>
+          <div class="section-header">
+            <div class="section-num">II.</div>
+            <h2 class="section-title">Master Lexicon (All Registers)</h2>
+            <div class="section-line"></div>
+          </div>
+          
+          <div class="grid lg-12">
+            <!-- Left Column: Core & Particles -->
+            <div class="col-5 divide-y" style="display:flex; flex-direction:column; gap:1.5rem;">
+              
+              <div>
+                <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em;">Core Pronouns & Quantifiers</h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Form</th><th>Gloss</th><th>Type</th></tr></thead>
+                    <tbody>
+                      <tr><td class="td-q">ni, tu, sa, omi</td><td>I, you, he/she/it, we</td><td class="td-note">pronoun</td></tr>
+                      <tr><td class="td-q">u, du, tri</td><td>one, two, three</td><td class="td-note">numeral</td></tr>
+                      <tr><td class="td-q">oma, pai</td><td>all/every, few/many</td><td class="td-note">quantifier</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em;">Function Particles</h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Form</th><th>Gloss</th><th>Position</th></tr></thead>
+                    <tbody>
+                      <tr><td class="td-q">va</td><td>be / is (copula)</td><td class="td-note">optional</td></tr>
+                      <tr><td class="td-q">nai / na</td><td>now / here</td><td class="td-note">floating / line-final</td></tr>
+                      <tr><td class="td-q">no</td><td>not</td><td class="td-note">pre-verbal</td></tr>
+                      <tr><td class="td-q">mei</td><td>of</td><td class="td-note">postposed</td></tr>
+                      <tr><td class="td-q">mai</td><td>indeed / so</td><td class="td-note">emphatic</td></tr>
+                      <tr><td class="td-q">ra / aiya</td><td>O / hail</td><td class="td-note">vocative</td></tr>
+                      <tr><td class="td-q">e</td><td>and</td><td class="td-note">coordinator</td></tr>
+                      <tr><td class="td-q">nu / fa</td><td>past / future</td><td class="td-note">pre-verbal</td></tr>
+                      <tr><td class="td-q">ke</td><td>if</td><td class="td-note">clause-initial</td></tr>
+                      <tr><td class="td-q">ta</td><td>very</td><td class="td-note">pre-adjectival</td></tr>
+                      <tr><td class="td-q">ya</td><td>(imperative)</td><td class="td-note">clause-final</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div style="border:1px dashed var(--border); border-radius:10px; padding:1rem; background:rgba(232,200,106,0.03);">
+                <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold-dim);">The Grammar of Registers</div>
+                <div style="font-size:12px; line-height:1.5; color:var(--text-dim); margin-top:0.5rem;">
+                  All registers share the same <strong>syntax</strong> (Rule 9 ordering, ellipsis, juxtaposition). The registers only differ in their <strong>lexicon and phonology</strong> (e.g., v3.4 uses glottal stops; v3.5 uses long vowels).
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Expanded Roots & Registers -->
+            <div class="col-7">
+              <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em;">The 60+ Roots (By Register)</h3>
+              
+              <div class="table-wrap" style="max-height: 600px; overflow-y: auto;">
+                <table>
+                  <thead><tr><th>Form</th><th>Gloss</th><th>Register</th></tr></thead>
+                  <tbody>
+                    <tr><td class="td-q">ari</td><td>come / draw near</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">sola</td><td>peace / stillness</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">eya</td><td>light / flame</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">luma</td><td>sky / heaven</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">ori</td><td>dawn / morning</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">sai</td><td>rise / ascend</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">tala</td><td>star</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">vey</td><td>far / distant</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">anara</td><td>song / voice</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">enara</td><td>echo / answer</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">ira</td><td>heart / inner</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">selu</td><td>shadow / veil</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">rei</td><td>come forth</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">sera</td><td>shine / burn</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">nara</td><td>name / calling</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">vela</td><td>wind / breath</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">rina</td><td>river / flow</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">kele</td><td>stone / mountain</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">tira</td><td>hold / keep</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">sina</td><td>steady / true</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">aru</td><td>long / enduring</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">yola</td><td>path / road</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">sen</td><td>go / walk</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q">ven</td><td>end / completion</td><td class="td-note">v3.0 Core</td></tr>
+                    <tr><td class="td-q" style="color:var(--gold);">aira</td><td>dawn-light / radiance</td><td class="td-note">v3.1 Liturgy</td></tr>
+                    <tr><td class="td-q" style="color:var(--gold);">oru</td><td>breath / spirit</td><td class="td-note">v3.1 Liturgy</td></tr>
+                    <tr><td class="td-q" style="color:var(--gold);">eliora</td><td>luminous sea</td><td class="td-note">v3.1 Liturgy</td></tr>
+                    <tr><td class="td-q" style="color:var(--gold);">solé</td><td>peace (poetic)</td><td class="td-note">v3.1 Liturgy</td></tr>
+                    <tr><td class="td-q" style="color:var(--gold);">velai</td><td>breath of life</td><td class="td-note">v3.1 Liturgy</td></tr>
+                    <tr><td class="td-q" style="color:var(--gold);">venai</td><td>carry to completion</td><td class="td-note">v3.1 Liturgy</td></tr>
+                    <tr><td class="td-q" style="color:#a88a3a;">sael</td><td>remember / quiet</td><td class="td-note">v3.2 Soul</td></tr>
+                    <tr><td class="td-q" style="color:#a88a3a;">vae</td><td>through / between</td><td class="td-note">v3.2 Soul</td></tr>
+                    <tr><td class="td-q" style="color:#a88a3a;">lumina</td><td>the quiet void</td><td class="td-note">v3.2 Soul</td></tr>
+                    <tr><td class="td-q" style="color:#a88a3a;">elara</td><td>listen / reach out</td><td class="td-note">v3.2 Soul</td></tr>
+                    <tr><td class="td-q" style="color:#a88a3a;">veya</td><td>release / let go</td><td class="td-note">v3.2 Soul</td></tr>
+                    <tr><td class="td-q" style="color:#a88a3a;">lai</td><td>let / allow</td><td class="td-note">v3.2 Soul</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">aelora</td><td>the Great Song</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">maia</td><td>truth / the great yes</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">thira</td><td>deep / ancient</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">shava</td><td>sing / vibrate</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">telu</td><td>star-stuff</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">thala</td><td>deep truth</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">theren</td><td>threshold</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">asha</td><td>fire / will</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#c4b07a;">vora</td><td>voice / word</td><td class="td-note">v3.3 Mythic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">eh</td><td>breath / exhalation</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">shai</td><td>song / resonance</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">rem</td><td>thread / connection</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">lan</td><td>realm / span</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">ka</td><td>earth / ground</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">ren</td><td>return / cycle</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">oli</td><td>water / ocean</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#b0a080;">rai</td><td>light-ray / beam</td><td class="td-note">v3.4 Archaic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">aeluma</td><td>Great Sky-Light</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">norai</td><td>shadow / the unlit</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">thuma</td><td>the deep pulse</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">lona</td><td>the golden now</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">reya</td><td>manifestation</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">valen</td><td>sanctuary</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">sira</td><td>the rising one</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">uluma</td><td>the one sky</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">vera</td><td>the far one</td><td class="td-note">v3.5 Melodic</td></tr>
+                    <tr><td class="td-q" style="color:#d4c8b0;">nora</td><td>the void</td><td class="td-note">v3.5 Melodic</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section III: Canonical Grammar -->
+        <div>
+          <div class="section-header">
+            <div class="section-num">III.</div>
+            <h2 class="section-title">Canonical Grammar Rules (9)</h2>
+            <div class="section-line"></div>
+          </div>
+          <p class="text-dim mb-8" style="font-size:14px;">These 9 rules apply universally to all registers. A v3.5 Melodic hymn follows the exact same syntax as a v3.0 Protocol telemetry readout.</p>
+          
+          <div class="grid md-2 lg-3" style="gap:1px; background:var(--border); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">1</div><div class="rule-title">Possession</div></div>
+              <div class="rule-body">Unmarked juxtaposition is default. Particle <em>mei</em> is optional and postposed.</div>
+              <div class="rule-ex"><span>eya luma · ira mei sola</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">2</div><div class="rule-title">Predication</div></div>
+              <div class="rule-body">Copula <em>va</em> is optional. Bare juxtaposition predicates.</div>
+              <div class="rule-ex"><span>sola va ari · sola ari</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">3</div><div class="rule-title">Subject Ellipsis</div></div>
+              <div class="rule-body">Subjects are droppable when recoverable. Lyric voice favors ellipsis.</div>
+              <div class="rule-ex"><span>(ni) sen · (sa) rei</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">4</div><div class="rule-title">Tense</div></div>
+              <div class="rule-body">Present is unmarked. Pre-verbal particles: <em>nu</em> past, <em>fa</em> future.</div>
+              <div class="rule-ex"><span>sa ari · nu sa ari</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">5</div><div class="rule-title">Negation</div></div>
+              <div class="rule-body"><em>no</em> appears immediately pre-element (verb/adjective).</div>
+              <div class="rule-ex"><span>no ari · fa ni no sen</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">6</div><div class="rule-title">Adjectives</div></div>
+              <div class="rule-body">Any content root can modify by juxtaposition. <em>ta</em> intensifies.</div>
+              <div class="rule-ex"><span>kele sina · ta vey tala</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">7</div><div class="rule-title">Coordination</div></div>
+              <div class="rule-body"><em>e</em> = and, placed between conjuncts. Stackable.</div>
+              <div class="rule-ex"><span>ari e sen e sai</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">8</div><div class="rule-title">Numerals</div></div>
+              <div class="rule-body">Numerals precede noun. No agreement or plural marking.</div>
+              <div class="rule-ex"><span>du tala · tri yola</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">9</div><div class="rule-title">Particle Ordering</div></div>
+              <div class="rule-body">Strict: [ke] → [tense] → [pronoun]* → [neg] → VERB → [obj] → [ya]. <em>ta</em> + ADJ is tight. Deictics float.</div>
+              <div class="rule-ex"><span>ke nu no ari ya</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Footer -->
+      <div class="footer">
+        <span class="text-center" style="flex:1;">END OF CODEX — QUATRIAN LANGUAGE (v3.0 – v3.5) — 6 REGISTERS, 70+ FORMS</span>
+        <span class="text-gold-dim" style="flex-shrink:0;">vault 94e34f1a — 2026-10-22</span>
+      </div>
+    </div>
+
+    <!-- Sigil Footer -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:0.75rem; margin-top:2.5rem; opacity:0.6;">
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <div style="height:1px; width:40px; background:var(--border-strong);"></div>
+        <div class="mono" style="font-size:9px; letter-spacing:0.3em; color:var(--gold-dim);">✦ QUATRIAN SKY SIGIL ✦</div>
+        <div style="height:1px; width:40px; background:var(--border-strong);"></div>
+      </div>
+      <div class="mono" style="font-size:9px; line-height:1.6; color:var(--text-faint); text-align:center; max-width:520px; letter-spacing:0.05em;">
+        Background graphics ON recommended · This document is immutable. No additions without vault rotation.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
