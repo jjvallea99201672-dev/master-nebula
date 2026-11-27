@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Music Mastering Suite v6.1 — Jay Vallea</title>
+<meta name="description" content="A command-line mastering suite: serial or parallel DSP with LUFS targeting, true-peak limiting, mid/side processing and provenance logging.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .paper code{font-family:Courier New,Courier,monospace;font-size:0.92em}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>AI Music Mastering Suite v6.1</h1>
+  <p class="subtitle">Command-line DSP · LUFS · true peak · mid/side · provenance</p>
+  <p>A Python mastering chain you run locally: set a target loudness (default −14 LUFS), a true-peak ceiling, and an optional JSON chain, then write a mastered WAV with a processing log. It can run models in series or in parallel, export a loudness-matched original for A/B, and record hashes and loudness at each step. No keys or secrets are included.</p>
+  <p class="dim">Install: <code>pip install numpy soundfile pyloudnorm scipy</code>. Then: <code>python3 ai_mastering_suite_v61.py --input song.wav --output mastered.wav</code>.</p>
+  <div class="row"><a class="btn" href="ai_mastering_suite_v61.py" download>Download the .py</a></div>
+  <div style="white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)">#!/usr/bin/env python3
+&quot;&quot;&quot;
+AI Music Mastering Suite v6.1
+Serial/parallel DSP chain with LUFS, true peak, M/S, provenance logging.
+Author: Jay Vallea | Self-taught, 3 months
+&quot;&quot;&quot;
+
+import argparse
+import json
+import hashlib
+import logging
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Literal
+import numpy as np
+from scipy.signal import resample_poly, butter, sosfilt, sosfilt_zi, iirfilter, lfilter
+
+try:
+    import soundfile as sf
+    import pyloudnorm as pyln
+except ImportError as e:
+    raise SystemExit(&quot;Missing deps: pip install soundfile pyloudnorm numpy scipy&quot;)
+
+# --- Core Data Structures ---
+
+@dataclass
+class AudioTrack:
+    samples: np.ndarray # shape: (channels, num_samples), float32 [-1, 1]
+    sample_rate: int
+    bit_depth: int = 24
+    metadata: Dict[str, Any] = None
+    source_hash: str = &quot;&quot;
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+        if &quot;provenance&quot; not in self.metadata:
+            self.metadata[&quot;provenance&quot;] = []
+        if not self.source_hash:
+            self.source_hash = self.compute_hash()
+        self.samples = self.samples.astype(np.float32)
+        if self.samples.ndim == 1:
+            self.samples = self.samples[np.newaxis, :]
+
+    @classmethod
+    def from_file(cls, path: Path) -&gt; &#x27;AudioTrack&#x27;:
+        if not path.exists():
+            raise FileNotFoundError(f&quot;Input file not found: {path}&quot;)
+        info = sf.info(str(path))
+        data, sr = sf.read(str(path), always_2d=True, dtype=&#x27;float32&#x27;)
+        samples = data.T
+        bits = info.subtype_info.bits if info.subtype_info else 24
+        return cls(samples=samples, sample_rate=sr, bit_depth=bits,
+                   metadata={&quot;source_path&quot;: str(path)})
+
+    def to_file(self, path: Path, dither: bool = False, target_bits: int = 24):
+        data = self.samples.T
+        if dither and target_bits &lt; 32:
+            data = self._tpdf_dither(data, target_bits)
+        subtype = f&#x27;PCM_{target_bits}&#x27; if target_bits in [16, 24, 32] else &#x27;FLOAT&#x27;
+        sf.write(str(path), data, self.sample_rate, subtype=subtype)
+
+    def _tpdf_dither(self, x: np.ndarray, bits: int) -&gt; np.ndarray:
+        lsb = 2 ** (1 - bits)
+        dither = (np.random.random(x.shape) - np.random.random(x.shape)) * lsb
+        y = x + dither
+        quant = np.round(y / lsb) * lsb
+        return np.clip(quant, -1.0, 1.0 - lsb)
+
+    def compute_hash(self) -&gt; str:
+        return hashlib.sha256(self.samples.tobytes()).hexdigest()
+
+    def lufs(self) -&gt; float:
+        meter = pyln.Meter(self.sample_rate)
+        return float(meter.integrated_loudness(self.samples.T))
+
+    def true_peak_dbtp(self) -&gt; float:
+        up = resample_poly(self.samples, 4, 1, axis=1)
+        peak = np.max(np.abs(up))
+        return 20 * np.log10(peak + 1e-20)
+
+    def loudness_match(self, target_lufs: float) -&gt; &#x27;AudioTrack&#x27;:
+        current = self.lufs()
+        if not np.isfinite(current):
+            return self
+        gain_db = target_lufs - current
+        gain = 10 ** (gain_db / 20)
+        return AudioTrack(self.samples * gain, self.sample_rate, self.bit_depth, self.metadata.copy())
+
+    def to_ms(self) -&gt; np.ndarray:
+        &quot;&quot;&quot;Convert L/R to M/S. Returns shape (2, N) = [M, S]&quot;&quot;&quot;
+        if self.samples.shape[0] &lt; 2:
+            return np.vstack([self.samples[0], np.zeros_like(self.samples[0])])
+        L, R = self.samples[0], self.samples[1]
+        M = (L + R) * 0.5
+        S = (L - R) * 0.5
+        return np.vstack([M, S])
+
+    @classmethod
+    def from_ms(cls, ms: np.ndarray, sr: int, bit_depth: int, metadata: Dict) -&gt; &#x27;AudioTrack&#x27;:
+        &quot;&quot;&quot;Convert M/S back to L/R&quot;&quot;&quot;
+        if ms.shape[0] &lt; 2:
+            lr = np.vstack([ms[0], ms[0]])
+        else:
+            M, S = ms[0], ms[1]
+            L = M + S
+            R = M - S
+            lr = np.vstack([L, R])
+        return cls(lr, sr, bit_depth, metadata)
+
+# --- AI Model Abstraction ---
+
+class AIMasteringModel(ABC):
+    def __init__(self, name: str, config: Dict[str, Any]):
+        self.name = name
+        self.config = config
+        self.enabled = True
+        self.logger = logging.getLogger(f&quot;Model.{name}&quot;)
+
+    @abstractmethod
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        pass
+
+    def get_signature(self) -&gt; Dict[str, Any]:
+        cfg_str = json.dumps(self.config, sort_keys=True)
+        return {
+            &quot;name&quot;: self.name,
+            &quot;config_hash&quot;: hashlib.sha256(cfg_str.encode()).hexdigest()[:12],
+            &quot;config&quot;: self.config
+        }
+
+    def safe_process(self, track: AudioTrack) -&gt; AudioTrack:
+        if not self.enabled:
+            return track
+        try:
+            self.logger.info(f&quot;Processing with {self.name}&quot;)
+            result = self.process(track)
+            result.metadata[&quot;provenance&quot;] = result.metadata.get(&quot;provenance&quot;, []) + [self.get_signature()]
+            return result
+        except Exception as e:
+            self.logger.error(f&quot;Model {self.name} failed: {e}&quot;)
+            return track
+
+# --- DSP Utils ---
+
+def db_to_lin(db: float) -&gt; float:
+    return 10 ** (db / 20)
+
+def lin_to_db(lin: float) -&gt; float:
+    return 20 * np.log10(lin + 1e-20)
+
+def lr_filterbank(x: np.ndarray, sr: int, crossover_hz: List[float], order: int = 4) -&gt; np.ndarray:
+    &quot;&quot;&quot;Returns shape (num_bands, channels, num_samples)&quot;&quot;&quot;
+    bands = []
+    freqs = [0] + crossover_hz + [sr / 2]
+    for i in range(len(freqs) - 1):
+        if i == 0:
+            sos = butter(order, freqs[i+1] / (sr / 2), btype=&#x27;low&#x27;, output=&#x27;sos&#x27;)
+        elif i == len(freqs) - 2:
+            sos = butter(order, freqs[i] / (sr / 2), btype=&#x27;high&#x27;, output=&#x27;sos&#x27;)
+        else:
+            sos = butter(order, [freqs[i] / (sr / 2), freqs[i+1] / (sr / 2)], btype=&#x27;band&#x27;, output=&#x27;sos&#x27;)
+
+        ch_bands = []
+        for ch in range(x.shape[0]):
+            zi = sosfilt_zi(sos) * x[ch, 0]
+            y, _ = sosfilt(sos, x[ch], zi=zi)
+            ch_bands.append(y)
+        bands.append(np.stack(ch_bands))
+    return np.stack(bands)
+
+def peak_env(x: np.ndarray, sr: int, attack_ms: float, release_ms: float) -&gt; np.ndarray:
+    a_att = np.exp(-1.0 / (sr * attack_ms / 1000))
+    a_rel = np.exp(-1.0 / (sr * release_ms / 1000))
+    env = np.zeros_like(x)
+    env[0] = abs(x[0])
+    for i in range(1, x.shape[0]):
+        a = a_att if abs(x[i]) &gt; env[i-1] else a_rel
+        env[i] = a * env[i-1] + (1 - a) * abs(x[i])
+    return env
+
+def rms_env(x: np.ndarray, sr: int, win_ms: float = 5.0) -&gt; np.ndarray:
+    win = max(1, int(sr * win_ms / 1000))
+    x2 = x ** 2
+    kernel = np.ones(win) / win
+    rms = np.sqrt(np.convolve(x2, kernel, mode=&#x27;same&#x27;))
+    return rms + 1e-20
+
+# --- Models ---
+
+class GainModel(AIMasteringModel):
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        target = self.config.get(&quot;target_lufs&quot;, -14.0)
+        current = track.lufs()
+        if not np.isfinite(current):
+            self.logger.warning(&quot;Non-finite LUFS detected, skipping gain&quot;)
+            return track
+        db_diff = target - current
+        gain = db_to_lin(db_diff)
+        processed = track.samples * gain
+        return AudioTrack(processed, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+class TruePeakLimiter(AIMasteringModel):
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        ceiling_db = self.config.get(&quot;ceiling_dbtp&quot;, -1.0)
+        attack_ms = self.config.get(&quot;attack_ms&quot;, 1.0)
+        ceiling_lin = db_to_lin(ceiling_db)
+        up = resample_poly(track.samples, 4, 1, axis=1)
+
+        gr = np.ones_like(up)
+        over = np.abs(up) &gt; ceiling_lin
+        gr[over] = ceiling_lin / (np.abs(up[over]) + 1e-9)
+
+        sr_up = track.sample_rate * 4
+        for ch in range(up.shape[0]):
+            gr[ch] = peak_env(gr[ch], sr_up, attack_ms, attack_ms * 10)
+
+        limited_up = up * gr
+        limited = resample_poly(limited_up, 1, 4, axis=1)[:, :track.samples.shape[1]]
+        return AudioTrack(limited, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+class EQModel(AIMasteringModel):
+    def _biquad(self, sr: int, freq: float, gain_db: float, q: float, ftype: str):
+        A = 10 ** (gain_db / 40)
+        w0 = 2 * np.pi * freq / sr
+        alpha = np.sin(w0) / (2 * q)
+        if ftype == &quot;lowshelf&quot;:
+            b0 = A * ((A + 1) - (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha)
+            b1 = 2 * A * ((A - 1) - (A + 1) * np.cos(w0))
+            b2 = A * ((A + 1) - (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha)
+            a0 = (A + 1) + (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha
+            a1 = -2 * ((A - 1) + (A + 1) * np.cos(w0))
+            a2 = (A + 1) + (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha
+        elif ftype == &quot;highshelf&quot;:
+            b0 = A * ((A + 1) + (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha)
+            b1 = -2 * A * ((A - 1) + (A + 1) * np.cos(w0))
+            b2 = A * ((A + 1) + (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha)
+            a0 = (A + 1) - (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha
+            a1 = 2 * ((A - 1) - (A + 1) * np.cos(w0))
+            a2 = (A + 1) - (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha
+        else: # peak
+            b0 = 1 + alpha * A
+            b1 = -2 * np.cos(w0)
+            b2 = 1 - alpha * A
+            a0 = 1 + alpha / A
+            a1 = -2 * np.cos(w0)
+            a2 = 1 - alpha / A
+        return [b0/a0, b1/a0, b2/a0, 1.0, a1/a0, a2/a0]
+
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        bands = self.config.get(&quot;bands&quot;, [])
+        mode = self.config.get(&quot;mode&quot;, &quot;stereo&quot;)
+        x = track.samples.copy()
+
+        if mode!= &quot;stereo&quot; and x.shape[0] &lt; 2:
+            self.logger.warning(&quot;M/S mode requested but input is mono. Bypassing EQ.&quot;)
+            return track
+
+        if mode == &quot;stereo&quot;:
+            proc = x
+        else:
+            ms = track.to_ms()
+            proc = ms[0:1] if mode == &quot;mid&quot; else ms[1:2]
+
+        for band in bands:
+            freq = band.get(&quot;freq&quot;, 1000)
+            gain = band.get(&quot;gain_db&quot;, 0.0)
+            q = band.get(&quot;q&quot;, 0.707)
+            ftype = band.get(&quot;type&quot;, &quot;peak&quot;)
+            if abs(gain) &lt; 0.01:
+                continue
+            coeffs = self._biquad(track.sample_rate, freq, gain, q, ftype)
+            b, a = coeffs[:3], coeffs[3:]
+            for ch in range(proc.shape[0]):
+                proc[ch] = lfilter(b, a, proc[ch])
+
+        if mode == &quot;stereo&quot;:
+            out = proc
+        else:
+            ms = track.to_ms()
+            if mode == &quot;mid&quot;:
+                ms[0:1] = proc
+            else:
+                ms[1:2] = proc
+            out = AudioTrack.from_ms(ms, track.sample_rate, track.bit_depth, {}).samples
+
+        return AudioTrack(out, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+class StereoWidener(AIMasteringModel):
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        width = self.config.get(&quot;width&quot;, 1.2)
+        bass_mono_hz = self.config.get(&quot;bass_mono_hz&quot;, 120)
+        if track.samples.shape[0] &lt; 2:
+            return track
+        L, R = track.samples[0], track.samples[1]
+        M = (L + R) * 0.5
+        S = (L - R) * 0.5
+        if bass_mono_hz &gt; 0:
+            sos = butter(2, bass_mono_hz / (track.sample_rate / 2), btype=&#x27;low&#x27;, output=&#x27;sos&#x27;)
+            S_low = sosfilt(sos, S)
+            S = S - S_low
+        S *= width
+        L_out = M + S
+        R_out = M - S
+        out = np.stack([L_out, R_out])
+        return AudioTrack(out, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+class MultibandCompressor(AIMasteringModel):
+    def _compress_band(self, x: np.ndarray, sr: int, cfg: Dict[str, Any]) -&gt; np.ndarray:
+        thresh_db = cfg.get(&quot;threshold_db&quot;, -24)
+        ratio = cfg.get(&quot;ratio&quot;, 4.0)
+        attack_ms = cfg.get(&quot;attack_ms&quot;, 5)
+        release_ms = cfg.get(&quot;release_ms&quot;, 100)
+        makeup_db = cfg.get(&quot;makeup_db&quot;, 0.0)
+        lookahead_ms = cfg.get(&quot;lookahead_ms&quot;, 3.0)
+        knee_db = cfg.get(&quot;knee_db&quot;, 6.0)
+
+        look_samples = int(sr * lookahead_ms / 1000)
+        x_dl = np.pad(x, (look_samples, 0), mode=&#x27;edge&#x27;)[:-look_samples] if look_samples &gt; 0 else x
+        env = rms_env(x_dl, sr, win_ms=attack_ms)
+        env_db = lin_to_db(env)
+
+        # Fixed soft-knee calculation
+        gain_db = np.zeros_like(env_db)
+        thresh_low = thresh_db - knee_db / 2
+        thresh_high = thresh_db + knee_db / 2
+
+        below = env_db &lt;= thresh_low
+        knee = (env_db &gt; thresh_low) &amp; (env_db &lt; thresh_high)
+        above = env_db &gt;= thresh_high
+
+        gain_db[below] = 0
+        gain_db[knee] = ((env_db[knee] - thresh_low) ** 2) / (2 * knee_db) * (1 - 1/ratio)
+        gain_db[above] = (env_db[above] - thresh_db) * (1 - 1/ratio)
+
+        # Smooth gain reduction
+        a_att = np.exp(-1.0 / (sr * attack_ms / 1000))
+        a_rel = np.exp(-1.0 / (sr * release_ms / 1000))
+        gain_db_sm = np.zeros_like(gain_db)
+        for i in range(1, len(gain_db)):
+            a = a_att if gain_db[i] &gt; gain_db_sm[i-1] else a_rel
+            gain_db_sm[i] = a * gain_db_sm[i-1] + (1 - a) * gain_db[i]
+
+        return x * db_to_lin(-gain_db_sm + makeup_db)
+
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        crossovers = self.config.get(&quot;crossovers_hz&quot;, [200, 2000])
+        bands_cfg = self.config.get(&quot;bands&quot;, [
+            {&quot;threshold_db&quot;: -20, &quot;ratio&quot;: 2.5, &quot;attack_ms&quot;: 20, &quot;release_ms&quot;: 200, &quot;makeup_db&quot;: 1.5},
+            {&quot;threshold_db&quot;: -24, &quot;ratio&quot;: 3.5, &quot;attack_ms&quot;: 5, &quot;release_ms&quot;: 100, &quot;makeup_db&quot;: 2.5},
+            {&quot;threshold_db&quot;: -18, &quot;ratio&quot;: 3.0, &quot;attack_ms&quot;: 1, &quot;release_ms&quot;: 60, &quot;makeup_db&quot;: 2.0},
+        ])
+        mode = self.config.get(&quot;mode&quot;, &quot;stereo&quot;)
+        x = track.samples.copy()
+
+        if mode!= &quot;stereo&quot;:
+            if x.shape[0] &lt; 2:
+                self.logger.warning(&quot;M/S requested but input is mono. Using stereo mode.&quot;)
+                mode = &quot;stereo&quot;
+            else:
+                ms = track.to_ms()
+                x = ms[0:1] if mode == &quot;mid&quot; else ms[1:2]
+
+        if len(bands_cfg)!= len(crossovers) + 1:
+            raise ValueError(f&quot;bands config length {len(bands_cfg)} must match crossovers + 1 = {len(crossovers)+1}&quot;)
+
+        banded = lr_filterbank(x, track.sample_rate, crossovers)
+        out_bands = []
+        for i in range(banded.shape[0]):
+            comp_band = np.stack([self._compress_band(banded[i, ch], track.sample_rate, bands_cfg[i])
+                                  for ch in range(banded.shape[1])])
+            out_bands.append(comp_band)
+        out = np.sum(out_bands, axis=0)
+
+        if mode!= &quot;stereo&quot;:
+            ms = track.to_ms()
+            if mode == &quot;mid&quot;:
+                ms[0:1] = out
+            else:
+                ms[1:2] = out
+            out = AudioTrack.from_ms(ms, track.sample_rate, track.bit_depth, {}).samples
+
+        return AudioTrack(out, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+class DynamicEQ(AIMasteringModel):
+    def _dyn_band(self, x: np.ndarray, sr: int, cfg: Dict[str, Any]) -&gt; np.ndarray:
+        freq = cfg.get(&quot;freq&quot;, 3000)
+        q = cfg.get(&quot;q&quot;, 1.0)
+        thresh_db = cfg.get(&quot;threshold_db&quot;, -30)
+        ratio = cfg.get(&quot;ratio&quot;, 3.0)
+        attack_ms = cfg.get(&quot;attack_ms&quot;, 10)
+        release_ms = cfg.get(&quot;release_ms&quot;, 100)
+        max_gain_db = cfg.get(&quot;max_gain_db&quot;, -6.0)
+        mode = cfg.get(&quot;mode&quot;, &quot;compress&quot;)
+
+        # Correct bandwidth calculation
+        bw = freq / q
+        low = (freq - bw/2) / (sr / 2)
+        high = (freq + bw/2) / (sr / 2)
+        low, high = np.clip([low, high], 0.001, 0.999)
+
+        sos = butter(2, [low, high], btype=&#x27;band&#x27;, output=&#x27;sos&#x27;)
+        band = sosfilt(sos, x)
+        env = peak_env(band, sr, attack_ms, release_ms)
+        env_db = lin_to_db(env)
+
+        gain_db = np.zeros_like(env_db)
+        if mode == &quot;compress&quot;:
+            over = env_db - thresh_db
+            gain_db = np.where(over &gt; 0, -over * (1 - 1/ratio), 0)
+            gain_db = np.maximum(gain_db, -abs(max_gain_db))
+        else: # expand
+            under = thresh_db - env_db
+            gain_db = np.where(under &gt; 0, under * (ratio - 1), 0)
+            gain_db = np.minimum(gain_db, abs(max_gain_db))
+
+        processed_band = band * db_to_lin(gain_db)
+        return x - band + processed_band
+
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        bands = self.config.get(&quot;bands&quot;, [])
+        mode = self.config.get(&quot;mode&quot;, &quot;stereo&quot;)
+        x = track.samples.copy()
+
+        if mode!= &quot;stereo&quot; and x.shape[0] &lt; 2:
+            self.logger.warning(&quot;M/S requested but input is mono. Using stereo.&quot;)
+            mode = &quot;stereo&quot;
+
+        if mode!= &quot;stereo&quot;:
+            ms = track.to_ms()
+            x = ms[0:1] if mode == &quot;mid&quot; else ms[1:2]
+
+        for band_cfg in bands:
+            for ch in range(x.shape[0]):
+                x[ch] = self._dyn_band(x[ch], track.sample_rate, band_cfg)
+
+        if mode!= &quot;stereo&quot;:
+            ms = track.to_ms()
+            if mode == &quot;mid&quot;:
+                ms[0:1] = x
+            else:
+                ms[1:2] = x
+            x = AudioTrack.from_ms(ms, track.sample_rate, track.bit_depth, {}).samples
+
+        return AudioTrack(x, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+class SaturatorModel(AIMasteringModel):
+    def _saturate(self, x: np.ndarray, drive_db: float, curve: str = &quot;tanh&quot;) -&gt; np.ndarray:
+        drive = db_to_lin(drive_db)
+        x_driven = x * drive
+        if curve == &quot;tanh&quot;:
+            y = np.tanh(x_driven)
+        elif curve == &quot;atan&quot;:
+            y = (2 / np.pi) * np.arctan(x_driven * np.pi / 2)
+        else: # soft
+            y = x_driven / (1 + np.abs(x_driven))
+        return y / drive
+
+    def process(self, track: AudioTrack) -&gt; AudioTrack:
+        drive_db = self.config.get(&quot;drive_db&quot;, 6.0)
+        mix = self.config.get(&quot;mix&quot;, 0.3)
+        curve = self.config.get(&quot;curve&quot;, &quot;tanh&quot;)
+        oversample = self.config.get(&quot;oversample&quot;, 4)
+        up = resample_poly(track.samples, oversample, 1, axis=1)
+        wet = self._saturate(up, drive_db, curve)
+        wet = resample_poly(wet, 1, oversample, axis=1)[:, :track.samples.shape[1]]
+        out = track.samples * (1 - mix) + wet * mix
+        out = np.clip(out, -1.0, 1.0)
+        return AudioTrack(out, track.sample_rate, track.bit_depth, track.metadata.copy())
+
+MODEL_REGISTRY = {
+    &quot;GainModel&quot;: GainModel,
+    &quot;TruePeakLimiter&quot;: TruePeakLimiter,
+    &quot;EQModel&quot;: EQModel,
+    &quot;StereoWidener&quot;: StereoWidener,
+    &quot;MultibandCompressor&quot;: MultibandCompressor,
+    &quot;DynamicEQ&quot;: DynamicEQ,
+    &quot;SaturatorModel&quot;: SaturatorModel,
+}
+
+# --- Suite Orchestrator ---
+
+class MasteringSuite:
+    def __init__(self, mode: Literal[&quot;serial&quot;, &quot;parallel&quot;] = &quot;serial&quot;):
+        self.models: List[AIMasteringModel] = []
+        self.mode = mode
+        self.processing_log: List[Dict[str, Any]] = []
+        self.logger = logging.getLogger(&quot;MasteringSuite&quot;)
+
+    def add_model(self, model: AIMasteringModel):
+        self.models.append(model)
+
+    def _log_step(self, model: AIMasteringModel, in_track: AudioTrack, out_track: AudioTrack):
+        self.processing_log.append({
+            &quot;model&quot;: model.get_signature(),
+            &quot;input_hash&quot;: in_track.compute_hash()[:12],
+            &quot;output_hash&quot;: out_track.compute_hash()[:12],
+            &quot;input_lufs&quot;: round(in_track.lufs(), 2),
+            &quot;output_lufs&quot;: round(out_track.lufs(), 2),
+            &quot;input_true_peak&quot;: round(in_track.true_peak_dbtp(), 2),
+            &quot;output_true_peak&quot;: round(out_track.true_peak_dbtp(), 2)
+        })
+
+    def run(self, track: AudioTrack, blend_weights: Optional[List[float]] = None) -&gt; AudioTrack:
+        if self.mode == &quot;serial&quot;:
+            current = track
+            for model in self.models:
+                prev = current
+                current = model.safe_process(current)
+                self._log_step(model, prev, current)
+            return current
+        elif self.mode == &quot;parallel&quot;:
+            if not self.models:
+                return track
+            outputs = [m.safe_process(track) for m in self.models if m.enabled]
+            if not outputs:
+                return track
+            if blend_weights is None:
+                blend_weights = [1.0 / len(outputs)] * len(outputs)
+            if len(blend_weights)!= len(outputs):
+                raise ValueError(&quot;blend_weights length must match number of active models&quot;)
+            blended = sum(out.samples * w for out, w in zip(outputs, blend_weights))
+            result = AudioTrack(blended, track.sample_rate, track.bit_depth, track.metadata.copy())
+            result.metadata[&quot;provenance&quot;] = track.metadata.get(&quot;provenance&quot;, []) + \
+                [&quot;parallel_blend&quot;] + [m.get_signature() for m in self.models]
+            return result
+
+    @classmethod
+    def from_config(cls, cfg: Dict[str, Any]) -&gt; &#x27;MasteringSuite&#x27;:
+        suite = cls(mode=cfg.get(&quot;mode&quot;, &quot;serial&quot;))
+        for m in cfg.get(&quot;models&quot;, []):
+            model_cls = MODEL_REGISTRY.get(m[&quot;type&quot;])
+            if not model_cls:
+                raise ValueError(f&quot;Unknown model type: {m[&#x27;type&#x27;]}&quot;)
+            suite.add_model(model_cls(m.get(&quot;name&quot;, m[&quot;type&quot;]), m.get(&quot;config&quot;, {})))
+        return suite
+
+# --- CLI ---
+
+def main():
+    parser = argparse.ArgumentParser(description=&quot;AI Music Mastering Suite v6.1&quot;)
+    parser.add_argument(&quot;--input&quot;, type=Path, required=True)
+    parser.add_argument(&quot;--output&quot;, type=Path)
+    parser.add_argument(&quot;--chain&quot;, type=Path, help=&quot;JSON config for model chain&quot;)
+    parser.add_argument(&quot;--mode&quot;, choices=[&quot;serial&quot;, &quot;parallel&quot;], default=&quot;serial&quot;)
+    parser.add_argument(&quot;--target-lufs&quot;, type=float, default=-14.0)
+    parser.add_argument(&quot;--ceiling&quot;, type=float, default=-1.0)
+    parser.add_argument(&quot;--bits&quot;, type=int, default=24, choices=[16, 24, 32])
+    parser.add_argument(&quot;--dither&quot;, action=&quot;store_true&quot;)
+    parser.add_argument(&quot;--dry-run&quot;, action=&quot;store_true&quot;)
+    parser.add_argument(&quot;--ab-export&quot;, type=Path, help=&quot;Export loudness-matched original for A/B&quot;)
+    parser.add_argument(&quot;--log&quot;, type=Path)
+    parser.add_argument(&quot;--fail-on-clip&quot;, action=&quot;store_true&quot;, help=&quot;Exit 1 if final TP &gt; ceiling&quot;)
+    parser.add_argument(&quot;--verbose&quot;, action=&quot;store_true&quot;)
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING,
+                       format=&quot;%(name)s: %(message)s&quot;)
+
+    try:
+        track = AudioTrack.from_file(args.input)
+        logging.info(f&quot;Loaded: {track.samples.shape}, {track.sample_rate}Hz, {track.bit_depth}-bit&quot;)
+        logging.info(f&quot;Input: {track.lufs():.2f} LUFS, {track.true_peak_dbtp():.2f} dBTP&quot;)
+
+        if args.chain:
+            cfg = json.loads(args.chain.read_text())
+            suite = MasteringSuite.from_config(cfg)
+        else:
+            suite = MasteringSuite(mode=args.mode)
+            suite.add_model(GainModel(&quot;LUFS_Gain&quot;, {&quot;target_lufs&quot;: args.target_lufs}))
+            suite.add_model(TruePeakLimiter(&quot;TP_Limiter&quot;, {&quot;ceiling_dbtp&quot;: args.ceiling}))
+
+        master = suite.run(track)
+        final_lufs = master.lufs()
+        final_tp = master.true_peak_dbtp()
+        logging.info(f&quot;Output: {final_lufs:.2f} LUFS, {final_tp:.2f} dBTP&quot;)
+
+        if args.fail_on_clip and final_tp &gt; args.ceiling + 0.1:
+            logging.error(f&quot;Final true peak {final_tp:.2f} dBTP exceeds ceiling {args.ceiling:.2f}&quot;)
+            return 1
+
+        if args.ab_export:
+            ab = track.loudness_match(final_lufs)
+            ab.to_file(args.ab_export, dither=False, target_bits=args.bits)
+            logging.info(f&quot;A/B reference -&gt; {args.ab_export} at {final_lufs:.2f} LUFS&quot;)
+
+        if not args.dry_run:
+            if not args.output:
+                parser.error(&quot;--output required unless --dry-run&quot;)
+            master.to_file(args.output, dither=args.dither, target_bits=args.bits)
+            logging.info(f&quot;Mastered -&gt; {args.output}&quot;)
+
+        if args.log:
+            with open(args.log, &#x27;w&#x27;) as f:
+                json.dump({
+                    &quot;input&quot;: {&quot;hash&quot;: track.source_hash[:12], &quot;lufs&quot;: round(track.lufs(), 2),
+                             &quot;true_peak&quot;: round(track.true_peak_dbtp(), 2), &quot;sr&quot;: track.sample_rate},
+                    &quot;output&quot;: {&quot;hash&quot;: master.compute_hash()[:12], &quot;lufs&quot;: round(final_lufs, 2),
+                              &quot;true_peak&quot;: round(final_tp, 2)},
+                    &quot;chain&quot;: suite.processing_log,
+                    &quot;final_provenance&quot;: master.metadata[&quot;provenance&quot;]
+                }, f, indent=2)
+
+    except Exception as e:
+        logging.error(f&quot;Processing failed: {e}&quot;, exc_info=args.verbose)
+        return 1
+    return 0
+
+if __name__ == &quot;__main__&quot;:
+    raise SystemExit(main())</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Written by directing AI models; runs on your machine.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bathurst Node V7 · Duo Breach — Jay Vallea</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #050508;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;
+        }
+        
+        #root {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        /* ── Canvas Container ── */
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: #050508;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* ── HUD Overlay ── */
+        .hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.7);
+            z-index: 20;
+        }
+        
+        .hud-left {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .hud-title {
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+        }
+        
+        .hud-status {
+            opacity: 0.5;
+            font-size: 9px;
+        }
+        
+        .hud-dist {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        
+        .hud-dist.normal {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .hud-dist.breach {
+            background: #ffd700;
+            color: #000;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .hud-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .hud-score {
+            color: #00d4ff;
+            font-weight: 700;
+        }
+        
+        .hud-btn {
+            padding: 2px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 9px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .hud-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        /* ── Controls Overlay ── */
+        .controls-overlay {
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .controls-top {
+            height: calc(50vh - 22px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px 12px;
+        }
+        
+        .controls-bottom {
+            height: calc(50vh - 22px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px 12px;
+        }
+        
+        .controls-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+        
+        .controls-label .p1 {
+            background: rgba(0, 212, 255, 0.9);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            font-size: 9px;
+        }
+        
+        .controls-label .p2 {
+            background: rgba(251, 146, 60, 0.9);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            font-size: 9px;
+        }
+        
+        .controls-label .stats {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            color: rgba(165, 243, 252, 0.8);
+            font-size: 9px;
+        }
+        
+        .controls-label .stats-orange {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(251, 146, 60, 0.15);
+            color: rgba(254, 215, 170, 0.8);
+            font-size: 9px;
+        }
+        
+        .divider-line {
+            width: 56%;
+            height: 2px;
+            margin: 0 auto;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+        }
+        
+        .divider-line-orange {
+            width: 56%;
+            height: 2px;
+            margin: 0 auto;
+            background: linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.3), transparent);
+        }
+        
+        /* ── Center Breach Meter ── */
+        .breach-meter {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            pointer-events: none;
+            text-align: center;
+        }
+        
+        .breach-meter .bar {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 auto 4px;
+        }
+        
+        .breach-meter .bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #ffd700);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .breach-meter .label {
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 0.2em;
+        }
+        
+        .breach-meter .label.ready {
+            color: #ffd700;
+            animation: blink 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* ── Center Cross ── */
+        .crosshair {
+            position: absolute;
+            left: 50%;
+            top: 27%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.4;
+        }
+        
+        .crosshair .v {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(0, 212, 255, 0.4);
+        }
+        
+        .crosshair .h {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(0, 212, 255, 0.4);
+        }
+        
+        .crosshair .dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 212, 255, 0.4);
+        }
+        
+        .crosshair-orange {
+            position: absolute;
+            left: 50%;
+            top: 75%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.4;
+        }
+        
+        .crosshair-orange .v {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(251, 146, 60, 0.4);
+        }
+        
+        .crosshair-orange .h {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(251, 146, 60, 0.4);
+        }
+        
+        .crosshair-orange .dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid rgba(251, 146, 60, 0.4);
+        }
+        
+        /* ── Bottom Dog Tags ── */
+        .dog-tags {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+            font-size: 9px;
+        }
+        
+        .dog-tag {
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .dog-tag.active {
+            border-color: #ffd700;
+            color: #ffd700;
+            animation: blink 0.5s ease-in-out infinite;
+        }
+        
+        /* ── How To Play Modal ── */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 40;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            cursor: pointer;
+        }
+        
+        .modal-box {
+            max-width: 640px;
+            width: 100%;
+            background: rgba(12, 18, 24, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 24px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: default;
+        }
+        
+        .modal-box h2 {
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+        
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        @media (max-width: 600px) {
+            .modal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .modal-col {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        
+        .modal-col h3 {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        
+        .modal-col h3.cyan {
+            color: #00d4ff;
+        }
+        
+        .modal-col h3.orange {
+            color: #fb923c;
+        }
+        
+        .modal-col h3.gold {
+            color: #ffd700;
+        }
+        
+        .modal-col .keys {
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            line-height: 1.8;
+        }
+        
+        .modal-close {
+            margin-top: 16px;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.breach {
+            background: #ffd700;
+            color: #000;
+        }
+        
+        .modal-btn.breach:hover {
+            transform: scale(1.05);
+        }
+        
+        .modal-btn.ghost {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .modal-btn.ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .hud {
+                height: 32px;
+                font-size: 8px;
+                padding: 0 8px;
+            }
+            .hud-title {
+                font-size: 9px;
+            }
+            .hud-dist {
+                font-size: 8px;
+                padding: 1px 6px;
+            }
+            .controls-label {
+                font-size: 8px;
+            }
+            .controls-label .p1,
+            .controls-label .p2 {
+                font-size: 7px;
+                padding: 2px 8px;
+            }
+            .breach-meter .bar {
+                width: 120px;
+            }
+            .crosshair,
+            .crosshair-orange {
+                opacity: 0.2;
+            }
+            .dog-tags {
+                font-size: 7px;
+                bottom: 8px;
+                left: 8px;
+            }
+            .modal-box {
+                padding: 16px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+
+    <div id="root">
+        <!-- Canvas will be rendered by Three.js -->
+    </div>
+
+    <script type="module">
+        // ============================================================
+        // SOUL FORGE - BATHURST NODE V7 // DUO BREACH
+        // Complete implementation with Three.js
+        // ============================================================
+
+        import React, { useState, useRef, useEffect, useCallback } from "https://esm.sh/react@18.3.1";
+        import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
+        import * as THREE from "https://esm.sh/three@0.171.0";
+        import { OrbitControls } from "https://esm.sh/three@0.171.0/examples/jsm/controls/OrbitControls.js";
+
+        // ── Main Component ──
+        function BathurstNodeV7() {
+            const canvasRef = useRef(null);
+            const [hud, setHud] = useState({
+                dist: 0,
+                breach: 0,
+                score: 0,
+                over: 0,
+                p1y: 0,
+                p2y: 0,
+                p1speed: 0,
+                p2speed: 0,
+                fps: 60
+            });
+            const [showTitle, setShowTitle] = useState(true);
+            const [showHelp, setShowHelp] = useState(false);
+            const [audioEnabled, setAudioEnabled] = useState(true);
+            const gameRef = useRef(null);
+
+            // ── Three.js Setup ──
+            useEffect(() => {
+                if (!canvasRef.current) return;
+
+                const container = canvasRef.current;
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+
+                // Scene
+                const scene = new THREE.Scene();
+                scene.fog = new THREE.FogExp2(0x050508, 0.00035);
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({
+                    canvas: container,
+                    antialias: true,
+                    alpha: false
+                });
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
+                renderer.setSize(width, height, false);
+                renderer.setScissorTest(true);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+                // Cameras
+                const aspect = width / (height / 2);
+                const cam1 = new THREE.PerspectiveCamera(72, aspect, 0.5, 4000);
+                const cam2 = new THREE.PerspectiveCamera(72, aspect, 0.5, 4000);
+
+                // ── Lights ──
+                const ambient = new THREE.AmbientLight(0x222244, 0.6);
+                scene.add(ambient);
+
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+                dirLight.position.set(300, 500, 200);
+                dirLight.castShadow = true;
+                dirLight.shadow.mapSize.set(1024, 1024);
+                scene.add(dirLight);
+
+                const hemi = new THREE.HemisphereLight(0x445566, 0x221133, 0.6);
+                scene.add(hemi);
+
+                const pointLight = new THREE.PointLight(0xff8844, 2, 800);
+                pointLight.position.set(0, -80, 0);
+                scene.add(pointLight);
+
+                // ── Ground ──
+                const groundGeo = new THREE.PlaneGeometry(5000, 5000, 64, 64);
+                const groundMat = new THREE.MeshStandardMaterial({
+                    color: 0x0a0a1a,
+                    transparent: true,
+                    opacity: 0.82,
+                    roughness: 0.3,
+                    metalness: 0.6,
+                    side: THREE.DoubleSide
+                });
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = 0;
+                ground.receiveShadow = true;
+                scene.add(ground);
+
+                // ── Lower Ground ──
+                const lowerGeo = new THREE.PlaneGeometry(5000, 5000, 32, 32);
+                const lowerMat = new THREE.MeshStandardMaterial({
+                    color: 0x0a0a08,
+                    roughness: 0.9,
+                    metalness: 0.1
+                });
+                const lower = new THREE.Mesh(lowerGeo, lowerMat);
+                lower.rotation.x = -Math.PI / 2;
+                lower.position.y = -280;
+                lower.receiveShadow = true;
+                scene.add(lower);
+
+                // ── Towers ──
+                const towerGroup = new THREE.Group();
+                const towers = [];
+
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const radius = 400 + Math.random() * 800;
+                    const x = Math.cos(angle) * radius;
+                    const z = Math.sin(angle) * radius;
+
+                    towers.push({ x, z, h: 500 });
+
+                    const pillar = new THREE.Mesh(
+                        new THREE.CylinderGeometry(18, 26, 600, 8),
+                        new THREE.MeshStandardMaterial({
+                            color: i % 2 === 0 ? 0x2a2a3a : 0x3a2a2a,
+                            roughness: 0.7
+                        })
+                    );
+                    pillar.position.set(x, -20, z);
+                    pillar.castShadow = true;
+                    pillar.receiveShadow = true;
+                    towerGroup.add(pillar);
+
+                    const top = new THREE.Mesh(
+                        new THREE.CylinderGeometry(2, 2, 120, 6),
+                        new THREE.MeshStandardMaterial({
+                            color: 0xff8844,
+                            emissive: 0xff4400,
+                            emissiveIntensity: 0.8
+                        })
+                    );
+                    top.position.set(x, 280, z);
+                    towerGroup.add(top);
+
+                    const light = new THREE.PointLight(0xff6644, 1.5, 300);
+                    light.position.set(x, 340, z);
+                    towerGroup.add(light);
+                }
+                scene.add(towerGroup);
+
+                // ── Drones ──
+                const droneGroup = new THREE.Group();
+                const drones = [];
+
+                for (let i = 0; i < 42; i++) {
+                    const x = (Math.random() - 0.5) * 4000;
+                    const z = (Math.random() - 0.5) * 4000;
+                    const color = Math.random() > 0.5 ? 0x2288ff : 0x8844ff;
+
+                    const drone = new THREE.Mesh(
+                        new THREE.SphereGeometry(3 + Math.random() * 4, 6, 6),
+                        new THREE.MeshStandardMaterial({
+                            color: color,
+                            emissive: color,
+                            emissiveIntensity: 0.3
+                        })
+                    );
+                    drone.position.set(x, -278 + Math.random() * 6, z);
+                    droneGroup.add(drone);
+                    drones.push(drone);
+                }
+                scene.add(droneGroup);
+
+                // ── Orbiting Nodes ──
+                const orbitGroup = new THREE.Group();
+                const orbiters = [];
+
+                for (let i = 0; i < 20; i++) {
+                    const g = new THREE.Group();
+                    const core = new THREE.Mesh(
+                        new THREE.IcosahedronGeometry(8, 0),
+                        new THREE.MeshStandardMaterial({
+                            color: 0x666666,
+                            metalness: 0.8,
+                            roughness: 0.2
+                        })
+                    );
+                    const glow = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.5, 6, 6),
+                        new THREE.MeshStandardMaterial({
+                            color: 0xff4444,
+                            emissive: 0xff0000,
+                            emissiveIntensity: 2
+                        })
+                    );
+                    glow.position.z = 8;
+                    g.add(core, glow);
+                    g.castShadow = true;
+
+                    const radius = 250 + Math.random() * 900;
+                    const y = (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 200);
+                    orbitGroup.add(g);
+                    orbiters.push({
+                        mesh: g,
+                        pos: new THREE.Vector3(),
+                        ang: Math.random() * Math.PI * 2,
+                        radius: radius,
+                        speed: 0.2 + Math.random() * 0.6,
+                        y: y,
+                        alive: true
+                    });
+                }
+                scene.add(orbitGroup);
+
+                // ── Player 1 Craft (Air Jet) ──
+                function createAirJet() {
+                    const g = new THREE.Group();
+
+                    const body = new THREE.Mesh(
+                        new THREE.ConeGeometry(6, 32, 8),
+                        new THREE.MeshStandardMaterial({
+                            color: 0x00aaff,
+                            emissive: 0x0044aa,
+                            emissiveIntensity: 0.6
+                        })
+                    );
+                    body.rotation.x = Math.PI / 2;
+                    body.position.z = 8;
+                    g.add(body);
+
+                    const wing = new THREE.Mesh(
+                        new THREE.BoxGeometry(26, 1.5, 8),
+                        new THREE.MeshStandardMaterial({
+                            color: 0x4488ff,
+                            metalness: 0.7
+                        })
+                    );
+                    wing.position.set(0, -1, -2);
+                    g.add(wing);
+
+                    const tail = new THREE.Mesh(
+                        new THREE.BoxGeometry(1.5, 8, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x00aaff })
+                    );
+                    tail.position.set(0, 4, -14);
+                    g.add(tail);
+
+                    const ring = new THREE.Mesh(
+                        new THREE.ConeGeometry(5, 14, 8),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x0044ff,
+                            transparent: true,
+                            opacity: 0.6
+                        })
+                    );
+                    ring.rotation.x = -Math.PI / 2;
+                    ring.position.z = -18;
+                    g.add(ring);
+
+                    return g;
+                }
+
+                // ── Player 2 Craft (Abyss Sub) ──
+                function createAbyssSub() {
+                    const g = new THREE.Group();
+
+                    const body = new THREE.Mesh(
+                        new THREE.CapsuleGeometry(5, 22, 4, 8),
+                        new THREE.MeshStandardMaterial({
+                            color: 0xff6633,
+                            emissive: 0xff4400,
+                            emissiveIntensity: 0.5,
+                            roughness: 0.6
+                        })
+                    );
+                    body.rotation.z = Math.PI / 2;
+                    g.add(body);
+
+                    const wing = new THREE.Mesh(
+                        new THREE.BoxGeometry(6, 0.8, 10),
+                        new THREE.MeshStandardMaterial({ color: 0xff8844 })
+                    );
+                    wing.position.set(-8, 0, 0);
+                    g.add(wing);
+
+                    const tail = new THREE.Mesh(
+                        new THREE.CylinderGeometry(2, 2, 2, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x222222 })
+                    );
+                    tail.rotation.z = Math.PI / 2;
+                    tail.position.set(-16, 0, 0);
+                    g.add(tail);
+
+                    const glow = new THREE.Mesh(
+                        new THREE.SphereGeometry(4, 8, 8),
+                        new THREE.MeshBasicMaterial({
+                            color: 0xff6633,
+                            transparent: true,
+                            opacity: 0.35
+                        })
+                    );
+                    glow.position.set(-16, 0, 0);
+                    g.add(glow);
+
+                    return g;
+                }
+
+                const player1 = createAirJet();
+                const player2 = createAbyssSub();
+                scene.add(player1);
+                scene.add(player2);
+
+                // ── Trail Craft ──
+                function createTrailCraft(color) {
+                    const g = new THREE.Group();
+
+                    const body = new THREE.Mesh(
+                        new THREE.BoxGeometry(6, 4, 10),
+                        new THREE.MeshStandardMaterial({ color })
+                    );
+                    g.add(body);
+
+                    const head = new THREE.Mesh(
+                        new THREE.SphereGeometry(3.2, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xff8844 })
+                    );
+                    head.position.set(0, 2, 6);
+                    g.add(head);
+
+                    const ears = [
+                        new THREE.Mesh(
+                            new THREE.ConeGeometry(1.2, 3, 4),
+                            new THREE.MeshStandardMaterial({ color })
+                        ),
+                        new THREE.Mesh(
+                            new THREE.ConeGeometry(1.2, 3, 4),
+                            new THREE.MeshStandardMaterial({ color })
+                        )
+                    ];
+                    ears[0].position.set(-1.6, 4.5, 6);
+                    ears[0].rotation.x = 0.2;
+                    ears[1].position.set(1.6, 4.5, 6);
+                    ears[1].rotation.x = 0.2;
+                    g.add(ears[0], ears[1]);
+
+                    const tail = new THREE.Mesh(
+                        new THREE.BoxGeometry(1, 1, 4),
+                        new THREE.MeshStandardMaterial({ color: 0xffffff })
+                    );
+                    tail.position.set(0, 1, -6);
+                    tail.name = "tail";
+                    g.add(tail);
+
+                    const nose = new THREE.Mesh(
+                        new THREE.BoxGeometry(4.2, 1, 1),
+                        new THREE.MeshStandardMaterial({
+                            color: color === 0xff8844 ? 0x0044ff : 0xff6633
+                        })
+                    );
+                    nose.position.set(0, 0.5, 4);
+                    g.add(nose);
+
+                    g.scale.set(0.9, 0.9, 0.9);
+                    scene.add(g);
+                    return g;
+                }
+
+                const trail1 = createTrailCraft(0xff8844);
+                const trail2 = createTrailCraft(0x6644aa);
+
+                // ── Particle Systems ──
+                const particleSets = {
+                    cyan: [],
+                    orange: []
+                };
+
+                for (let i = 0; i < 24; i++) {
+                    const p1 = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.2, 4, 4),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x0044ff,
+                            transparent: true,
+                            opacity: 0
+                        })
+                    );
+                    const p2 = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.5, 4, 4),
+                        new THREE.MeshBasicMaterial({
+                            color: 0xff6633,
+                            transparent: true,
+                            opacity: 0
+                        })
+                    );
+                    scene.add(p1, p2);
+                    particleSets.cyan.push(p1);
+                    particleSets.orange.push(p2);
+                }
+
+                // ── Breach Beam ──
+                const beamMat = new THREE.MeshBasicMaterial({
+                    color: 0xffd700,
+                    transparent: true,
+                    opacity: 0
+                });
+                const beam = new THREE.Mesh(
+                    new THREE.CylinderGeometry(2, 2, 1, 8),
+                    beamMat
+                );
+                scene.add(beam);
+
+                // ── Game State ──
+                const game = {
+                    p1: {
+                        pos: new THREE.Vector3(0, 180, -200),
+                        vel: new THREE.Vector3(),
+                        pitch: 0,
+                        roll: 0,
+                        yaw: 0,
+                        thrust: 48,
+                        ballast: 0,
+                        score: 0
+                    },
+                    p2: {
+                        pos: new THREE.Vector3(0, -180, 200),
+                        vel: new THREE.Vector3(),
+                        pitch: 0,
+                        roll: 0,
+                        yaw: Math.PI,
+                        thrust: 42,
+                        ballast: 0,
+                        score: 0
+                    },
+                    breach: 0,
+                    over: 0,
+                    score: 0,
+                    tracks: [],
+                    keys: new Set(),
+                    audio: null,
+                    audioCtx: null,
+                    osc1: null,
+                    osc2: null,
+                    gain: null,
+                    isBreached: false
+                };
+
+                // ── Audio ──
+                function initAudio() {
+                    if (game.audioCtx) return;
+                    try {
+                        game.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                        game.gain = game.audioCtx.createGain();
+                        game.gain.gain.value = 0;
+                        game.gain.connect(game.audioCtx.destination);
+                    } catch (e) { console.warn('Audio init failed:', e); }
+                }
+
+                function playBreachSound() {
+                    if (!game.audioCtx || !game.gain) return;
+                    try {
+                        if (game.osc1) {
+                            game.osc1.stop();
+                            game.osc1 = null;
+                        }
+                        if (game.osc2) {
+                            game.osc2.stop();
+                            game.osc2 = null;
+                        }
+
+                        game.osc1 = game.audioCtx.createOscillator();
+                        game.osc1.frequency.value = 4050;
+                        game.osc1.type = 'sine';
+
+                        game.osc2 = game.audioCtx.createOscillator();
+                        game.osc2.frequency.value = 18.3;
+                        game.osc2.type = 'triangle';
+
+                        const gain1 = game.audioCtx.createGain();
+                        gain1.gain.value = 0.12;
+                        const gain2 = game.audioCtx.createGain();
+                        gain2.gain.value = 0.18;
+
+                        game.osc1.connect(gain1);
+                        gain1.connect(game.gain);
+                        game.osc2.connect(gain2);
+                        gain2.connect(game.gain);
+
+                        game.osc1.start();
+                        game.osc2.start();
+                        game.gain.gain.linearRampToValueAtTime(0.22, game.audioCtx.currentTime + 0.4);
+
+                        game.isBreached = true;
+                    } catch (e) { console.warn('Audio play failed:', e); }
+                }
+
+                function stopBreachSound() {
+                    if (!game.audioCtx || !game.gain) return;
+                    try {
+                        const now = game.audioCtx.currentTime;
+                        game.gain.gain.linearRampToValueAtTime(0, now + 0.6);
+                        setTimeout(() => {
+                            if (game.osc1) { game.osc1.stop();
+                                game.osc1 = null; }
+                            if (game.osc2) { game.osc2.stop();
+                                game.osc2 = null; }
+                            game.isBreached = false;
+                        }, 700);
+                    } catch (e) { console.warn('Audio stop failed:', e); }
+                }
+
+                // ── Input ──
+                const keys = game.keys;
+
+                document.addEventListener('keydown', (e) => {
+                    const k = e.key.toLowerCase();
+                    keys.add(k);
+                    if (e.code === 'Tab') {
+                        e.preventDefault();
+                        triggerBreachPilot();
+                    }
+                    if (k === 'h') setShowHelp(v => !v);
+                    if (k === 'm') {
+                        setAudioEnabled(v => {
+                            if (v && game.audioCtx) {
+                                try { game.audioCtx.suspend(); } catch (e) {}
+                            } else if (!v && game.audioCtx) {
+                                try { game.audioCtx.resume(); } catch (e) {}
+                            }
+                            return !v;
+                        });
+                    }
+                    if (k === ' ' && !e.target.matches('input, textarea, button')) {
+                        e.preventDefault();
+                        shoot(1);
+                    }
+                    if (k === '/') shoot(2);
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    keys.delete(e.key.toLowerCase());
+                });
+
+                // ── Game Functions ──
+                function shoot(player) {
+                    const p = player === 1 ? game.p1 : game.p2;
+                    const dir = new THREE.Vector3(0, 0, 1)
+                        .applyEuler(new THREE.Euler(p.pitch, p.yaw, p.roll, 'YXZ'));
+                    const proj = new THREE.Mesh(
+                        new THREE.SphereGeometry(player === 1 ? 1.8 : 2.4, 6, 6),
+                        new THREE.MeshBasicMaterial({
+                            color: player === 1 ? 0x0044ff : 0xff6633
+                        })
+                    );
+                    proj.position.copy(p.pos).add(dir.clone().multiplyScalar(14));
+                    scene.add(proj);
+
+                    const speed = player === 1 ? 420 : 280;
+                    const life = 3.5;
+                    game.tracks.push({
+                        mesh: proj,
+                        dir: dir,
+                        speed: speed,
+                        life: life,
+                        owner: player
+                    });
+
+                    if (player === 1) game.p1.score += 0.5;
+                    else game.p2.score += 0.5;
+                }
+
+                function triggerBreachPilot() {
+                    const mid = new THREE.Vector3()
+                        .addVectors(game.p1.pos, game.p2.pos)
+                        .multiplyScalar(0.5);
+                    mid.y = 0;
+                    // Auto-pilot both toward center
+                    const target1 = mid.clone();
+                    const target2 = mid.clone();
+                    // Store as autopilot targets
+                    game.p1.autopilot = { target: target1, t: 3.5 };
+                    game.p2.autopilot = { target: target2, t: 3.5 };
+                }
+
+                // ── Animation Loop ──
+                let frameCount = 0;
+                let lastTime = performance.now();
+                let fpsCounter = 0;
+                let fpsTime = 0;
+
+                function animate() {
+                    const now = performance.now();
+                    const delta = Math.min(0.033, (now - lastTime) / 1000);
+                    lastTime = now;
+
+                    frameCount++;
+                    fpsCounter++;
+                    if (now - fpsTime > 1000) {
+                        const fps = Math.round(fpsCounter);
+                        fpsCounter = 0;
+                        fpsTime = now;
+                        setHud(prev => ({ ...prev, fps }));
+                    }
+
+                    const dt = delta;
+                    const p1 = game.p1;
+                    const p2 = game.p2;
+                    const k = keys;
+
+                    // ── Player 1 Controls ──
+                    if (p1.autopilot) {
+                        const t = p1.autopilot;
+                        t.t -= dt;
+                        const target = t.target.clone().sub(p1.pos).normalize();
+                        const targetYaw = Math.atan2(target.x, target.z);
+                        p1.yaw += (targetYaw - p1.yaw) * dt * 1.8;
+                        p1.pitch += (-target.y * 0.8 - p1.pitch) * dt * 1.6;
+                        p1.thrust = 72;
+                        if (t.t <= 0) p1.autopilot = null;
+                    } else {
+                        if (k.has('w') || k.has('W')) p1.pitch -= dt * 1.2;
+                        if (k.has('s') || k.has('S')) p1.pitch += dt * 1.2;
+                        if (k.has('a') || k.has('A')) p1.roll -= dt * 1.5;
+                        if (k.has('d') || k.has('D')) p1.roll += dt * 1.5;
+                        if (k.has('q') || k.has('Q')) p1.yaw -= dt * 1.1;
+                        if (k.has('e') || k.has('E')) p1.yaw += dt * 1.1;
+                        if (k.has('shift')) p1.thrust = Math.min(100, p1.thrust + dt * 28);
+                        if (k.has('control')) p1.thrust = Math.max(8, p1.thrust - dt * 32);
+                    }
+
+                    // ── Player 2 Controls ──
+                    if (p2.autopilot) {
+                        const t = p2.autopilot;
+                        t.t -= dt;
+                        const target = t.target.clone().sub(p2.pos).normalize();
+                        const targetYaw = Math.atan2(target.x, target.z);
+                        p2.yaw += (targetYaw - p2.yaw) * dt * 1.8;
+                        p2.pitch += (-target.y * 0.8 - p2.pitch) * dt * 1.4;
+                        p2.ballast = Math.max(-30, Math.min(50, -target.y * 40));
+                        p2.thrust = 68;
+                        if (t.t <= 0) p2.autopilot = null;
+                    } else {
+                        if (k.has('i') || k.has('I')) p2.pitch -= dt * 1.0;
+                        if (k.has('k') || k.has('K')) p2.pitch += dt * 1.0;
+                        if (k.has('j') || k.has('J')) p2.roll -= dt * 1.3;
+                        if (k.has('l') || k.has('L')) p2.roll += dt * 1.3;
+                        if (k.has('o') || k.has('O')) p2.ballast += dt * 36;
+                        if (k.has('p') || k.has('P')) p2.ballast -= dt * 36;
+                        if (k.has(',')) p2.yaw -= dt * 0.9;
+                        if (k.has('.')) p2.yaw += dt * 0.9;
+                        if (k.has('m') || k.has('M')) p2.thrust = Math.min(100, p2.thrust + dt * 24);
+                        if (k.has('n') || k.has('N')) p2.thrust = Math.max(6, p2.thrust - dt * 28);
+                    }
+
+                    // ── Physics ──
+                    p1.roll *= 0.98;
+                    p1.pitch = Math.max(-1.1, Math.min(1.1, p1.pitch));
+                    p2.roll *= 0.98;
+                    p2.pitch = Math.max(-1.0, Math.min(1.0, p2.pitch));
+                    p2.ballast = Math.max(-42, Math.min(48, p2.ballast));
+                    p2.ballast *= 0.993;
+
+                    function applyPhysics(p, isPlayer1) {
+                        const euler = new THREE.Euler(p.pitch, p.yaw, p.roll, 'YXZ');
+                        const dir = new THREE.Vector3(0, 0, 1).applyEuler(euler);
+                        const thrust = p.thrust / 100 * (isPlayer1 ? 180 : 95);
+                        p.vel.lerp(dir.clone().multiplyScalar(thrust), dt * 2.2);
+                        if (!isPlayer1) {
+                            p.vel.y += p.ballast * dt * 0.6;
+                        } else {
+                            p.vel.y += p.pitch * -30 * dt;
+                        }
+                        p.pos.add(p.vel.clone().multiplyScalar(dt));
+                        const limit = 2400;
+                        if (p.pos.length() > limit) {
+                            p.pos.normalize().multiplyScalar(limit);
+                            p.vel.multiplyScalar(-0.2);
+                        }
+                    }
+
+                    applyPhysics(p1, true);
+                    applyPhysics(p2, false);
+
+                    // ── Update Crafts ──
+                    function updateCraft(craft, p, isPlayer1) {
+                        craft.position.copy(p.pos);
+                        craft.rotation.set(p.pitch, p.yaw, p.roll, 'YXZ');
+                    }
+                    updateCraft(player1, p1, true);
+                    updateCraft(player2, p2, false);
+
+                    // ── Update Trail Crafts ──
+                    function updateTrail(trail, p, offset, phase) {
+                        const euler = new THREE.Euler(p.pitch, p.yaw, p.roll, 'YXZ');
+                        const dir = new THREE.Vector3(0, 0, -1).applyEuler(euler).multiplyScalar(15 + offset);
+                        const up = new THREE.Vector3(0, 1, 0).applyEuler(euler).multiplyScalar(offset ? 12 : 9);
+                        const target = p.pos.clone().add(dir).add(up);
+                        trail.position.lerp(target, dt * 2.5);
+                        trail.lookAt(p.pos);
+                        const tail = trail.getObjectByName('tail');
+                        if (tail) tail.rotation.x = Math.sin(now * 0.012 + phase) * 0.8;
+
+                        // Check drone collisions
+                        for (const drone of drones) {
+                            if (trail.position.distanceTo(drone.position) < 18) {
+                                drone.scale.lerp(new THREE.Vector3(1.6, 1.6, 1.6), dt * 3);
+                                if (isPlayer1) p1.score += 0.2;
+                            } else {
+                                drone.scale.lerp(new THREE.Vector3(1, 1, 1), dt * 2);
+                            }
+                        }
+                    }
+
+                    updateTrail(trail1, p1, 0, 0);
+                    updateTrail(trail2, p2, 2, 1.7);
+
+                    // ── Update Orbiters ──
+                    for (const o of orbiters) {
+                        if (!o.alive) { o.mesh.visible = false; continue; }
+                        o.ang += dt * o.speed * 0.5;
+                        o.pos.set(
+                            Math.cos(o.ang) * o.radius,
+                            o.y + Math.sin(now * 0.0007 + o.radius) * 12,
+                            Math.sin(o.ang) * o.radius
+                        );
+                        o.mesh.position.copy(o.pos);
+                        o.mesh.rotation.y += dt * 1.2;
+                        o.mesh.rotation.x += dt * 0.6;
+                    }
+
+                    // ── Update Projectiles ──
+                    for (let i = game.tracks.length - 1; i >= 0; i--) {
+                        const t = game.tracks[i];
+                        t.mesh.position.add(t.dir.clone().multiplyScalar(t.speed * dt));
+                        t.life -= dt;
+
+                        // Check orbiter collisions
+                        for (const o of orbiters) {
+                            if (o.alive && t.mesh.position.distanceTo(o.pos) < 16) {
+                                o.alive = false;
+                                o.mesh.visible = false;
+                                t.life = 0;
+                                if (t.owner === 1) p1.score += 100;
+                                else p2.score += 100;
+                                break;
+                            }
+                        }
+
+                        if (t.life <= 0) {
+                            scene.remove(t.mesh);
+                            game.tracks.splice(i, 1);
+                        }
+                    }
+
+                    // ── Particles ──
+                    function updateParticles(set, pos, color, isCyan) {
+                        const arr = set;
+                        const shift = arr.shift();
+                        arr.push(shift);
+                        shift.position.copy(pos).add(new THREE.Vector3(
+                            (Math.random() - 0.5) * 2,
+                            (Math.random() - 0.5) * 2,
+                            (Math.random() - 0.5) * 2
+                        ));
+                        shift.material.opacity = isCyan ? 0.55 : 0.7;
+                        shift.material.color.setHex(isCyan ? 0x4488ff : color);
+
+                        for (let i = 0; i < arr.length; i++) {
+                            const p = arr[i];
+                            const t = i / arr.length;
+                            p.material.opacity = t * 0.6;
+                            p.scale.setScalar(0.5 + t * 1.4);
+                            if (isCyan) {
+                                p.position.y += dt * (2 + Math.random() * 3);
+                            } else {
+                                p.position.y += dt * (2 + Math.random() * 3);
+                            }
+                        }
+                    }
+
+                    const p1Dir = new THREE.Vector3(0, 0, -16).applyEuler(new THREE.Euler(p1.pitch, p1.yaw, p1.roll,
+                    'YXZ'));
+                    const p2Dir = new THREE.Vector3(-16, 0, 0).applyEuler(new THREE.Euler(p2.pitch, p2.yaw, p2.roll,
+                    'YXZ'));
+
+                    if (frameCount % 2 === 0) {
+                        updateParticles(particleSets.cyan, p1.pos.clone().add(p1Dir), 0x4488ff, true);
+                        updateParticles(particleSets.orange, p2.pos.clone().add(p2Dir), 0xff6633, false);
+                    }
+
+                    // ── Breach Meter ──
+                    const dist = p1.pos.distanceTo(p2.pos);
+                    const p1Near = Math.abs(p1.pos.y) < 90;
+                    const p2Near = Math.abs(p2.pos.y) < 90;
+
+                    if (p1Near && p2Near && dist < 280) {
+                        game.breach = Math.min(100, game.breach + dt * 38);
+                    } else {
+                        game.breach = Math.max(0, game.breach - dt * 22);
+                    }
+
+                    // ── Overcharge ──
+                    if (game.breach >= 100 && game.over <= 0) {
+                        game.over = 10;
+                        game.breach = 0;
+                        game.score += 500;
+
+                        // Play breach sound
+                        if (audioEnabled) {
+                            initAudio();
+                            playBreachSound();
+                        }
+
+                        // Respawn orbiters
+                        for (const o of orbiters) {
+                            if (!o.alive && Math.random() > 0.3) {
+                                o.alive = true;
+                                o.mesh.visible = true;
+                            }
+                        }
+                    }
+
+                    if (game.over > 0) {
+                        game.over -= dt;
+                        // Beam effect
+                        const mid = new THREE.Vector3().addVectors(p1.pos, p2.pos).multiplyScalar(0.5);
+                        const len = p2.pos.clone().sub(p1.pos).length();
+                        beam.position.copy(mid);
+                        beam.scale.set(1, len, 1);
+                        beam.lookAt(p2.pos);
+                        beam.rotateX(Math.PI / 2);
+                        beamMat.opacity = 0.55 + Math.sin(now * 0.018) * 0.18;
+
+                        if (frameCount % 10 === 0) {
+                            p1.score += 3;
+                            p2.score += 3;
+                            game.score += 6;
+                        }
+                    } else {
+                        beamMat.opacity = Math.max(0, beamMat.opacity - dt * 4);
+                        if (game.isBreached) {
+                            stopBreachSound();
+                        }
+                    }
+
+                    // ── Update Scene ──
+                    const topColor = game.over > 0 ? 0x334455 : 0x0a0a1a;
+                    const bottomColor = game.over > 0 ? 0x223344 : 0x0a0a08;
+                    groundMat.color.setHex(topColor);
+                    lowerMat.color.setHex(bottomColor);
+
+                    // ── Render ──
+                    const rect = container.getBoundingClientRect();
+                    const w = rect.width;
+                    const h = rect.height;
+
+                    if (container.width !== w * renderer.getPixelRatio() ||
+                        container.height !== h * renderer.getPixelRatio()) {
+                        renderer.setSize(w, h, false);
+                        const aspect = w / (h / 2);
+                        cam1.aspect = aspect;
+                        cam1.updateProjectionMatrix();
+                        cam2.aspect = aspect;
+                        cam2.updateProjectionMatrix();
+                    }
+
+                    // Top half
+                    renderer.setViewport(0, h / 2, w, h / 2);
+                    renderer.setScissor(0, h / 2, w, h / 2);
+                    scene.background = new THREE.Color(game.over > 0 ? 0x334455 : 0x0a0a1a);
+                    scene.fog.color.setHex(game.over > 0 ? 0x223344 : 0x0a0a1a);
+                    renderer.render(scene, cam1);
+
+                    // Bottom half
+                    renderer.setViewport(0, 0, w, h / 2);
+                    renderer.setScissor(0, 0, w, h / 2);
+                    scene.background = new THREE.Color(game.over > 0 ? 0x223344 : 0x0a0a08);
+                    scene.fog.color.setHex(game.over > 0 ? 0x334455 : 0x0a0a08);
+                    renderer.render(scene, cam2);
+
+                    // ── Update HUD ──
+                    if (frameCount % 6 === 0) {
+                        const fps = Math.round(1 / dt);
+                        setHud({
+                            dist: Math.round(dist),
+                            breach: Math.round(game.breach),
+                            score: Math.round(game.score + p1.score + p2.score),
+                            over: Math.max(0, game.over),
+                            p1y: Math.round(p1.pos.y),
+                            p2y: Math.round(p2.pos.y),
+                            p1speed: Math.round(p1.thrust),
+                            p2speed: Math.round(p2.thrust),
+                            fps: fps
+                        });
+                    }
+
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+
+                // ── Resize ──
+                const resize = () => {
+                    const rect = container.getBoundingClientRect();
+                    renderer.setSize(rect.width, rect.height, false);
+                    const aspect = rect.width / (rect.height / 2);
+                    cam1.aspect = aspect;
+                    cam1.updateProjectionMatrix();
+                    cam2.aspect = aspect;
+                    cam2.updateProjectionMatrix();
+                };
+                window.addEventListener('resize', resize);
+
+                // ── Cleanup ──
+                return () => {
+                    window.removeEventListener('resize', resize);
+                    renderer.dispose();
+                    scene.clear();
+                };
+            }, []);
+
+            // ── Render ──
+            return (
+                <div className="canvas-wrapper">
+                    <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+                    
+                    {/* HUD */}
+                    <div className="hud">
+                        <div className="hud-left">
+                            <span className="hud-title">✦ BATHURST NODE V7</span>
+                            <span className="hud-status">DUO BREACH</span>
+                            <span className={`hud-dist ${hud.over > 0 ? 'breach' : 'normal'}`}>
+                                {hud.over > 0 ? `OVERCHARGE ${hud.over.toFixed(1)}s` : `DIST ${hud.dist}m`}
+                            </span>
+                        </div>
+                        <div className="hud-right">
+                            <span className="hud-score">🏆 {Math.round(hud.score)}</span>
+                            <button className="hud-btn" onClick={() => setShowHelp(v => !v)}>⌨</button>
+                            <button className="hud-btn" onClick={() => setAudioEnabled(v => !v)}>
+                                {audioEnabled ? '🔊' : '🔇'}
+                            </button>
+                            <button className="hud-btn" onClick={() => {
+                                if (gameRef.current?.exportJSON) {
+                                    gameRef.current.exportJSON();
+                                }
+                            }}>📤</button>
+                        </div>
+                    </div>
+
+                    {/* Breach Meter */}
+                    <div className="breach-meter">
+                        <div className="bar">
+                            <div className="fill" style={{ width: `${hud.breach}%` }} />
+                        </div>
+                        <div className={`label ${hud.breach >= 96 ? 'ready' : ''}`}>
+                            {hud.breach >= 96 ? '⚡ BREACH READY [TAB]' : `BREACH ${Math.round(hud.breach)}%`}
+                        </div>
+                    </div>
+
+                    {/* Crosshairs */}
+                    <div className="crosshair">
+                        <div className="v" /><div className="h" /><div className="dot" />
+                    </div>
+                    <div className="crosshair-orange">
+                        <div className="v" /><div className="h" /><div className="dot" />
+                    </div>
+
+                    {/* Controls Labels */}
+                    <div className="controls-overlay">
+                        <div className="controls-top">
+                            <div className="controls-label">
+                                <span className="p1">✦ AIR JET · JAY · 4.05kHz</span>
+                                <span className="stats">
+                                    ALT {hud.p1y}m · THR {hud.p1speed}% · {hud.fps}FPS
+                                </span>
+                            </div>
+                            <div className="divider-line" />
+                        </div>
+                        <div className="controls-bottom">
+                            <div className="divider-line-orange" />
+                            <div className="controls-label">
+                                <span className="p2">✦ ABYSS SUB · BRITTNEY · 18Hz</span>
+                                <span className="stats-orange">
+                                    DEPTH {Math.abs(hud.p2y)}m · THR {hud.p2speed}% · {hud.over > 0 ? '⚡ OVERCHARGE' : 'STABLE'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Dog Tags */}
+                    <div className="dog-tags">
+                        <span className={`dog-tag ${hud.dist < 120 ? 'active' : ''}`}>
+                            🐕 JAY DOG · {hud.dist < 120 ? 'BARK!' : 'FOLLOWING'}
+                        </span>
+                        <span className={`dog-tag ${hud.dist < 120 ? 'active' : ''}`}>
+                            🐕 BRITT DOG · {hud.dist < 120 ? 'SNIFF BERRIES' : 'FOLLOWING'}
+                        </span>
+                    </div>
+
+                    {/* Help Modal */}
+                    {showHelp && (
+                        <div className="modal-overlay" onClick={() => setShowHelp(false)}>
+                            <div className="modal-box" onClick={e => e.stopPropagation()}>
+                                <h2>✦ V7 DUO BREACH — CONTROLS</h2>
+                                <div className="modal-grid">
+                                    <div className="modal-col">
+                                        <h3 className="cyan">PLAYER 1 — AIR JET</h3>
+                                        <div className="keys">
+                                            W/S pitch · A/D roll · Q/E yaw<br />
+                                            Shift thrust ↑ · Ctrl thrust ↓<br />
+                                            Space lasers · R reset<br />
+                                            F sonar ping
+                                        </div>
+                                    </div>
+                                    <div className="modal-col">
+                                        <h3 className="orange">PLAYER 2 — ABYSS SUB</h3>
+                                        <div className="keys">
+                                            I/K pitch · J/L roll · O/P ballast<br />
+                                            ,/. yaw · M/N thrust<br />
+                                            / torpedo · ; sonar<br />
+                                            U reset
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="modal-col" style={{ marginTop: '12px' }}>
+                                    <h3 className="gold">⚡ BREACH MECHANIC</h3>
+                                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                                        TAB = both autopilot toward surface midpoint (y=0).<br />
+                                        When distance {'<'} 280m and both |y| {'<'} 90m, breach meter fills.<br />
+                                        At 100% → 10s OVERCHARGE — gold beam connects crafts.<br />
+                                        Score triples, choir 4050Hz+18Hz beating, dogs bark.
+                                    </div>
+                                    <div className="modal-buttons">
+                                        <button className="modal-btn breach" onClick={() => {
+                                            if (gameRef.current?.triggerBreachPilot) {
+                                                gameRef.current.triggerBreachPilot();
+                                            }
+                                            setShowHelp(false);
+                                        }}>⚡ BREACH NOW [TAB]</button>
+                                        <button className="modal-btn ghost" onClick={() => setShowHelp(false)}>CLOSE</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Title Modal */}
+                    {showTitle && (
+                        <div className="modal-overlay" onClick={() => setShowTitle(false)}>
+                            <div className="modal-box" onClick={e => e.stopPropagation()}>
+                                <h2 style={{ fontSize: '28px', letterSpacing: '0.05em' }}>
+                                    ONE KEYBOARD<br />
+                                    <span style={{ color: '#00d4ff' }}>TWO CRAFTS</span><br />
+                                    <span style={{ color: '#fb923c' }}>TO MEET IN MIDDLE</span>
+                                </h2>
+                                <div style={{ marginTop: '12px', fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                                    Jay flies the AIR JET at 4.05kHz — cyan contrails.<br />
+                                    Brittney dives the ABYSS SUB at 18Hz — orange bubbles.<br />
+                                    Two good dogs follow, sniffing wild berries on the seabed.<br />
+                                    Towers stitch sky to abyss.
+                                </div>
+                                <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                    <button className="modal-btn breach" onClick={() => setShowTitle(false)}>
+                                        🔥 PRESS TAB TO BREACH
+                                    </button>
+                                    <button className="modal-btn ghost" onClick={() => {
+                                        setShowTitle(false);
+                                        setShowHelp(true);
+                                    }}>📖 HOW TO PLAY</button>
+                                </div>
+                                <div style={{ marginTop: '12px', fontSize: '9px', color: 'rgba(255,255,255,0.15)', letterSpacing: '0.2em' }}>
+                                    FOR GOOD ALWAYS · HARDWOOD + BERRIES LORE · DOGS: CORGI + BROWN
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ── Render ──
+        const root = createRoot(document.getElementById('root'));
+        root.render(<BathurstNodeV7 />);
+
+        console.log(`
+        ╔══════════════════════════════════════════════════════════════╗
+        ║                                                              ║
+        ║              BATHURST NODE V7                                ║
+        ║              DUO BREACH                                      ║
+        ║                                                              ║
+        ║    🌌 ONE KEYBOARD · TWO CRAFTS · TO MEET IN MIDDLE        ║
+        ║                                                              ║
+        ║    ⚡ AIR JET   (4.05kHz) — Jay — Cyan Contrails           ║
+        ║    🌊 ABYSS SUB (18Hz)    — Brittney — Orange Bubbles      ║
+        ║                                                              ║
+        ║    🐕 Two good dogs follow · sniff wild berries            ║
+        ║    🏗️ Towers stitch sky to abyss                           ║
+        ║    💥 BREACH = 10s OVERCHARGE · Gold Beam · Choir          ║
+        ║                                                              ║
+        ║    CONTROLS:                                                ║
+        ║    P1: WASD · Q/E · Shift/Ctrl · Space                     ║
+        ║    P2: IJKL · O/P · ,/. · M/N · /                         ║
+        ║    TAB = BREACH AUTOPILOT                                   ║
+        ║                                                              ║
+        ║    "FOR GOOD ALWAYS"                                        ║
+        ║                                                              ║
+        ║    SOUL FORGE RADIO — 432Hz — PUMP 220 — SELF-FORGING      ║
+        ║                                                              ║
+        ╚══════════════════════════════════════════════════════════════╝
+        `);
+
+        console.log('🔥 BATHURST NODE V7 ACTIVE');
+        console.log('🎮 One keyboard, two crafts, to meet in middle');
+        console.log('⚡ TAB to breach — 10s overcharge — gold beam');
+        console.log('🐕 Two good dogs follow');
+        console.log('🎵 432Hz · PUMP 220 · SOUL FORGE RADIO');
+    </script>
+</body>
+</html>
