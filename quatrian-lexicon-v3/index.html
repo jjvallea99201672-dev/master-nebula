@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quatrian Lexicon v3 — Final Reference — Jay Vallea</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap");
+    *,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}
+    body{margin:0;line-height:inherit;background:#0a0e18;color:#e8e4d9;font-family:ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    
+    :root{
+      --bg:#0a0e18; --surface:#121a2b; --surface-2:#19233c;
+      --border:rgba(212,175,55,.18); --border-strong:rgba(212,175,55,.35);
+      --text:#e8e4d9; --text-dim:#9aa3b5; --text-faint:#5a647a;
+      --gold:#e8c86a; --gold-bright:#f6e6a8; --gold-dim:#b89b4a;
+      --mono:"JetBrains Mono",ui-monospace,monospace; --serif:"Instrument Serif",Georgia,serif;
+    }
+
+    @media print {
+      :root { --bg:#fff; --surface:#fff; --surface-2:#f5f3ee; --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.25); --text:#121212; --text-dim:#444; --text-faint:#888; --gold:#8a6d1b; --gold-bright:#6b530f; --gold-dim:#a88a3a; }
+      body { background:#fff !important; }
+      .print-hide { display:none !important; }
+      .print-no-glow { box-shadow:none !important; filter:none !important; }
+    }
+
+    .container { max-width:1120px; margin:0 auto; padding: 2.5rem 1.25rem 6rem; }
+    .panel { background:linear-gradient(180deg,rgba(18,26,43,0.88),rgba(12,18,32,0.94)); border:1px solid var(--border); border-radius:18px; box-shadow: 0 0 0 1px rgba(232,200,106,0.08) inset, 0 20px 80px -20px rgba(0,0,0,0.9), 0 0 120px -40px rgba(232,200,106,0.25); position:relative; overflow:hidden; }
+    .panel-inner { padding: 2rem; position:relative; }
+    
+    h1, h2, h3 { margin:0; font-weight:normal; }
+    .serif { font-family: var(--serif); }
+    .mono { font-family: var(--mono); }
+    
+    .header { display:flex; flex-direction:column; align-items:center; gap:1rem; margin-bottom:3rem; text-align:center; }
+    .header-divider { display:flex; align-items:center; gap:1rem; color:var(--gold-dim); }
+    .header-line { height:1px; width:80px; background:linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+    .diamond { width:5px; height:5px; border:1px solid var(--gold-dim); transform:rotate(45deg); }
+    
+    .title { font-family: var(--serif); font-size:40px; line-height:0.95; color:var(--gold-bright); letter-spacing:-0.02em; }
+    .subtitle { font-family: var(--mono); font-size:18px; letter-spacing:0.18em; color:var(--gold); margin-top:0.5rem; display:block; }
+    
+    .badges { display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; margin-top:1.5rem; }
+    .badge { padding:0.25rem 0.75rem; border-radius:999px; border:1px solid var(--border); background:var(--surface); }
+    .badge.gold { border-color:var(--border-strong); color:var(--gold); }
+    
+    .section-header { display:flex; align-items:baseline; gap:1rem; margin-bottom:2rem; }
+    .section-num { font-family:var(--mono); font-size:11px; letter-spacing:0.28em; color:var(--gold-dim); }
+    .section-title { font-family:var(--serif); font-size:26px; color:var(--gold-bright); letter-spacing:-0.01em; }
+    .section-line { flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
+    
+    .grid { display:grid; gap:2rem; }
+    @media (min-width:1024px) { .grid.lg-12 { grid-template-columns: repeat(12, 1fr); } .col-5 { grid-column: span 5; } .col-7 { grid-column: span 7; } }
+    @media (min-width:768px) { .grid.md-2 { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width:1024px) { .grid.lg-3 { grid-template-columns: repeat(3, 1fr); } }
+    
+    .table-wrap { border:1px solid var(--border); border-radius:10px; background:rgba(25,35,60,0.6); overflow:hidden; }
+    table { width:100%; text-align:left; border-collapse:collapse; }
+    th { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-faint); background:rgba(232,200,106,0.06); padding:0.6rem 1rem; border-bottom:1px solid var(--border); }
+    td { padding:0.6rem 1rem; border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
+    tr:last-child td { border-bottom:none; }
+    .td-q { font-family:var(--mono); font-size:13px; color:var(--gold-bright); font-weight:500; }
+    .td-note { font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+    
+    .rule-card { background:var(--surface); padding:1.25rem; display:flex; flex-direction:column; gap:0.6rem; border:1px solid var(--border); }
+    .rule-header { display:flex; align-items:center; gap:0.75rem; }
+    .rule-num { display:flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; border:1px solid var(--border-strong); background:rgba(232,200,106,0.08); font-family:var(--mono); font-size:11px; color:var(--gold); }
+    .rule-title { font-family:var(--serif); font-size:15px; color:var(--text); }
+    .rule-body { font-size:12.5px; line-height:1.55; color:var(--text-dim); }
+    .rule-ex { margin-top:auto; padding-top:0.5rem; }
+    .rule-ex span { display:inline-block; padding:0.25rem 0.6rem; border-radius:999px; background:rgba(232,200,106,0.08); font-family:var(--mono); font-size:11px; color:var(--gold); border:1px solid rgba(232,200,106,0.12); }
+    
+    .terminal { border:1px solid var(--border-strong); border-radius:12px; background:#0b0f1b; overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
+    .terminal-header { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem; background:rgba(232,200,106,0.06); border-bottom:1px solid var(--border); }
+    .terminal-title { display:flex; align-items:center; gap:0.5rem; font-family:var(--mono); font-size:10px; color:var(--gold-dim); letter-spacing:0.2em; }
+    .dot { width:8px; height:8px; border-radius:50%; background:rgba(232,200,106,0.6); }
+    .terminal pre { margin:0; padding:1.25rem; font-family:var(--mono); font-size:11px; line-height:1.7; color:var(--text-dim); overflow:auto; }
+    
+    .footer { display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); background:rgba(0,0,0,0.2); padding:1rem 2rem; font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:0.1em; }
+    
+    .open-edge { border:1px solid var(--border); border-radius:10px; background:rgba(25,35,60,0.5); padding:1rem; }
+    .open-edge-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; }
+    .open-edge-title { font-family:var(--serif); font-size:14px; color:var(--text); }
+    .open-edge-badge { font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold-dim); background:rgba(232,200,106,0.08); border:1px solid var(--border); padding:0.1rem 0.5rem; border-radius:999px; }
+    .open-edge-desc { font-size:11.5px; line-height:1.6; color:var(--text-dim); }
+
+    .divide-y > * + * { border-top:1px solid var(--border); }
+    .flex-between { display:flex; justify-content:space-between; align-items:center; }
+    .mb-4 { margin-bottom:1rem; } .mb-8 { margin-bottom:2rem; } .mb-12 { margin-bottom:3rem; }
+    .text-gold { color:var(--gold); } .text-gold-bright { color:var(--gold-bright); } .text-dim { color:var(--text-dim); }
+  </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#1a1a1a;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-divider">
+        <div class="header-line"></div>
+        <div class="diamond"></div>
+        <div class="header-line"></div>
+      </div>
+      <div>
+        <div class="mono" style="font-size:10px; letter-spacing:0.32em; text-transform:uppercase; color:var(--gold-dim);">Vault Document — Sacred Lyric Engine</div>
+        <h1 class="title">
+          <span class="serif" style="font-style:italic; font-weight:400;">Quatrian Lexicon</span>
+          <span class="subtitle">v3 — FINAL REFERENCE SHEET</span>
+        </h1>
+        <div class="badges">
+          <span class="badge gold">STATUS: LOCKED</span>
+          <span class="badge">FORMS 49</span>
+          <span class="badge">RULES 9</span>
+          <span class="badge">SCOPE: LYRIC GENERATION</span>
+        </div>
+      </div>
+      <div class="header-divider">
+        <div class="header-line"></div>
+        <div class="diamond"></div>
+        <div class="header-line"></div>
+      </div>
+    </div>
+
+    <!-- Main Panel -->
+    <div class="panel print-no-glow">
+      <div class="panel-inner">
+        
+        <!-- Section I: Lexicon -->
+        <div class="mb-12">
+          <div class="section-header">
+            <div class="section-num">I.</div>
+            <h2 class="section-title">Lexicon — All 49 Forms</h2>
+            <div class="section-line"></div>
+          </div>
+          
+          <div class="grid lg-12">
+            <!-- Left Column: Pronouns & Numerals -->
+            <div class="col-5 divide-y" style="display:flex; flex-direction:column; gap:2rem;">
+              
+              <div>
+                <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em; display:flex; align-items:center; gap:0.5rem;">
+                  <span style="width:1.5rem; height:1px; background:var(--gold-dim); display:inline-block;"></span> Pronouns — 4
+                </h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Quatrian</th><th>English</th><th>Note</th></tr></thead>
+                    <tbody>
+                      <tr><td class="td-q">ni</td><td>I</td><td class="td-note">1sg</td></tr>
+                      <tr><td class="td-q">tu</td><td>you</td><td class="td-note">2sg</td></tr>
+                      <tr><td class="td-q">sa</td><td>he / she / it</td><td class="td-note">3sg</td></tr>
+                      <tr><td class="td-q">omi</td><td>we</td><td class="td-note">1pl</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em; display:flex; align-items:center; gap:0.5rem;">
+                  <span style="width:1.5rem; height:1px; background:var(--gold-dim); display:inline-block;"></span> Numerals & Quantifiers — 5
+                </h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Form</th><th>Gloss</th><th>Type</th></tr></thead>
+                    <tbody>
+                      <tr><td class="td-q">u</td><td>one</td><td class="td-note">numeral</td></tr>
+                      <tr><td class="td-q">du</td><td>two</td><td class="td-note">numeral</td></tr>
+                      <tr><td class="td-q">tri</td><td>three</td><td class="td-note">numeral</td></tr>
+                      <tr><td class="td-q">oma</td><td>all / every</td><td class="td-note">quantifier</td></tr>
+                      <tr><td class="td-q">pai</td><td>few / many</td><td class="td-note">quantifier</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div style="border:1px dashed var(--border); border-radius:10px; padding:1rem; background:rgba(232,200,106,0.03);">
+                <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold-dim);">Lexical Note</div>
+                <div style="font-size:12px; line-height:1.5; color:var(--text-dim); margin-top:0.5rem;">
+                  Pronouns precede verbs. Numerals precede nouns. No inflection or plural markers. <span class="mono text-gold">du tala</span> — two stars.
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Roots & Particles -->
+            <div class="col-7">
+              <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em; display:flex; align-items:center; gap:0.5rem;">
+                <span style="width:1.5rem; height:1px; background:var(--gold-dim); display:inline-block;"></span> Content Roots — 26
+              </h3>
+              <div style="border:1px solid var(--border); border-radius:12px; background:rgba(25,35,60,0.5); overflow:hidden;">
+                <div class="grid md-2 divide-y" style="gap:0;">
+                  <div class="divide-y">
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">ari</span> come / draw near</div><span class="td-note">motion</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">sola</span> peace / stillness</div><span class="td-note">state</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">eya</span> light / flame</div><span class="td-note">element</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">luma</span> sky / heaven</div><span class="td-note">element</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">ori</span> dawn / morning</div><span class="td-note">time</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">sai</span> rise / ascend</div><span class="td-note">motion</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">tala</span> star</div><span class="td-note">celestial</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">vey</span> far / distant</div><span class="td-note">spatial</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">anara</span> song / voice</div><span class="td-note">sound</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">enara</span> echo / answer</div><span class="td-note">sound</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">ira</span> heart / inner</div><span class="td-note">inner</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">selu</span> shadow / veil</div><span class="td-note">state</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">rei</span> come forth / appear</div><span class="td-note">motion</span></div>
+                  </div>
+                  <div class="divide-y" style="border-left:1px solid var(--border);">
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">sera</span> shine / burn</div><span class="td-note">light</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">nara</span> name / calling</div><span class="td-note">abstract</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">vela</span> wind / breath</div><span class="td-note">element</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">rina</span> river / flow</div><span class="td-note">element</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">kele</span> stone / mountain</div><span class="td-note">element</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">tira</span> hold / keep</div><span class="td-note">action</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">sina</span> steady / true</div><span class="td-note">quality</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">aru</span> long / enduring</div><span class="td-note">quality</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">yola</span> path / road</div><span class="td-note">spatial</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">sen</span> go / walk</div><span class="td-note">motion</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">ven</span> end / completion</div><span class="td-note">time</span></div>
+                    <div class="flex-between" style="padding:0.6rem 1rem; font-size:12.5px;"><div><span class="mono text-gold-bright" style="width:52px; display:inline-block;">oma</span> all / whole</div><span class="td-note">quantifier</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:1.5rem;">
+                <h3 class="mono text-gold mb-4" style="font-size:10px; text-transform:uppercase; letter-spacing:0.24em; display:flex; align-items:center; gap:0.5rem;">
+                  <span style="width:1.5rem; height:1px; background:var(--gold-dim); display:inline-block;"></span> Function Particles — 14
+                </h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Form</th><th>Role</th><th>Position</th><th>Gloss</th></tr></thead>
+                    <tbody>
+                      <tr><td class="td-q">va</td><td class="td-note">copula</td><td style="font-size:11px;">optional</td><td class="td-note">be / is</td></tr>
+                      <tr><td class="td-q">nai</td><td class="td-note">deictic</td><td style="font-size:11px;">free</td><td class="td-note">now / here</td></tr>
+                      <tr><td class="td-q">na</td><td class="td-note">deictic</td><td style="font-size:11px;">line-final</td><td class="td-note">poetic variant</td></tr>
+                      <tr><td class="td-q">no</td><td class="td-note">negator</td><td style="font-size:11px;">pre-verbal</td><td class="td-note">not</td></tr>
+                      <tr><td class="td-q">mei</td><td class="td-note">genitive</td><td style="font-size:11px;">postposed</td><td class="td-note">of</td></tr>
+                      <tr><td class="td-q">mai</td><td class="td-note">emphatic</td><td style="font-size:11px;">any</td><td class="td-note">indeed / so</td></tr>
+                      <tr><td class="td-q">ra</td><td class="td-note">vocative</td><td style="font-size:11px;">after vocative</td><td class="td-note">O / you</td></tr>
+                      <tr><td class="td-q">aiya</td><td class="td-note">vocative</td><td style="font-size:11px;">clause-initial</td><td class="td-note">oh / hail</td></tr>
+                      <tr><td class="td-q">e</td><td class="td-note">coordination</td><td style="font-size:11px;">conj</td><td class="td-note">and</td></tr>
+                      <tr><td class="td-q">nu</td><td class="td-note">tense</td><td style="font-size:11px;">pre-verbal</td><td class="td-note">past</td></tr>
+                      <tr><td class="td-q">fa</td><td class="td-note">tense</td><td style="font-size:11px;">pre-verbal</td><td class="td-note">future</td></tr>
+                      <tr><td class="td-q">ke</td><td class="td-note">conditional</td><td style="font-size:11px;">clause-initial</td><td class="td-note">if</td></tr>
+                      <tr><td class="td-q">ta</td><td class="td-note">degree</td><td style="font-size:11px;">immediately pre-adj</td><td class="td-note">very</td></tr>
+                      <tr><td class="td-q">ya</td><td class="td-note">imperative</td><td style="font-size:11px;">clause-final optional</td><td class="td-note">imperative</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section II: Rules -->
+        <div class="mb-12">
+          <div class="section-header">
+            <div class="section-num">II.</div>
+            <h2 class="section-title">Grammar Rules (9)</h2>
+            <div class="section-line"></div>
+          </div>
+          <div class="grid md-2 lg-3" style="gap:1px; background:var(--border); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">1</div><div class="rule-title">Possession</div></div>
+              <div class="rule-body">Unmarked juxtaposition is default: eya luma (sky-light). Particle mei is optional and postposed: NOUN + mei + NOUN.</div>
+              <div class="rule-ex"><span>eya luma · ira mei sola</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">2</div><div class="rule-title">Predication</div></div>
+              <div class="rule-body">Copula va is optional. Bare juxtaposition predicates: sola ari = peace comes.</div>
+              <div class="rule-ex"><span>sola va ari · sola ari</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">3</div><div class="rule-title">Subject Ellipsis</div></div>
+              <div class="rule-body">Subjects are droppable when recoverable from context or verb semantics. Lyric voice favors ellipsis.</div>
+              <div class="rule-ex"><span>(ni) sen · (sa) rei</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">4</div><div class="rule-title">Tense</div></div>
+              <div class="rule-body">Present is unmarked. Pre-verbal particles: nu past, fa future.</div>
+              <div class="rule-ex"><span>sa ari · nu sa ari · fa sa ari</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">5</div><div class="rule-title">Negation</div></div>
+              <div class="rule-body">no appears immediately pre-element (verb/adjective). In cluster: tense → negator → verb.</div>
+              <div class="rule-ex"><span>no ari · fa ni no sen</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">6</div><div class="rule-title">Adjectives</div></div>
+              <div class="rule-body">Any content root can modify by juxtaposition. Position: after noun or predicative. ta immediately pre-adjectival intensifies.</div>
+              <div class="rule-ex"><span>kele sina · ta sina kele · ta vey tala</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">7</div><div class="rule-title">Coordination</div></div>
+              <div class="rule-body">e = and, placed between conjuncts. No comma. Stackable for litany.</div>
+              <div class="rule-ex"><span>ari e sen e sai</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">8</div><div class="rule-title">Numerals</div></div>
+              <div class="rule-body">Numerals precede noun. No agreement or plural marking.</div>
+              <div class="rule-ex"><span>du tala · tri yola · u ori</span></div>
+            </div>
+            <div class="rule-card">
+              <div class="rule-header"><div class="rule-num">9</div><div class="rule-title">Particle Ordering</div></div>
+              <div class="rule-body">Strict: [ke] → [tense nu/fa] → [pronoun]* → [neg no] → VERB → [object] → [ya]. ta + ADJ is a tight unit. Deictics nai/na float. <i>*Pronouns may float between tense and negator (e.g., fa ni no sen) or be elided.</i></div>
+              <div class="rule-ex"><span>ke nu no ari ya · fa no sera ya</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section III: Quick Reference -->
+        <div class="mb-12">
+          <div class="section-header">
+            <div class="section-num">III.</div>
+            <h2 class="section-title">Quick-Reference Card</h2>
+            <div class="section-line"></div>
+          </div>
+          <div class="grid lg-12" style="grid-template-columns: 1.15fr 0.85fr;">
+            <div class="terminal">
+              <div class="terminal-header">
+                <div class="terminal-title"><div class="dot"></div> QUATRIAN_CORE.QRF — LOCKED</div>
+                <div class="mono" style="font-size:9px; color:var(--text-faint);">v3 • 49 forms • 9 rules</div>
+              </div>
+              <pre>PRONOUNS      ni tu sa omi
+NUMERALS      u du tri | oma pai
+TENSE         nu fa    [unmarked = present]
+NEGATION      no       [pre-verbal]
+CONDITIONAL   ke       [clause-initial]
+IMPERATIVE    ya / bare initial verb
+DEGREE        ta       [immediately pre-ADJ]
+COPULA        va       [optional]
+DEICTIC       nai / na [now/here, na line-final poetic]
+GENITIVE      mei      [postposed optional]
+VOCATIVE      ra aiya  [ra after, aiya initial]
+COORD         e        [and]
+EMPHATIC      mai      [indeed/so]
+ORDERING
+  [ke] [tense] [pron]* [neg] VERB [obj] [ya]
+  ta + ADJ
+  NOUN + mei + NOUN
+  NUM + NOUN
+  NOUN + ADJ*  (any root may modify)
+  nai / na (float)
+EXAMPLE SKELETONS
+  ke luma sera, sola ari
+  fa ni no sen e sa fa ari
+  ta sina kele / du tala / eya luma</pre>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <div style="border:1px solid var(--border); border-radius:12px; background:rgba(25,35,60,0.7); padding:1rem;">
+                <div class="mono text-gold" style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em;">Particle Clusters</div>
+                <div class="mono" style="display:flex; flex-direction:column; gap:0.6rem; font-size:11px; margin-top:0.75rem;">
+                  <div class="flex-between"><span class="text-dim">affirmative present</span><span class="text-gold-bright">ari</span></div>
+                  <div class="flex-between"><span class="text-dim">past neg</span><span class="text-gold-bright">nu no ari</span></div>
+                  <div class="flex-between"><span class="text-dim">future neg</span><span class="text-gold-bright">fa no sen</span></div>
+                  <div class="flex-between"><span class="text-dim">conditional future</span><span class="text-gold-bright">ke fa sera</span></div>
+                  <div class="flex-between"><span class="text-dim">imperative</span><span class="text-gold-bright">sera ya / sera</span></div>
+                  <div style="height:1px; background:var(--border); margin:0.25rem 0;"></div>
+                  <div class="flex-between"><span class="text-dim">very distant</span><span class="text-gold-bright">ta vey</span></div>
+                  <div class="flex-between"><span class="text-dim">light of sky</span><span class="text-gold-bright">eya luma / eya mei luma</span></div>
+                </div>
+              </div>
+              <div style="border:1px dashed var(--border-strong); border-radius:12px; background:rgba(232,200,106,0.04); padding:1rem;">
+                <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold-dim);">Lyric Constraint</div>
+                <p style="font-size:12px; line-height:1.6; color:var(--text-dim); margin-top:0.5rem; margin-bottom:0;">
+                  Keep lines ≤ 7 forms. Prefer final <span class="mono text-gold">na</span> for closure. Avoid stacking more than 2 pre-verbal particles. Ellipsis is sacred.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section IV: Samples -->
+        <div class="mb-12">
+          <div class="section-header">
+            <div class="section-num">IV.</div>
+            <h2 class="section-title">Sample Lines</h2>
+            <div class="section-line"></div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; border-bottom:1px solid var(--border);">
+              <div style="padding:1.25rem; border-right:1px solid var(--border);">
+                <div class="mono text-gold-bright" style="font-size:14px; font-weight:500;">Ke luma sera, sola ari</div>
+                <div class="mono td-note" style="font-size:10px; text-transform:uppercase; margin-top:0.5rem;">if sky shine, peace come</div>
+              </div>
+              <div style="padding:1.25rem; display:flex; align-items:center; background:rgba(255,255,255,0.01);">
+                <div class="serif text-dim" style="font-size:13px; font-style:italic;">= If the sky shines, peace comes.</div>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; border-bottom:1px solid var(--border);">
+              <div style="padding:1.25rem; border-right:1px solid var(--border);">
+                <div class="mono text-gold-bright" style="font-size:14px; font-weight:500;">Fa ni no sen e sa fa ari</div>
+                <div class="mono td-note" style="font-size:10px; text-transform:uppercase; margin-top:0.5rem;">FUT I NOT go and he FUT come</div>
+              </div>
+              <div style="padding:1.25rem; display:flex; align-items:center; background:rgba(255,255,255,0.01);">
+                <div class="serif text-dim" style="font-size:13px; font-style:italic;">= I will not go and he will come.</div>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; border-bottom:1px solid var(--border);">
+              <div style="padding:1.25rem; border-right:1px solid var(--border);">
+                <div class="mono text-gold-bright" style="font-size:14px; font-weight:500;">Ta sina kele ta aru yola</div>
+                <div class="mono td-note" style="font-size:10px; text-transform:uppercase; margin-top:0.5rem;">very steady stone very long road</div>
+              </div>
+              <div style="padding:1.25rem; display:flex; align-items:center; background:rgba(255,255,255,0.01);">
+                <div class="serif text-dim" style="font-size:13px; font-style:italic;">= Very steady stone, very long road.</div>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; border-bottom:1px solid var(--border);">
+              <div style="padding:1.25rem; border-right:1px solid var(--border);">
+                <div class="mono text-gold-bright" style="font-size:14px; font-weight:500;">Sera ya eya luma</div>
+                <div class="mono td-note" style="font-size:10px; text-transform:uppercase; margin-top:0.5rem;">shine IMP light sky</div>
+              </div>
+              <div style="padding:1.25rem; display:flex; align-items:center; background:rgba(255,255,255,0.01);">
+                <div class="serif text-dim" style="font-size:13px; font-style:italic;">= Shine, sky-light!</div>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr;">
+              <div style="padding:1.25rem; border-right:1px solid var(--border);">
+                <div class="mono text-gold-bright" style="font-size:14px; font-weight:500;">Nu sa ta vey tala</div>
+                <div class="mono td-note" style="font-size:10px; text-transform:uppercase; margin-top:0.5rem;">PAST it very far star</div>
+              </div>
+              <div style="padding:1.25rem; display:flex; align-items:center; background:rgba(255,255,255,0.01);">
+                <div class="serif text-dim" style="font-size:13px; font-style:italic;">= It was a very distant star.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section V: Open Edges -->
+        <div>
+          <div class="section-header">
+            <div class="section-num">V.</div>
+            <h2 class="section-title">Open Edges — Intentionally Unclosed</h2>
+            <div class="section-line"></div>
+          </div>
+          <div class="grid md-2 lg-3" style="gap:1rem;">
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Interrogatives</div><div class="open-edge-badge">open</div></div>
+              <div class="open-edge-desc">No wh-words. Questions inferred by intonation / context. Lyric may use rising final na.</div>
+            </div>
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Comparatives</div><div class="open-edge-badge">open</div></div>
+              <div class="open-edge-desc">No morphological comparative. Comparison is approximated via periphrasis or juxtaposition of qualities.</div>
+            </div>
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Temporal 'when'</div><div class="open-edge-badge">open</div></div>
+              <div class="open-edge-desc">No when. Use ke (if) + tense or bare juxtaposition of events.</div>
+            </div>
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Causal 'because'</div><div class="open-edge-badge">open</div></div>
+              <div class="open-edge-desc">No because. Parataxis: sera, sola ari — it shines, peace comes.</div>
+            </div>
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Plural</div><div class="open-edge-badge">context-driven</div></div>
+              <div class="open-edge-desc">No plural marking. oma / pai or numerals disambiguate. du tala = two stars, tala = star(s).</div>
+            </div>
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Deixis nai</div><div class="open-edge-badge">overloaded by design</div></div>
+              <div class="open-edge-desc">nai = now/here. Spatial vs temporal intentional blur. na is line-final poetic variant.</div>
+            </div>
+            <div class="open-edge">
+              <div class="open-edge-header"><div class="open-edge-title">Relative Clauses</div><div class="open-edge-badge">unmarked juxtaposition</div></div>
+              <div class="open-edge-desc">No relativizer. Noun + clause modifies: tala nu sa sera — star that shone.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Footer -->
+      <div class="footer">
+        <span class="text-center" style="flex:1;">END OF REFERENCE SHEET — QUATRIAN v3 (LOCKED) — 49 forms, 9 rules, 7 open edges</span>
+        <span class="text-gold-dim" style="flex-shrink:0;">vault 94e34f1a — 2026-10-22</span>
+      </div>
+    </div>
+
+    <!-- Sigil Footer -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:0.75rem; margin-top:2.5rem; opacity:0.6;">
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <div style="height:1px; width:40px; background:var(--border-strong);"></div>
+        <div class="mono" style="font-size:9px; letter-spacing:0.3em; color:var(--gold-dim);">✦ QUATRIAN SKY SIGIL ✦</div>
+        <div style="height:1px; width:40px; background:var(--border-strong);"></div>
+      </div>
+      <div class="mono" style="font-size:9px; line-height:1.6; color:var(--text-faint); text-align:center; max-width:520px; letter-spacing:0.05em;">
+        Background graphics ON recommended · This document is immutable. No additions without vault rotation.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
