@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Framing (mirrors ether.py) Source — Jay Vallea</title>
+<meta name="description" content="Framing, a React client that speaks the ETHR frame protocol used by ether.py: connect over a local WebSocket, send a thought, and read the reply. Full TypeScript and CSS source.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Framing</h1>
+  <p class="subtitle">A React client that mirrors ether.py</p>
+  <p>This UI speaks the <code>ETHR</code> length-prefixed JSON frame protocol used by <code>ether.py</code>. You point it at a local WebSocket (default <code>ws://127.0.0.1:8765</code>), send a thought, and read hits, field energy, and nebula spread. The records API is optional and fails quietly when it is not there. There is a live build at <a href="../ether-framing/">ether-framing/</a>. No keys are included.</p>
+  <div class="row">
+    <a class="btn gold" href="../ether-framing/">Open the app</a>
+    <a class="btn" href="Framing.tsx" download>Download Framing.tsx</a>
+    <a class="btn" href="index.css" download>Download index.css</a>
+  </div>
+  <h2>Framing.tsx</h2>
+  <div style="white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)">import React, { useCallback, useEffect, useRef, useState } from &quot;react&quot;;
+import &quot;./index.css&quot;;
+
+/* ---------------------------------------------------------------
+   Framing (mirrors ether.py)
+--------------------------------------------------------------- */
+const MAGIC = new TextEncoder().encode(&quot;ETHR&quot;);
+const HEADER = 8;
+const MAX_PAYLOAD = 1 &lt;&lt; 20;
+
+function encodeFrame(obj: unknown): Uint8Array {
+  const payload = new TextEncoder().encode(JSON.stringify(obj));
+  if (payload.length &gt; MAX_PAYLOAD) throw new Error(&quot;payload too large&quot;);
+  const buf = new Uint8Array(HEADER + payload.length);
+  buf.set(MAGIC, 0);
+  new DataView(buf.buffer).setUint32(4, payload.length, false);
+  buf.set(payload, HEADER);
+  return buf;
+}
+
+class FrameReader {
+  buf: Uint8Array = new Uint8Array(0);
+  push(chunk: Uint8Array) {
+    const merged = new Uint8Array(this.buf.length + chunk.length);
+    merged.set(this.buf, 0);
+    merged.set(chunk, this.buf.length);
+    this.buf = merged;
+    const frames: unknown[] = [];
+    while (this.buf.length &gt;= HEADER) {
+      const dv = new DataView(this.buf.buffer, this.buf.byteOffset, HEADER);
+      const magic = this.buf.subarray(0, 4);
+      if (!(magic[0] === 77 &amp;&amp; magic[1] === 84 &amp;&amp; magic[2] === 72 &amp;&amp; magic[3] === 82))
+        throw new Error(&quot;bad magic&quot;);
+      const len = dv.getUint32(4, false);
+      if (len &gt; MAX_PAYLOAD) throw new Error(&quot;declared length too large&quot;);
+      if (this.buf.length &lt; HEADER + len) break;
+      const payload = this.buf.subarray(HEADER, HEADER + len);
+      try {
+        frames.push(JSON.parse(new TextDecoder().decode(payload)));
+      } catch (e) {
+        throw new Error(&quot;bad JSON: &quot; + (e instanceof Error ? e.message : String(e)));
+      }
+      this.buf = this.buf.subarray(HEADER + len);
+    }
+    return frames;
+  }
+}
+
+type Pending = { resolve: (v: unknown) =&gt; void; reject: (e: Error) =&gt; void };
+type StatusKind = &quot;idle&quot; | &quot;connecting&quot; | &quot;connected&quot; | &quot;error&quot;;
+
+type Hit = { impression?: string; digest?: string; [k: string]: unknown };
+type EtherReply = {
+  ok?: boolean;
+  hits?: Hit[];
+  field_energy?: number;
+  nebula_spread?: number;
+  records?: number;
+  [k: string]: unknown;
+};
+
+type SettingsValue = { wsUrl: string; thought: string; noise: string; query: string };
+
+async function callRecords(action: string, args: Record&lt;string, unknown&gt;) {
+  const res = await fetch(&quot;actions&quot;, {
+    method: &quot;POST&quot;,
+    headers: { &quot;content-type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify({ action, args }),
+  });
+  const json = await res.json().catch(() =&gt; null);
+  if (!res.ok || !json || json.error) throw new Error(json?.error || `records ${action} failed`);
+  return json.data;
+}
+
+export default function App() {
+  const [wsUrl, setWsUrl] = useState(&quot;ws://127.0.0.1:8765&quot;);
+  const [thought, setThought] = useState(&quot;Sabaoth&quot;);
+  const [noise, setNoise] = useState(&quot;0&quot;);
+  const [query, setQuery] = useState(&quot;&quot;);
+  const [status, setStatus] = useState&lt;StatusKind&gt;(&quot;idle&quot;);
+  const [statusText, setStatusText] = useState(&quot;disconnected&quot;);
+  const [hits, setHits] = useState&lt;Hit[]&gt;([]);
+  const [hasQueried, setHasQueried] = useState(false);
+  const [lastReply, setLastReply] = useState&lt;unknown&gt;(&quot;—&quot;);
+  const [meters, setMeters] = useState&lt;{ records?: number; energy?: number; spread?: number }&gt;({});
+  const [busy, setBusy] = useState&lt;&quot;tx&quot; | &quot;rq&quot; | null&gt;(null);
+
+  const wsRef = useRef&lt;WebSocket | null&gt;(null);
+  const readerRef = useRef(new FrameReader());
+  const pendingRef = useRef&lt;Pending[]&gt;([]);
+  const canvasRef = useRef&lt;HTMLCanvasElement | null&gt;(null);
+  const particlesRef = useRef&lt;{ x: number; y: number; vx: number; vy: number }[]&gt;([]);
+  const settingsIdRef = useRef&lt;string | null&gt;(null);
+  const settingsLoadedRef = useRef(false);
+  const saveTimerRef = useRef&lt;number | null&gt;(null);
+  const valuesRef = useRef&lt;SettingsValue&gt;({ wsUrl, thought, noise, query });
+  valuesRef.current = { wsUrl, thought, noise, query };
+
+  const show = useCallback((obj: unknown) =&gt; setLastReply(obj), []);
+
+  const updateMeters = useCallback((patch: { records?: number; energy?: number; spread?: number }) =&gt; {
+    setMeters((prev) =&gt; ({ ...prev, ...patch }));
+  }, []);
+
+  const persistSettings = useCallback(async () =&gt; {
+    if (!settingsLoadedRef.current) return;
+    const value = { ...valuesRef.current };
+    try {
+      if (settingsIdRef.current) {
+        await callRecords(&quot;records.replace&quot;, { collection: &quot;ether-settings&quot;, id: settingsIdRef.current, value });
+      } else {
+        const created = await callRecords(&quot;records.create&quot;, {
+          collection: &quot;ether-settings&quot;,
+          value,
+          idempotency_key: &quot;ether-settings-v1&quot;,
+        });
+        if (created?.id) settingsIdRef.current = created.id;
+      }
+    } catch {
+      // Records API unavailable in preview / offline — keep the live ether session working.
+    }
+  }, []);
+
+  const scheduleSave = useCallback(() =&gt; {
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() =&gt; { void persistSettings(); }, 700);
+  }, [persistSettings]);
+
+  useEffect(() =&gt; {
+    let cancelled = false;
+    (async () =&gt; {
+      try {
+        const data = await callRecords(&quot;records.list&quot;, { collection: &quot;ether-settings&quot; });
+        const first = data?.records?.[0];
+        if (!cancelled &amp;&amp; first?.value) {
+          const v = first.value as Partial&lt;SettingsValue&gt;;
+          settingsIdRef.current = first.id;
+          if (typeof v.wsUrl === &quot;string&quot; &amp;&amp; v.wsUrl) setWsUrl(v.wsUrl);
+          if (typeof v.thought === &quot;string&quot;) setThought(v.thought);
+          if (typeof v.noise === &quot;string&quot;) setNoise(v.noise);
+          if (typeof v.query === &quot;string&quot;) setQuery(v.query);
+        }
+      } catch {
+        // No saved settings yet, or API unavailable — use defaults.
+      } finally {
+        if (!cancelled) settingsLoadedRef.current = true;
+      }
+    })();
+    return () =&gt; { cancelled = true; };
+  }, []);
+
+  useEffect(() =&gt; () =&gt; {
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    if (wsRef.current) wsRef.current.close();
+  }, []);
+
+  /* Canvas: nebula */
+  const pulse = useCallback((energy?: number) =&gt; {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const r = canvas.getBoundingClientRect();
+    const cx = r.width / 2;
+    const cy = r.height / 2;
+    const strength = Math.min(8, 1 + (energy || 0) * 0.4);
+    for (const p of particlesRef.current) {
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      p.vx += (dx / d) * strength * (0.5 + Math.random() * 0.5);
+      p.vy += (dy / d) * strength * (0.5 + Math.random() * 0.5);
+    }
+  }, []);
+
+  useEffect(() =&gt; {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext(&quot;2d&quot;);
+    if (!ctx) return;
+    let raf = 0;
+    let dpr = 1;
+
+    const resize = () =&gt; {
+      dpr = Math.max(1, window.devicePixelRatio || 1);
+      const r = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(r.width * dpr));
+      canvas.height = Math.max(1, Math.floor(r.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (!particlesRef.current.length) {
+        particlesRef.current = Array.from({ length: 200 }, () =&gt; ({
+          x: Math.random() * r.width,
+          y: Math.random() * r.height,
+          vx: 0,
+          vy: 0,
+        }));
+      }
+    };
+
+    const step = () =&gt; {
+      const r = canvas.getBoundingClientRect();
+      const W = r.width;
+      const H = r.height;
+      for (const p of particlesRef.current) {
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x &lt; 0) p.x += W; if (p.x &gt; W) p.x -= W;
+        if (p.y &lt; 0) p.y += H; if (p.y &gt; H) p.y -= H;
+      }
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = &quot;rgba(143,180,255,0.06)&quot;;
+      ctx.lineWidth = 1;
+      const arr = particlesRef.current;
+      for (let i = 0; i &lt; arr.length; i++) {
+        for (let j = i + 1; j &lt; arr.length; j++) {
+          const a = arr[i];
+          const b = arr[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 &lt; 90 * 90) {
+            const t = 1 - Math.sqrt(d2) / 90;
+            ctx.globalAlpha = t * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      for (const p of arr) {
+        const sp = Math.hypot(p.vx, p.vy);
+        const g = Math.min(1, sp / 4);
+        ctx.fillStyle = `rgba(${143 + 80 * g},${180 + 40 * g},255,${0.35 + 0.55 * g})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.2 + g * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(step);
+    };
+
+    resize();
+    raf = requestAnimationFrame(step);
+    window.addEventListener(&quot;resize&quot;, resize);
+    return () =&gt; {
+      cancelAnimationFrame(raf);
+      window.removeEventListener(&quot;resize&quot;, resize);
+    };
+  }, []);
+
+  const request = useCallback((obj: unknown): Promise&lt;unknown&gt; =&gt; {
+    return new Promise((resolve, reject) =&gt; {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        reject(new Error(&quot;not connected&quot;));
+        return;
+      }
+      pendingRef.current.push({ resolve, reject });
+      try {
+        ws.send(encodeFrame(obj));
+      } catch (e) {
+        pendingRef.current.pop();
+        reject(e instanceof Error ? e : new Error(String(e)));
+      }
+    });
+  }, []);
+
+  const connect = useCallback(() =&gt; {
+    const url = valuesRef.current.wsUrl.trim();
+    if (!url) return;
+    setStatus(&quot;connecting&quot;);
+    setStatusText(&quot;connecting…&quot;);
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(url);
+    } catch {
+      setStatus(&quot;error&quot;);
+      setStatusText(&quot;bad url&quot;);
+      return;
+    }
+    wsRef.current = ws;
+    ws.binaryType = &quot;arraybuffer&quot;;
+    ws.onopen = () =&gt; {
+      setStatus(&quot;connected&quot;);
+      setStatusText(&quot;connected&quot;);
+      readerRef.current = new FrameReader();
+      const iv = window.setInterval(async () =&gt; {
+        if (wsRef.current &amp;&amp; wsRef.current.readyState === WebSocket.OPEN) {
+          window.clearInterval(iv);
+          try {
+            const s = (await request({ op: &quot;state&quot; })) as EtherReply | null;
+            if (s &amp;&amp; s.ok) {
+              show(s);
+              updateMeters({ records: s.records, energy: s.field_energy, spread: s.nebula_spread });
+            }
+          } catch { /* state is best-effort */ }
+        }
+      }, 200);
+    };
+    ws.onclose = () =&gt; {
+      setStatus(&quot;error&quot;);
+      setStatusText(&quot;disconnected&quot;);
+      wsRef.current = null;
+      pendingRef.current.splice(0).forEach((p) =&gt; p.reject(new Error(&quot;closed&quot;)));
+    };
+    ws.onerror = () =&gt; {
+      setStatus(&quot;error&quot;);
+      setStatusText(&quot;error&quot;);
+    };
+    ws.onmessage = (ev) =&gt; {
+      let frames: unknown[];
+      try {
+        frames = readerRef.current.push(new Uint8Array(ev.data as ArrayBuffer));
+      } catch (e) {
+        setStatus(&quot;error&quot;);
+        setStatusText(e instanceof Error ? e.message : String(e));
+        return;
+      }
+      for (const f of frames) {
+        const p = pendingRef.current.shift();
+        if (p) p.resolve(f);
+        else show({ unsolicited: f });
+      }
+    };
+  }, [request, show, updateMeters]);
+
+  const toggleConnect = () =&gt; {
+    const ws = wsRef.current;
+    if (ws &amp;&amp; ws.readyState === WebSocket.OPEN) {
+      ws.close();
+      return;
+    }
+    connect();
+  };
+
+  const onTransmit = async () =&gt; {
+    if (!thought) return;
+    setBusy(&quot;tx&quot;);
+    try {
+      const r = (await request({ op: &quot;transmit&quot;, thought, noise: parseFloat(noise) || 0 })) as EtherReply | null;
+      show(r);
+      if (r &amp;&amp; r.ok) {
+        pulse(r.field_energy);
+        updateMeters({ energy: r.field_energy, spread: r.nebula_spread });
+      }
+      void persistSettings();
+    } catch (e) {
+      show({ error: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const onResonate = async () =&gt; {
+    if (!query) return;
+    setBusy(&quot;rq&quot;);
+    try {
+      const r = (await request({ op: &quot;resonate&quot;, query })) as EtherReply | null;
+      show(r);
+      setHits((r &amp;&amp; r.hits) || []);
+      setHasQueried(true);
+      void persistSettings();
+    } catch (e) {
+      show({ error: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const recordsPct = meters.records !== undefined ? Math.min(100, (meters.records / 1000) * 100) : 0;
+  const energyPct = meters.energy !== undefined ? Math.min(100, (meters.energy / 50) * 100) : 0;
+  const spreadPct = meters.spread !== undefined ? Math.min(100, (meters.spread / 2) * 100) : 0;
+  const connected = status === &quot;connected&quot;;
+
+  const shellStyle: React.CSSProperties = {
+    boxSizing: &quot;border-box&quot;,
+    paddingTop: &quot;var(--safe-area-inset-top)&quot;,
+  };
+
+  return (
+    &lt;div
+      data-safe-area-inset-root
+      style={shellStyle}
+      className=&quot;min-h-screen w-full overflow-x-clip bg-[var(--bg)] text-[var(--fg)]&quot;
+    &gt;
+      &lt;div className=&quot;mx-auto flex min-h-screen w-full max-w-[1600px] flex-col lg:h-screen lg:overflow-hidden&quot;&gt;
+        &lt;header
+          data-safe-area-sticky-top
+          style={{ top: &quot;var(--safe-area-inset-top)&quot; }}
+          className=&quot;sticky z-10 flex flex-wrap items-center gap-3 border-b border-[var(--line)] bg-[var(--bg)] px-4 py-3 sm:px-[18px] sm:py-[14px]&quot;
+        &gt;
+          &lt;h1 className=&quot;m-0 text-[15px] font-semibold tracking-[0.02em]&quot;&gt;ether&lt;/h1&gt;
+          &lt;span className=&quot;text-xs text-[var(--dim)]&quot;&gt;four faces · one medium&lt;/span&gt;
+          &lt;span
+            role=&quot;status&quot;
+            className={
+              connected
+                ? &quot;ml-auto rounded-full border border-[#23402f] bg-[#0e1a14] px-[9px] py-[3px] text-xs text-[var(--ok)]&quot;
+                : status === &quot;error&quot;
+                  ? &quot;ml-auto rounded-full border border-[#402323] bg-[#1a0e0e] px-[9px] py-[3px] text-xs text-[var(--err)]&quot;
+                  : &quot;ml-auto rounded-full border border-[var(--line)] px-[9px] py-[3px] text-xs text-[var(--dim)]&quot;
+            }
+          &gt;
+            {statusText}
+          &lt;/span&gt;
+        &lt;/header&gt;
+
+        &lt;div className=&quot;flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_360px]&quot;&gt;
+          &lt;main className=&quot;relative min-h-[340px] min-w-0 flex-1 lg:min-h-0&quot;&gt;
+            &lt;canvas ref={canvasRef} className=&quot;block h-full min-h-[340px] w-full lg:min-h-0&quot; aria-label=&quot;Nebula visualization of the ether medium&quot; /&gt;
+            &lt;p className=&quot;pointer-events-none absolute left-4 top-3 m-0 text-[11px] tracking-wide text-[var(--dim)]&quot;&gt;
+              the medium · 200 particles
+            &lt;/p&gt;
+          &lt;/main&gt;
+
+          &lt;aside className=&quot;flex min-w-0 flex-col gap-[14px] overflow-y-auto border-t border-[var(--line)] p-4 sm:p-[16px] lg:border-l lg:border-t-0&quot;&gt;
+            &lt;section className=&quot;flex flex-col gap-[6px]&quot;&gt;
+              &lt;h2 className=&quot;m-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--dim)]&quot;&gt;bridge&lt;/h2&gt;
+              &lt;div className=&quot;flex gap-[6px]&quot;&gt;
+                &lt;label className=&quot;sr-only&quot; htmlFor=&quot;wsurl&quot;&gt;Bridge WebSocket URL&lt;/label&gt;
+                &lt;input
+                  id=&quot;wsurl&quot;
+                  value={wsUrl}
+                  onChange={(e) =&gt; { setWsUrl(e.target.value); scheduleSave(); }}
+                  onBlur={() =&gt; { void persistSettings(); }}
+                  spellCheck={false}
+                  inputMode=&quot;url&quot;
+                /&gt;
+                &lt;button id=&quot;conn&quot; type=&quot;button&quot; onClick={toggleConnect} className=&quot;shrink-0&quot;&gt;
+                  {connected ? &quot;disconnect&quot; : &quot;connect&quot;}
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/section&gt;
+
+            &lt;section className=&quot;flex flex-col gap-[6px]&quot;&gt;
+              &lt;h2 className=&quot;m-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--dim)]&quot;&gt;transmit&lt;/h2&gt;
+              &lt;label className=&quot;sr-only&quot; htmlFor=&quot;thought&quot;&gt;Thought to transmit&lt;/label&gt;
+              &lt;textarea
+                id=&quot;thought&quot;
+                value={thought}
+                placeholder=&quot;Sabaoth&quot;
+                onChange={(e) =&gt; { setThought(e.target.value); scheduleSave(); }}
+                onBlur={() =&gt; { void persistSettings(); }}
+                onKeyDown={(e) =&gt; {
+                  if ((e.ctrlKey || e.metaKey) &amp;&amp; e.key === &quot;Enter&quot;) {
+                    e.preventDefault();
+                    void onTransmit();
+                  }
+                }}
+              /&gt;
+              &lt;div className=&quot;flex gap-[6px]&quot;&gt;
+                &lt;label className=&quot;flex flex-[2] flex-col gap-1&quot;&gt;
+                  &lt;span className=&quot;text-[11px] text-[var(--dim)]&quot;&gt;noise&lt;/span&gt;
+                  &lt;input
+                    id=&quot;noise&quot;
+                    type=&quot;number&quot;
+                    min=&quot;0&quot;
+                    max=&quot;1&quot;
+                    step=&quot;0.05&quot;
+                    value={noise}
+                    onChange={(e) =&gt; { setNoise(e.target.value); scheduleSave(); }}
+                    onBlur={() =&gt; { void persistSettings(); }}
+                  /&gt;
+                &lt;/label&gt;
+                &lt;button id=&quot;tx&quot; type=&quot;button&quot; className=&quot;flex-1 self-end&quot; onClick={() =&gt; void onTransmit()} disabled={!thought || busy === &quot;tx&quot;}&gt;
+                  {busy === &quot;tx&quot; ? &quot;sending…&quot; : &quot;transmit&quot;}
+                &lt;/button&gt;
+              &lt;/div&gt;
+              &lt;p className=&quot;m-0 text-[11px] text-[var(--dim)]&quot;&gt;Ctrl / Cmd + Enter sends.&lt;/p&gt;
+            &lt;/section&gt;
+
+            &lt;section className=&quot;flex flex-col gap-[6px]&quot;&gt;
+              &lt;h2 className=&quot;m-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--dim)]&quot;&gt;resonate&lt;/h2&gt;
+              &lt;div className=&quot;flex gap-[6px]&quot;&gt;
+                &lt;label className=&quot;sr-only&quot; htmlFor=&quot;query&quot;&gt;Query&lt;/label&gt;
+                &lt;input
+                  id=&quot;query&quot;
+                  value={query}
+                  placeholder=&quot;hosts&quot;
+                  spellCheck={false}
+                  onChange={(e) =&gt; { setQuery(e.target.value); scheduleSave(); }}
+                  onBlur={() =&gt; { void persistSettings(); }}
+                  onKeyDown={(e) =&gt; { if (e.key === &quot;Enter&quot;) { e.preventDefault(); void onResonate(); } }}
+                /&gt;
+                &lt;button id=&quot;rq&quot; type=&quot;button&quot; className=&quot;shrink-0&quot; onClick={() =&gt; void onResonate()} disabled={!query || busy === &quot;rq&quot;}&gt;
+                  {busy === &quot;rq&quot; ? &quot;querying…&quot; : &quot;query&quot;}
+                &lt;/button&gt;
+              &lt;/div&gt;
+              &lt;ul className=&quot;m-0 flex list-none flex-col gap-1 p-0&quot; aria-live=&quot;polite&quot;&gt;
+                {!hasQueried &amp;&amp; hits.length === 0 &amp;&amp; (
+                  &lt;li className=&quot;rounded-md border border-[var(--line)] px-2 py-[6px] text-center text-xs text-[var(--dim)]&quot;&gt;
+                    no query yet
+                  &lt;/li&gt;
+                )}
+                {hasQueried &amp;&amp; hits.length === 0 &amp;&amp; (
+                  &lt;li className=&quot;rounded-md border border-[var(--line)] px-2 py-[6px] text-center text-xs text-[var(--dim)]&quot;&gt;no matches&lt;/li&gt;
+                )}
+                {hits.map((h, i) =&gt; (
+                  &lt;li key={`${h.digest ?? i}-${i}`} className=&quot;flex justify-between gap-2 rounded-md border border-[var(--line)] px-2 py-[6px] text-xs&quot;&gt;
+                    &lt;span className=&quot;min-w-0 break-words&quot;&gt;{String(h.impression ?? &quot;&quot;)}&lt;/span&gt;
+                    &lt;span className=&quot;shrink-0 text-[var(--dim)]&quot;&gt;{String(h.digest ?? &quot;&quot;)}&lt;/span&gt;
+                  &lt;/li&gt;
+                ))}
+              &lt;/ul&gt;
+            &lt;/section&gt;
+
+            &lt;section className=&quot;flex flex-col gap-[6px]&quot;&gt;
+              &lt;h2 className=&quot;m-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--dim)]&quot;&gt;state&lt;/h2&gt;
+              &lt;div className=&quot;grid grid-cols-[auto_1fr] items-center gap-x-[10px] gap-y-[2px] text-xs&quot;&gt;
+                &lt;b className=&quot;font-medium text-[var(--dim)]&quot;&gt;records&lt;/b&gt;
+                &lt;span className=&quot;h-[6px] overflow-hidden rounded-[3px] border border-[var(--line)] bg-[var(--surface-2)]&quot;&gt;
+                  &lt;i className=&quot;block h-full bg-[var(--accent)] transition-[width] duration-300&quot; style={{ width: `${recordsPct}%` }} /&gt;
+                &lt;/span&gt;
+                &lt;b className=&quot;font-medium text-[var(--dim)]&quot;&gt;energy&lt;/b&gt;
+                &lt;span className=&quot;h-[6px] overflow-hidden rounded-[3px] border border-[var(--line)] bg-[var(--surface-2)]&quot;&gt;
+                  &lt;i className=&quot;block h-full bg-[var(--accent)] transition-[width] duration-300&quot; style={{ width: `${energyPct}%` }} /&gt;
+                &lt;/span&gt;
+                &lt;b className=&quot;font-medium text-[var(--dim)]&quot;&gt;spread&lt;/b&gt;
+                &lt;span className=&quot;h-[6px] overflow-hidden rounded-[3px] border border-[var(--line)] bg-[var(--surface-2)]&quot;&gt;
+                  &lt;i className=&quot;block h-full bg-[var(--accent)] transition-[width] duration-300&quot; style={{ width: `${spreadPct}%` }} /&gt;
+                &lt;/span&gt;
+              &lt;/div&gt;
+              &lt;p className=&quot;m-0 text-[11px] text-[var(--dim)]&quot;&gt;
+                {meters.records !== undefined ? `${meters.records} records · ` : &quot;&quot;}
+                {meters.energy !== undefined ? `energy ${meters.energy} · ` : &quot;&quot;}
+                {meters.spread !== undefined ? `spread ${meters.spread}` : &quot;awaiting state&quot;}
+              &lt;/p&gt;
+            &lt;/section&gt;
+
+            &lt;section className=&quot;flex flex-col gap-[6px]&quot;&gt;
+              &lt;h2 className=&quot;m-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--dim)]&quot;&gt;last reply&lt;/h2&gt;
+              &lt;pre className=&quot;m-0 max-h-[260px] min-h-[80px] overflow-auto rounded-lg border border-[var(--line)] bg-[var(--surface)] p-[10px] text-xs&quot;&gt;
+                {typeof lastReply === &quot;string&quot; ? lastReply : JSON.stringify(lastReply, null, 2)}
+              &lt;/pre&gt;
+            &lt;/section&gt;
+          &lt;/aside&gt;
+        &lt;/div&gt;
+
+        &lt;footer className=&quot;flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--line)] px-4 py-2 text-[11px] text-[var(--dim)] sm:px-[18px]&quot;&gt;
+          &lt;span&gt;wire: &lt;code className=&quot;rounded bg-[var(--surface-2)] px-[5px] py-[1px] text-xs&quot;&gt;ETHR | u32 len | JSON&lt;/code&gt;&lt;/span&gt;
+          &lt;span&gt;run: &lt;code className=&quot;rounded bg-[var(--surface-2)] px-[5px] py-[1px] text-xs&quot;&gt;python ether.py serve&lt;/code&gt;&lt;/span&gt;
+          &lt;span&gt;bridge: &lt;code className=&quot;rounded bg-[var(--surface-2)] px-[5px] py-[1px] text-xs&quot;&gt;python bridge.py&lt;/code&gt;&lt;/span&gt;
+        &lt;/footer&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</div>
+  <h2>index.css</h2>
+  <div style="white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)">@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0c14;
+  --surface: #0b0f19;
+  --surface-2: #0f1420;
+  --surface-3: #141b2c;
+  --fg: #cfd6e6;
+  --dim: #6b7590;
+  --line: #1d2336;
+  --accent: #8fb4ff;
+  --ok: #7ee2a8;
+  --err: #ff8f8f;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0c14;
+    --surface: #0b0f19;
+    --surface-2: #0f1420;
+    --surface-3: #141b2c;
+    --fg: #cfd6e6;
+    --dim: #6b7590;
+    --line: #1d2336;
+    --accent: #8fb4ff;
+    --ok: #7ee2a8;
+    --err: #ff8f8f;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+}
+input, textarea, button { font: inherit; }
+input, textarea {
+  color: var(--fg);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  width: 100%;
+  min-width: 0;
+}
+input:focus, textarea:focus, button:focus-visible {
+  outline: none;
+  border-color: #2c3a5c;
+  box-shadow: 0 0 0 2px rgba(143, 180, 255, 0.18);
+}
+textarea { resize: vertical; min-height: 52px; }
+button {
+  cursor: pointer;
+  background: var(--surface-3);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  white-space: nowrap;
+}
+button:hover { border-color: #2c3a5c; }
+button:active { background: var(--surface-2); }
+button:disabled { opacity: 0.55; cursor: default; }
+pre { white-space: pre-wrap; word-break: break-word; }
+</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Full source, no keys. Talks to a local ether.py session when one is running.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
