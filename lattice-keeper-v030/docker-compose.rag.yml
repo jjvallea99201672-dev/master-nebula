@@ -1,0 +1,25 @@
+# Optional overlay: retrieval (FAISS) + local Ollama.
+#   docker compose -f docker-compose.yml -f docker-compose.rag.yml --profile ollama build
+#   # put .txt/.md files in ./rag-docs, then build the index (prints the pin):
+#   docker compose -f docker-compose.yml -f docker-compose.rag.yml --profile ollama run --rm lattice-keeper \
+#       rag-build --source /docs --out /data/rag/index
+#   # set RAG_INDEX_MANIFEST_SHA256=<pin> in .env, then:
+#   docker compose -f docker-compose.yml -f docker-compose.rag.yml --profile ollama up -d
+services:
+  lattice-keeper:
+    build:
+      args:
+        EXTRAS: pqc,rag
+    image: lattice-keeper:0.30.0-rag
+    environment:
+      RAG_ENABLED: "true"
+      RAG_INDEX_DIR: /data/rag/index
+    volumes:
+      - rag:/data/rag
+      - ./rag-docs:/docs:ro
+    depends_on:
+      ollama:
+        condition: service_started
+
+volumes:
+  rag:
