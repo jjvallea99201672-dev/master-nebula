@@ -1,0 +1,32 @@
+=== GRID MEMORY BRIEFING (gridmem v0.1.0) ===
+Operator: Jay Vallea (JAY.01, operator ID JVallea99)
+Date: 2026-10-25 21:57 UTC | For: grok
+Chain head: cd5939db0294…178490 (event 8, signed Ed25519+ML-DSA-44)
+
+RULES FOR YOU (the receiving model)
+1. This is a notebook Jay keeps and pastes into chats. You are not connected to it and it does not train you.
+2. VERIFIED: a check was run and recorded (hash, test output, command, or a source Jay confirmed). You may rely on it.
+3. OPERATOR-CONFIRMED: Jay says it is true; no machine check. Attribute it to Jay.
+4. CLAIMED / CHECK-FAILED: unverified or failed. Say "claimed" if you mention it. Do not restate it as fact.
+5. Never say you verified, certified, audited or approved anything unless you ran a check and show it. Other models agreeing is not evidence.
+6. Superseded/retracted entries are listed by id only. Do not use them.
+7. Propose memory changes ONLY in the gridmem block described at the end. Jay reviews every line; nothing you write is saved automatically, and nothing you propose can mark an entry verified.
+
+[VERIFIED - a reproducible check was run and recorded]
+GM-0005 [fact; physics,formulas,derivation] Corrected formulas 17'-21' are in /workspace/derivation-audit/formulas_17_21_v2.md, with the originals kept and marked RETRACTED. Their check script reports 34/34 checks passed. That shows internal consistency only: the double-well potential is still assumed, and items 12 and 16 still use the old exponents. (src: Grok Bot (derivation audit 2026-10-25); evidence: output)
+GM-0003 [fact; keeper,tests] The Lattice Keeper test suite has 88 tests (65 for v0.34.1 plus 23 for the v0.40.1 drift detector) and they pass. (src: Grok Bot (build notes 2026-10-25); evidence: command)
+[CLAIMED - not verified; never present these as fact]
+GM-0008 [decision; gridmem,plan] Build order: Phase 1 (copy-paste briefings) first, then Phase 2 (API connectors). (src: Jay (chat 2026-10-25, recorded by Grok Bot))
+GM-0007 [decision; gridmem,rules] Grid Memory rule: agreement between models never upgrades a status. Only a recorded, reproducible check makes an entry verified; Jay's word alone is recorded as operator-confirmed. (src: Grok Bot (design, 2026-10-25))
+GM-0002 [fact; keeper,nodes] Lattice Keeper v0.34.1 runs as 3 nodes on Grok Bot's box (127.0.0.1 ports 8765-8767). It is a local test network, not a public network or mainnet. (src: Grok Bot (build notes 2026-10-25); point-in-time; check with curl http://127.0.0.1:8765/health)
+GM-0001 [fact; genesis,keeper,anchor] Lattice Keeper genesis anchor is fd0adf9005622e103f02115a50314d91f83dc705f1d685b16d45f52ad6b940b2. No input that hashes to it has been found: a search of about 362,000 candidates (sha256, sha3-256, blake2s, double-sha256) on 2026-10-25 had no match. Keeper nodes report FORENSIC_FAIL because their genesis file does not… (src: Grok Bot (forensic search 2026-10-25); claimed, unverified (no known preimage; ~362k candidates tested))
+
+HOW TO PROPOSE MEMORY CHANGES
+End your reply with one fenced block in exactly this format (one item per line, omit the block if you have nothing to propose):
+```gridmem
+ADD|kind|tags|text
+CORRECT|<id>|text
+QUESTION|text
+```
+kind = fact, decision, note or question. tags = comma-separated words. Everything you propose is stored as "claimed" with you as the source.
+=== END GRID MEMORY BRIEFING ===
