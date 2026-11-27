@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MULE Sled — continued design (round 3) — Jay Vallea</title>
+<meta name="description" content="MULE Sled continued design, round 3: a flatbed drone sled a car can drive onto, plus a tethered MULE Bridge. Design in progress, not built.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 28px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .paper .local-vid{margin:0 0 32px}
+  .paper .status{border:1px solid rgba(255,200,61,.45);background:rgba(255,200,61,.08);padding:16px 18px;border-radius:12px;margin:0 0 28px}
+  .paper .status p{margin:.35em 0}
+  .paper .downloads{margin:0 0 36px}
+  .paper .note{color:var(--dim);font-size:15px;margin:.6em 0 0}
+  .paper .table-wrap{overflow-x:auto;margin:1em 0 1.4em}
+  .paper table{width:100%;border-collapse:collapse;font-size:15px;line-height:1.5}
+  .paper th,.paper td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .paper th{color:var(--gold);font-weight:600}
+  .paper blockquote{margin:1em 0;padding:.2em 0 .2em 1em;border-left:3px solid var(--gold);color:var(--text)}
+  .paper blockquote p{margin:.2em 0}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>MULE Sled — continued design</h1>
+  <p class="subtitle">Round 3 · design in progress, not built</p>
+
+  <figure class="local-vid">
+    <video controls playsinline preload="metadata" poster="../assets/video/mule-sled.jpg" title="MULE: a concept explainer">
+      <source src="../assets/video/mule-sled.mp4" type="video/mp4">
+    </video>
+    <figcaption>MULE: a concept explainer for drone sleds that catch rocket boosters, keep a descent level when an engine fails, and test landings on a tether. CGI and stock footage; concept, not built.</figcaption>
+  </figure>
+
+  <div class="status">
+    <p><strong>Started:</strong> 2026-11-18, from a pasted design thread (user + another engine). <strong>Status:</strong> design in progress, not built, not verified hardware. Numbers below are Ember-checked where marked; the rest are the thread&#x27;s figures, carried forward as design inputs, not facts. <strong>Round 2 (2026-11-18) resolved the round-1 open questions — §6 is current, and §2–§3 figures are superseded wherever §6 says so.</strong> <strong>Round 3 (2026-11-18) added §7 — joint drawn, fans and power sourced.</strong></p>
+  </div>
+
+  <div class="downloads row">
+    <a class="btn" href="mule-sled-round-3.md" download>Download round 3 (markdown)</a>
+    <a class="btn" href="mule-sled-round-2.md" download>Download round 2 (markdown)</a>
+    <a class="btn" href="mule-sled-round-2.pdf" download>Download round 2 (PDF)</a>
+  </div>
+  <p class="note">This page is the round-3 text (2026-11-18), including superseded figures left visible as written. The PDF is a typographic export of round 2: the same content as the round-2 markdown, without §7. Differences from the markdown are layout and table wrapping only.</p>
+
+  <h2>1. The concept (recap)</h2>
+  <p>Car stays a car. Sled stays a sled. They only meet for 5 minutes.</p>
+  <ul>
+    <li>Drive onto the flatbed sled, auto-lock (wheel chocks + tie-downs, ~30 s), lift, fly, land, drive off.</li>
+    <li>No wings, no runway, no transforming. If the sled breaks, the car still drives. If the car breaks, the sled still flies empty.</li>
+    <li>Military first: loud, expensive, short hops are fine. Civilian later, when batteries and rules catch up.</li>
+  </ul>
+  <p><strong>Sled (from the thread):</strong> deck 5.2 m × 2.4 m, ~600 kg empty, carbon + titanium frame, 4 retractable legs, 12 electric ducted fans in 2 rows of 6, ~2,800 N each (33,600 N total). Car adds 4 cold-gas thrusters, ~2,000 N each (8,000 N total). Swappable 150 kWh pack + turbine range extender. Fly-by-wire, auto-hover, auto-land, GPS + inertial + lidar, remote return-to-base.</p>
+  <h2>2. Numbers checked (Ember, momentum theory, sea level)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Claim from the thread</th>
+      <th>Check</th>
+      <th>Verdict</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>~26 kN to hover 2,650 kg</td>
+        <td>2,650 × 9.81 = <strong>26.0 kN</strong></td>
+        <td>holds</td>
+      </tr>
+      <tr>
+        <td>Combined lift 41,600 N, 1.5× margin</td>
+        <td>33,600 + 8,000 = 41,600 N → <strong>1.60×</strong></td>
+        <td>holds, slightly better than stated</td>
+      </tr>
+      <tr>
+        <td>2 fans dead, still land</td>
+        <td>10 fans + car thrusters = 36,000 N → <strong>1.38×</strong></td>
+        <td>holds (even 3 dead: 1.28×)</td>
+      </tr>
+      <tr>
+        <td>Hover power 1–1.5 MW</td>
+        <td>0.8 m fans: ideal 1.09 MW, realistic <strong>~1.6 MW</strong> (FoM 0.75 + profile). 0.6 m fans: ~2.1 MW</td>
+        <td>close, slightly optimistic; fan diameter decides it</td>
+      </tr>
+      <tr>
+        <td>75–100 kWh pack = 4–6 min</td>
+        <td>At 1.5 MW: 75 kWh = <strong>3.0 min</strong>, 100 kWh = <strong>4.0 min</strong>; 150 kWh = 6.0 min</td>
+        <td>holds only at the low end (~1 MW draw); at full hover power it&#x27;s 3–4 min</td>
+      </tr>
+      <tr>
+        <td>Turbine extender → 25–30 min</td>
+        <td>Needs turbine averaging <strong>1.14 MW</strong> for 25 min (150 kWh pack). 500 kW turbine → 9 min; 1 MW → 18 min</td>
+        <td><strong>DOES NOT CLOSE as written.</strong> A 1.1 MW turboshaft is helicopter-engine class (~200 kg) and breaks the 600 kg sled budget. Either the flight time is ~10 min, or the sled gets heavier (which needs more thrust). This is the one number to fix.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <h2>3. MULE Bridge — the second product</h2>
+  <p>Same sled, same thrusters, same deck. Just park them in a line instead of flying them in a line. A bridge doesn&#x27;t have to fly anywhere. It just has to hold still.</p>
+  <blockquote>
+    <p>Round 2 (§6) supersedes the figures in this section: the bridge now uses config C — 614 kg sled, 6.6 m deck, 4 sleds for a 25 m river, pier margin 1.60×, tether 400 kW at 1,000 V DC.</p>
+  </blockquote>
+  <h3>Geometry</h3>
+  <ul>
+    <li>Sleds sit <strong>end to end across the river</strong>, decks forming the road. Each sled covers 5.2 m of road + a ~1 m hinged gap plate to the next sled = <strong>6.2 m pitch</strong>.</li>
+    <li>Road width is the sled width: <strong>2.4 m, single lane</strong>, cars only. A car is ~1.9 m wide, so it fits with ~25 cm a side and no shoulder. For trucks, pair sleds side by side (two abreast per pier → 4.8 m deck).</li>
+    <li>Sled count for a river of width W: <code>ceil(W / 6.2)</code>.</li>
+  </ul>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>River width</th>
+      <th>Sleds</th>
+      <th>Deck length</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>20 m</td>
+        <td>4</td>
+        <td>24.8 m</td>
+      </tr>
+      <tr>
+        <td>25 m</td>
+        <td>5</td>
+        <td>31.0 m</td>
+      </tr>
+      <tr>
+        <td>30 m</td>
+        <td>5</td>
+        <td>31.0 m</td>
+      </tr>
+      <tr>
+        <td>40 m</td>
+        <td>7</td>
+        <td>43.4 m</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The thread&#x27;s &quot;5 sleds&quot; falls out of this for a 25–30 m river — the size of the rivers around Atholville / Nigadoo.</p>
+  <h3>Loads — one pier, car centred on it</h3>
+  <ul>
+    <li>Pier load: sled 600 kg + car 1,850 kg + plates/tether share ~100 kg = <strong>2,550 kg → 25.0 kN</strong>. Margin vs 33.6 kN max: <strong>1.34×</strong>.</li>
+    <li>Fan-out tolerance per pier: 1 dead → 1.23×, 2 dead → <strong>1.12×</strong>, 3 dead → <strong>1.01×</strong> (zero margin). The bridge tolerates 2 fan failures per pier.</li>
+    <li>Vehicle cap per pier: ~2,000 kg at 1.3× margin. A Model 3 (1,850 kg) fits. A loaded pickup doesn&#x27;t — pair the sleds for heavier vehicles.</li>
+  </ul>
+  <h3>Power — the tether is the unlock</h3>
+  <ul>
+    <li>Empty sled holding station: <strong>~172 kW</strong> realistic.</li>
+    <li>Pier with a car on it: <strong>~1,510 kW</strong> realistic. The car is the load, not the hold.</li>
+    <li>So the tether does <strong>not</strong> carry full pier power. It carries the hold (~172 kW per sled) plus trickle-charging. The sled&#x27;s battery pays the transient when a car is on that pier: <strong>~7.4 kWh per car per pier</strong> (20 s crossing), so <strong>~20 cars per 150 kWh pack</strong> before a sled needs a pack swap or a recharge pause.</li>
+    <li>Generator on the bank: 5 sleds × 172 kW hold + charging headroom ≈ <strong>1 MW-class towable diesel genset</strong> — standard military kit, truck-sized.</li>
+    <li>Tether: sized for ~200 kW per sled at 1,000 V DC ≈ 200 A. The sled unspools it as it flies out from the bank — no separate cable-laying step. High-voltage tether over water is its own hazard: insulated, armoured, breakaway connectors, and a dead-man cut if a cable is severed (sled falls back to battery and auto-lands).</li>
+  </ul>
+  <h3>Wind and station-keeping — why the deck can&#x27;t be rigid</h3>
+  <ul>
+    <li>Side force on a car in a gust: 40 km/h → ~237 N, 80 km/h → ~949 N. The sled counters by tilting into the wind: <strong>0.5° at 40 km/h, 2.1° at 80 km/h</strong>. Easy — but five sleds will never tilt identically.</li>
+    <li>So the deck <strong>must be articulated</strong>: hinged gap plates between sleds, like a pontoon bridge. A rigid beam would fight the sleds and buckle.</li>
+    <li>Position holding: GPS + inertial + lidar off the banks, plus vision. If GPS is jammed, lidar + inertial holds station — the river banks are strong lidar features.</li>
+    <li>Ops limit (proposed, not tested): pause crossings above ~80 km/h gusts.</li>
+  </ul>
+  <h3>Failure modes</h3>
+  <ul>
+    <li><strong>Fan loss:</strong> 2 per pier is survivable (1.12×). At 3, the pier can&#x27;t hold a car — the car accelerates off it, or the sled descends on its neighbours.</li>
+    <li><strong>One sled sinks:</strong> the hinged plates tie it to its neighbours, which pick up the load. A sinking pier with no car on it is only 600 kg for the neighbours to carry — easy. With a car on it, the driver gets off it fast.</li>
+    <li><strong>Thrust loss over water:</strong> sealed carbon hull is buoyant — the sled floats like a pontoon. Over land, the legs take it. This is free insurance if the hull is sealed anyway.</li>
+    <li><strong>Tether cut:</strong> sled falls back to battery, ~5 min to land safely or let the car drive off. Auto-land sequence, no pilot input needed.</li>
+  </ul>
+  <h3>Deployment — the timeline that sells it</h3>
+  <p>Sleds on site (truck-carried to the bank):</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Time</th>
+      <th>What happens</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>T+0</td>
+        <td>Order. Sleds roll off the truck, spin up.</td>
+      </tr>
+      <tr>
+        <td>T+2 min</td>
+        <td>Sleds fly out, take station over the river in a line, 3 m above the water, unspooling tethers.</td>
+      </tr>
+      <tr>
+        <td>T+5 min</td>
+        <td>Gap plates lock, guide rails up.</td>
+      </tr>
+      <tr>
+        <td>T+8 min</td>
+        <td>First vehicle crosses.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>~8–15 minutes from arrival to first crossing</strong>, vs ~12 hours for a pontoon bridge under fire. If the sleds self-deploy from a base 20 km away, add transit time (~15 min at cruise).</p>
+  <h3>Civilian version</h3>
+  <p>Same kit, unmarked. Flood, hurricane, earthquake — road gone, bridge out. Fly the bridge in for ambulances, food trucks, people getting out. Quieter ducted fans, same tether, hold all day. The bridge version is the civilian case that makes sense first: it never flies over a city, never leaves the river, and the tether means it never runs out of power mid-crossing.</p>
+  <h2>4. What to build first (prototype sequence)</h2>
+  <ol>
+    <li><strong>Single sled, sandbags.</strong> Hover a 2,650 kg sandbag load in a field. Proves thrust, power, and control before any car is involved.</li>
+    <li><strong>Two sleds + one gap plate.</strong> Station-keeping test: hold a 6 m span steady in wind, prove the articulated joint works.</li>
+    <li><strong>Five sleds, no river.</strong> Bridge over a field, drive a car across.</li>
+    <li><strong>Five sleds over water.</strong> Same, with the tether and the generator. Then the flood call-out is real.</li>
+  </ol>
+  <h2>5. Open questions — round 2 resolutions (2026-11-18)</h2>
+  <p>Round 1 left five open questions. All five are resolved in §6; the new open list is §6.9.</p>
+  <h2>6. Design round 2 — closing the open questions</h2>
+  <h3>6.1 The 600 kg sled doesn&#x27;t close — split the configs</h3>
+  <p>Itemised mass budget (solid-state pack at 400 Wh/kg, 500 kW turbine ~100 kg, avionics + lidar + legs + locks + tether spool ~100 kg, frame ~150 kg):</p>
+  <ul>
+    <li>The thread&#x27;s sled at 600 kg with a 150 kWh pack (375 kg) + turbine (100 kg) + 12 fans (~200 kg) + frame (150 kg) + avionics (100 kg) = <strong>~929 kg, not 600.</strong> The 600 kg figure only works with no pack and no turbine.</li>
+    <li>Fix: the pack is swappable (the thread already says so), so split the configs. <strong>Bridge config</strong> carries a 40 kWh buffer pack (100 kg), no turbine: sled <strong>554–614 kg</strong> depending on fan config. <strong>Flying config</strong> carries the 150 kWh pack + 500 kW turbine: sled <strong>929–989 kg</strong>. All numbers in §6.2 use these masses, not 600 kg.</li>
+  </ul>
+  <h3>6.2 Fan trade study — A / B / C</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C (baseline)</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>Fans</td>
+        <td>12 × 0.8 m</td>
+        <td>10 × 1.0 m</td>
+        <td>12 × 1.0 m</td>
+      </tr>
+      <tr>
+        <td>Thrust each / total</td>
+        <td>2,800 N / 33,600 N</td>
+        <td>3,360 N / 33,600 N</td>
+        <td>3,360 N / 40,320 N</td>
+      </tr>
+      <tr>
+        <td>Disk area</td>
+        <td>6.03 m²</td>
+        <td>7.85 m²</td>
+        <td>9.42 m²</td>
+      </tr>
+      <tr>
+        <td>Deck length</td>
+        <td>5.2 m</td>
+        <td>5.6 m</td>
+        <td>6.6 m</td>
+      </tr>
+      <tr>
+        <td>Bridge sled</td>
+        <td>554 kg</td>
+        <td>570 kg</td>
+        <td>614 kg</td>
+      </tr>
+      <tr>
+        <td>Flying sled</td>
+        <td>929 kg</td>
+        <td>945 kg</td>
+        <td>989 kg</td>
+      </tr>
+      <tr>
+        <td>Hover power, realistic</td>
+        <td>1,717 kW</td>
+        <td>1,518 kW</td>
+        <td>1,419 kW</td>
+      </tr>
+      <tr>
+        <td>Flying margin, combined</td>
+        <td>1.53×</td>
+        <td>1.52×</td>
+        <td>1.73×</td>
+      </tr>
+      <tr>
+        <td>Flying margin, sled alone</td>
+        <td>1.23×</td>
+        <td>1.23×</td>
+        <td>1.45×</td>
+      </tr>
+      <tr>
+        <td>Flying, 2 fans dead</td>
+        <td>1.32×</td>
+        <td>1.27×</td>
+        <td>1.49×</td>
+      </tr>
+      <tr>
+        <td>Pier margin (car centred)</td>
+        <td>1.37×</td>
+        <td>1.36×</td>
+        <td>1.60×</td>
+      </tr>
+      <tr>
+        <td>Pier, 2 fans dead</td>
+        <td>1.14×</td>
+        <td>1.09×</td>
+        <td>1.34×</td>
+      </tr>
+      <tr>
+        <td>Sleds for a 25 m river</td>
+        <td>5</td>
+        <td>4</td>
+        <td>4</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Recommendation: C as the baseline, B as the compact fallback, A retired.</strong> C wins on every margin and on power, needs one fewer sled per river, and its 6.6 m deck fixes a real fit problem the thread missed: a 5.2 m deck barely fits a Model 3 (4.72 m) and does <strong>not</strong> fit a light pickup (Ranger 5.35 m). C fits both. Cost: the biggest, heaviest sled and the most expensive fans.</p>
+  <h3>6.3 Flight time — the 25-minute figure is dropped</h3>
+  <p>With the honest masses and a 500 kW turbine:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Config</th>
+      <th>Battery-only</th>
+      <th>+ 500 kW turbine</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>A</td>
+        <td>5.2 min</td>
+        <td>7.4 min</td>
+      </tr>
+      <tr>
+        <td>B</td>
+        <td>5.9 min</td>
+        <td>8.8 min</td>
+      </tr>
+      <tr>
+        <td>C</td>
+        <td>6.3 min</td>
+        <td>9.8 min</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The thread&#x27;s 25–30 min is gone. A 1 MW turbine would give C ~18 min, but that&#x27;s a ~200 kg helicopter engine and it pushes the flying sled past 1,000 kg. <strong>Decision: ~10 min is the design flight time.</strong> It fits the military use cases in the thread anyway — every hop described is a 5-minute crossing, and the bridge never flies at all.</p>
+  <h3>6.4 Car cold-gas thrusters — seconds only, sled must hover alone</h3>
+  <p>Checked: nitrogen cold gas, Isp ~65 s. One 2,000 N thruster burns <strong>3.14 kg/s</strong>. Four thrusters:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Assist length</th>
+      <th>Gas</th>
+      <th>Tank volume (300 bar)</th>
+      <th>System mass</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>1 s</td>
+        <td>12.5 kg</td>
+        <td>55 L</td>
+        <td>~50 kg</td>
+      </tr>
+      <tr>
+        <td>2 s</td>
+        <td>25.1 kg</td>
+        <td>109 L</td>
+        <td>~90 kg</td>
+      </tr>
+      <tr>
+        <td>3 s</td>
+        <td>37.6 kg</td>
+        <td>164 L</td>
+        <td>~129 kg</td>
+      </tr>
+      <tr>
+        <td>5 s</td>
+        <td>62.7 kg</td>
+        <td>273 L</td>
+        <td>~209 kg</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The thread&#x27;s &quot;combined 41,600 N&quot; is only true for the first 1–3 seconds — after the gas is gone it&#x27;s the sled&#x27;s thrust alone. <strong>Design rule: the sled must hover on its own fans; the car thrusters are a takeoff puff, never a requirement.</strong> The margins in §6.2 already assume the car thrusters contribute nothing after liftoff (sled-alone margin 1.23–1.45×). A 1-second puff (~50 kg of tanks) is the sensible fit; 5 seconds costs 209 kg and isn&#x27;t worth it.</p>
+  <h3>6.5 Tether — 1,000 V DC, 400 kW bridge spec</h3>
+  <ul>
+    <li><strong>Decision: 1,000 V DC.</strong> It&#x27;s the EV fast-charge voltage class, so connectors, breakers and cable exist off the shelf. 3,000 V would cut the cable weight by two-thirds but the shock and insulation burden over water isn&#x27;t worth it for a first build.</li>
+    <li>Bridge spec (config C): tether <strong>400 kW per sled</strong>. Hold power is only ~143 kW, so ~257 kW goes to recharging the buffer between cars.</li>
+    <li>Crossing rate: each car costs a pier ~6.0 kWh (20 s on the pier). The 40 kWh buffer covers <strong>~7 cars in a burst</strong>, then the tether recharges at ~1.4 min per car. Sustained rate: <strong>~1 car every 1.4 min</strong>. A 250 kW tether would stretch that to ~1.8 min per car and save cable weight — the 400 kW number is the one to build to, the 250 kW is the fallback.</li>
+    <li>The tether unspools from the sled as it flies out; breakaway connectors and a dead-man cut if a cable is severed (sled falls back to battery and auto-lands, §3).</li>
+  </ul>
+  <h3>6.6 Deck joint — designed, not yet drawn</h3>
+  <ul>
+    <li>Gap plate: <strong>1.2 m long × 2.4 m wide</strong>, steel-reinforced composite, hinged to both neighbouring sled decks on <strong>30 mm steel pins</strong>. Each pin takes ~half a car in shear (~9 kN) — a 30 mm pin is far inside its rating; the pins are sized by fatigue and corrosion, not strength.</li>
+    <li>Tapered lead-in edges (15°) on both ends so tires never catch the seam.</li>
+    <li>The plate rotates freely in pitch (that&#x27;s the point — §3) but is locked against sideways shift by guide lugs.</li>
+    <li>Folding guide rails on the plate edges, raised once the bridge is in station; they also act as the visual lane edge at night (reflective).</li>
+    <li>Still to draw: the pin housing and the rail hinge. Text dimensions above are the spec to draw from.</li>
+  </ul>
+  <h3>6.7 Bridge geometry — updated for the C deck</h3>
+  <p>Pitch is deck + 1 m gap plate = <strong>7.6 m</strong> (C). Sleds per river:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>River width</th>
+      <th>Sleds (C)</th>
+      <th>Deck length</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>20 m</td>
+        <td>3</td>
+        <td>22.8 m</td>
+      </tr>
+      <tr>
+        <td>25 m</td>
+        <td>4</td>
+        <td>30.4 m</td>
+      </tr>
+      <tr>
+        <td>30 m</td>
+        <td>4</td>
+        <td>30.4 m</td>
+      </tr>
+      <tr>
+        <td>40 m</td>
+        <td>6</td>
+        <td>45.6 m</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p>(For A/B decks, see §6.2 — A needs 5 sleds for 25 m, B needs 4.)</p>
+  <h3>6.8 Prototype step 1 — test plan</h3>
+  <ol>
+    <li><strong>Thrust stand.</strong> One 1.0 m fan unit on a stand: verify 3,360 N at rated power, measure power vs thrust curve, thermal soak 10 min. Pass: within 5% of the design curve, no over-temp.</li>
+    <li><strong>Single sled, sandbags.</strong> C-config sled, 2,839 kg sandbag load, tethered hover in a netted area, 60 s. Measure power draw, hold position within ±0.5 m, vibration at the deck. Pass: power within 10% of the 1,419 kW prediction, position held.</li>
+    <li><strong>Fan-out.</strong> Same hover, cut 2 fans by throttle command, verify controlled descent and landing, no tip-over. Pass: lands level, deck stays within 5° of horizontal throughout.</li>
+  </ol>
+  <h3>6.9 Open questions (new list) — resolved in §7 (round 3), except the</h3>
+  <p>control sim, which is round 4</p>
+  <ul>
+    <li>Deck joint drawing — <strong>done</strong>, see §7.1.</li>
+    <li>Real fan units — <strong>researched</strong>, see §7.2.</li>
+    <li>Tether connector design — <strong>specced</strong>, see §7.4.</li>
+    <li>Generator truck spec — <strong>specced</strong>, see §7.3.</li>
+    <li>Fly-by-wire control software — <strong>outlined</strong>, see §7.5; the sim is round 4.</li>
+    <li>Noise measurement — <strong>estimated + planned</strong>, see §7.6.</li>
+  </ul>
+  <h2>7. Design round 3 — joint drawn, fans and power sourced (2026-11-18)</h2>
+  <h3>7.1 Deck joint — drawn</h3>
+  <p>Drawing: <code>deck_joint_drawing.html</code> — Fig 1 longitudinal section, Fig 2 plan view, parts list, notes.</p>
+  <p>The drawing caught a real design error: a plate pinned rigidly at both ends would bind. Each sled holds station independently, so in wind the gap breathes by millimetres and the decks pitch a degree or two. The fix is in the drawing — <strong>pinned at one end only (Ø30 mm transverse pin, 3-lug clevis); the far end rides in a slotted bearing (±50 mm slide)</strong> and bears on a pad. Station-keeping tolerance is ±50 mm; beyond that, stop crossings and re-station. If a plate ever disengages it stays pinned at the fixed end and hangs — it doesn&#x27;t fall in the river. Plate top is flush with the decks (70 mm recess), 15° lead-in tapers both ends, folding guide rails, anti-shift lugs. Pin load is ~9 kN in shear per side — the pins are wear items, not strength items; check for elongation and corrosion after every deployment.</p>
+  <h3>7.2 Fans — no off-the-shelf 1.0 m / 3,360 N set exists</h3>
+  <p>Researched (web, 2026-11-18):</p>
+  <ul>
+    <li>Largest credible off-the-shelf aerospace EDF: <strong>Schübeler eP05-21</strong> — ~0.5 m diameter, <strong>680 N</strong> static thrust, 21 kW, 8.3 kg, 61 dBA at ~400 ft flyby. That&#x27;s one-fifth of the 3,360 N per station the C config needs.</li>
+    <li>Custom-class data point: a builder&#x27;s 570 mm fan claims 1,650 N at 100 kW (29 kg) — physically plausible, unproven.</li>
+    <li>Manned eVTOL lift fans are 1.6 m class and custom (a published 1.8 t eVTOL design uses four 1.6 m tilting ducted fans). Nothing to buy there.</li>
+    <li>The design&#x27;s FoM 0.75 assumption is supported: an MDPI test-stand study of a 390 mm EDF measured figure of merit 0.7–0.75 at medium speeds.</li>
+  </ul>
+  <p>Options:</p>
+  <ul>
+    <li><strong>(a) Cluster (buyable now):</strong> 5 × eP05-21 per station = 3,400 N, 105 kW, 41.5 kg per station, 60 fans total. Graceful degradation — lose one fan of 60 and you lose 1.7% of thrust, not 8.3%. Cost: ~234 kg more fan mass than the 12-fan layout, and 60 ESCs/motors to wire.</li>
+    <li><strong>(b) Custom 1.0 m fan:</strong> a development program, lighter, but nothing to buy — it has to be designed, built and tested.</li>
+  </ul>
+  <p><strong>Recommendation: prototype on clusters (a), production on a custom 1.0 m fan (b).</strong> The cluster also makes the prototype&#x27;s fan-out test trivially survivable. The cluster&#x27;s mass penalty has to be re-run through the mass budget when the prototype is specced — the 554–614 kg bridge sled figures in §6.2 assume the 12-fan layout.</p>
+  <h3>7.3 Generator truck — spec from research</h3>
+  <ul>
+    <li>1 MW towable diesel, real units: Toros TPP 1000 — 9,690 kg, 9.0 × 2.1 × 2.65 m, 4 axles, 195 L/h at full load; Cummins KTA38-G5 1000 kVA — 8,120 kg open / 10,270 kg soundproof, 209 L/h; big rental unit (Herc Cummins C1000D6RG) — 18.7 t, 242 L/h. Working spec: <strong>~7–10 t trailer, ~9 m long, ~200 L/h at full load</strong>.</li>
+    <li>Sizing: a 4-sled bridge at max crossing rate draws ~400 kW average per sled → 1.6 MW. So <strong>one 1 MW genset per 2 sleds at max rate; a 4-sled bridge takes 2 gensets, one per bank</strong>. At a reduced rate (~1 car per 2.5 min per pier) one genset covers 4 sleds.</li>
+    <li>Fuel: at ~60% average load, ~120 L/h per genset → 24 h of operations needs ~2,900 L per genset. A fuel bowser on site, not jerry cans.</li>
+  </ul>
+  <h3>7.4 Tether connector — spec</h3>
+  <ul>
+    <li>400 A at 1,000 V DC per tether. Connector class: parallel high-current DC quick-disconnects (Anderson SB-series class, 350 A each, two in parallel per pole) or a single 500 A unit — spec the class now, the exact part number once the cable is sized.</li>
+    <li><strong>Breakaway:</strong> the connector separates at ~500 N pull. A snag disconnects; it doesn&#x27;t drag the sled down.</li>
+    <li><strong>Dead-man:</strong> a pilot loop runs in the tether. If continuity breaks, contactors open at both ends (generator side and sled side) within 50 ms; the sled falls back to battery and auto-lands (§3).</li>
+    <li>Cable: 400 A needs ~120 mm² copper per conductor; the pair + sheath runs ~2.5–3 kg/m, so 30 m is ~75–90 kg — mostly ground-supported (catenary from the bank), roughly half of it airborne.</li>
+  </ul>
+  <h3>7.5 Control architecture — outline</h3>
+  <ul>
+    <li><strong>Sensors:</strong> RTK GPS (cm-level), IMU, lidar altimeter, per-fan RPM and current telemetry, tether tension.</li>
+    <li><strong>Estimator:</strong> GPS/INS fusion; position hold ±0.5 m in gusts (the prototype pass criterion from §6.8).</li>
+    <li><strong>Loops:</strong> outer position loop → attitude loop → control allocation (12 fans → 4 axes: thrust, roll, pitch, yaw). Allocation is a least-squares solve re-run every cycle; on a fan failure the dead fan is removed from the allocation and the rest re-solve — that is what makes fan-out survivable rather than lucky.</li>
+    <li><strong>Bridge mode:</strong> one leader sled, the rest followers holding *relative* position to the leader, not absolute GPS. The whole bridge drifts together in a gust instead of the sleds fighting each other.</li>
+    <li><strong>Modes:</strong> takeoff, transit, station-keep (bridge), landing, emergency (battery auto-land on tether loss; controlled descent on fan-out).</li>
+    <li><strong>Next step (round 4):</strong> build the allocation + hover sim in Python — show the sled holding position and surviving a 2-fan failure in sim before any hardware is bought.</li>
+  </ul>
+  <h3>7.6 Noise — estimate + measurement plan</h3>
+  <ul>
+    <li>Reference points: Schübeler eP05-21 — 61 dBA at ~400 ft flyby. An MDPI test-stand measurement on a 390 mm EDF found SPL near 120 dB above 6,000 RPM — close-in, on the stand, <strong>not</strong> an environmental figure; do not quote it as one.</li>
+    <li>Rough scaling for the 1.0 m fan (tip speed ~180 m/s, Mach 0.52, ~3,400 RPM): inverse-square from the Schübeler figure suggests <strong>~85–93 dBA at 7 m</strong>. Rough — label it as an estimate, not a measurement.</li>
+    <li>Plan: measure at 7 m and at 120 m in prototype testing. The civilian case depends on the measurement, not the estimate.</li>
+  </ul>
+  <h3>7.7 Open questions (new list)</h3>
+  <ul>
+    <li>Fan supplier outreach: eP05-21 pricing and lead time for 60 units (prototype cluster).</li>
+    <li>Control sim (round 4): allocation + hover + fan-out in Python.</li>
+    <li>Tether cable: exact conductor size and weight once the bank-to-sled route is fixed.</li>
+    <li>Joint drawing review (his call), then build one joint and load-test the pin.</li>
+    <li>Noise: nothing to do until the prototype fan runs.</li>
+  </ul>
+
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Design in progress, not built, not verified hardware. Figures are design inputs except where Ember checked them.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
