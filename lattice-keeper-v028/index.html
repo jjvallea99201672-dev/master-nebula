@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lattice Keeper v0.28 Source — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Lattice Keeper v0.28</h1>
+  <p class="subtitle">Fully restored, enhanced and patched · an earlier single-file build</p>
+  <p>A single-file aiohttp Lattice Keeper (post-quantum RWA tokenization, a forensic auditor axis, and an AI guardian layer). This is earlier than the v0.30 package, v0.65, and v1.0 already on this site, which are left in place. It is not a hosted service — you run it locally.</p>
+  <p><code>LATTICE_API_KEY</code> is required and has no default. No keys or tokens are in the file. If you run it, it may write signing keys under <code>./pqc_keys</code>. The genesis hash <code>fd0adf90…</code> is the same public forensic anchor family as the later builds, labelled CRC-2026-001, not a private key.</p>
+  <div class="row"><a class="btn" href="lattice_keeper_v028.py" download>Download the .py</a></div>
+  <div class="src">#!/usr/bin/env python3
+&quot;&quot;&quot;
+Lattice Keeper v0.28 — FULLY RESTORED, ENHANCED &amp; PATCHED
+Post-Quantum RWA Tokenization + Forensic Auditor Axis + AI Guardian Layer
+Copyright (c) 2026 Jay Vallea. All Rights Reserved.
+&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import asyncio
+import base64
+import hashlib
+import hmac
+import json
+import os
+import secrets
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
+import aiohttp
+import redis.asyncio as redis
+import structlog
+from aiohttp import web
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+structlog.configure(
+    processors=[structlog.processors.TimeStamper(fmt=&quot;iso&quot;), structlog.processors.JSONRenderer()]
+)
+logger = structlog.get_logger(&quot;lattice_keeper&quot;)
+
+UTC = timezone.utc
+
+# ======================== IMMUTABLE OPERATOR ANCHOR ========================
+OPERATOR_GENESIS_HASH = &quot;fd0adf9005622e103f02115a50314d91f83dc705f1d685b16d45f52ad6b940b2&quot;
+
+# ======================== CONFIG ========================
+@dataclass
+class AppConfig:
+    api_host: str = os.getenv(&quot;API_HOST&quot;, &quot;0.0.0.0&quot;)
+    api_port: int = int(os.getenv(&quot;API_PORT&quot;, &quot;8765&quot;))
+    redis_url: str = os.getenv(&quot;REDIS_URL&quot;, &quot;redis://localhost:6379/0&quot;)
+    api_key: str = os.getenv(&quot;LATTICE_API_KEY&quot;, &quot;&quot;)
+
+    record_ttl_seconds: int = int(os.getenv(&quot;RECORD_TTL_SECONDS&quot;, str(10 * 365 * 24 * 3600)))
+    max_body_bytes: int = 64 * 1024
+
+    ollama_host: str = os.getenv(&quot;OLLAMA_HOST&quot;, &quot;http://localhost:11434&quot;)
+    ollama_model: str = os.getenv(&quot;OLLAMA_MODEL&quot;, &quot;llama3.2&quot;)
+
+    @classmethod
+    def load(cls) -&gt; &quot;AppConfig&quot;:
+        config = cls()
+        if not config.api_key:
+            raise ValueError(&quot;LATTICE_API_KEY environment variable is required and must be set.&quot;)
+        return config
+
+# ======================== FORENSIC ANCHOR ========================
+class ForensicAnchor:
+    CONTROL_VARIABLE = &quot;Canadian Wildlife Conservation Report 2026 (CRC-2026-001)&quot;
+    ANCHORED_VALUATION_CAD = 3_100_000_000.0
+
+    # PATCH 1: Use the immutable operator hash, not a dynamically generated one
+    GENESIS_HASH: str = OPERATOR_GENESIS_HASH
+
+    @staticmethod
+    def verify(data: dict) -&gt; Tuple[bool, str]:
+        if not isinstance(data, dict):
+            return False, &quot;Invalid data format&quot;
+
+        # PATCH 1: Enforce Genesis Hash linkage if provided
+        provided_hash = data.get(&quot;genesis_hash&quot;) or data.get(&quot;root_hash&quot;)
+        if provided_hash and provided_hash != ForensicAnchor.GENESIS_HASH:
+            return False, &quot;Genesis Hash mismatch - operator anchor required&quot;
+
+        if data.get(&quot;control_variable&quot;) != ForensicAnchor.CONTROL_VARIABLE:
+            return False, &quot;control_variable mismatch&quot;
+
+        if data.get(&quot;report_id&quot;) != &quot;CRC-2026-001&quot;:
+            return False, &quot;report_id mismatch&quot;
+
+        try:
+            val = float(data.get(&quot;valuation_cad&quot;, 0))
+            if abs(val - ForensicAnchor.ANCHORED_VALUATION_CAD) &gt; 0.01:
+                return False, f&quot;valuation_cad mismatch: expected {ForensicAnchor.ANCHORED_VALUATION_CAD}&quot;
+        except (TypeError, ValueError):
+            return False, &quot;valuation_cad must be a valid number&quot;
+
+        return True, &quot;Forensic Auditor Axis aligned&quot;
+
+# ======================== POST-QUANTUM CRYPTO ========================
+try:
+    import oqs
+    PQC_AVAILABLE = True
+except ImportError:
+    PQC_AVAILABLE = False
+    logger.warning(&quot;liboqs not available - running in simulated mode&quot;)
+
+class PQCSigner:
+    SIG_ALG = &quot;ML-DSA-65&quot;
+    KEM_ALG = &quot;ML-KEM-768&quot;
+
+    def __init__(self, keys_dir: str = &quot;./pqc_keys&quot;):
+        self.keys_dir = Path(keys_dir)
+        self.keys_dir.mkdir(parents=True, exist_ok=True)
+        self.available = PQC_AVAILABLE
+        
+        # PATCH 2: Persistent HMAC key
+        self.hmac_key_file = self.keys_dir / &quot;hmac.key&quot;
+        if self.hmac_key_file.exists():
+            self.hmac_key = self.hmac_key_file.read_bytes()
+        else:
+            self.hmac_key = secrets.token_bytes(32)
+            self.hmac_key_file.write_bytes(self.hmac_key)
+            self.hmac_key_file.chmod(0o600)
+
+        self._init_keys()
+
+    def _init_keys(self):
+        if not self.available:
+            return
+
+        # Signature
+        sig_pk = self.keys_dir / &quot;sig_public.key&quot;
+        sig_sk = self.keys_dir / &quot;sig_private.key&quot;
+
+        if sig_pk.exists() and sig_sk.exists():
+            self.sig_public = sig_pk.read_bytes()
+            self.sig_secret = sig_sk.read_bytes()
+        else:
+            with oqs.Signature(self.SIG_ALG) as sig:
+                self.sig_public, self.sig_secret = sig.generate_keypair()
+            sig_pk.write_bytes(self.sig_public)
+            sig_sk.write_bytes(self.sig_secret)
+            sig_sk.chmod(0o600)
+
+        # KEM
+        kem_pk = self.keys_dir / &quot;kem_public.key&quot;
+        kem_sk = self.keys_dir / &quot;kem_private.key&quot;
+
+        if kem_pk.exists() and kem_sk.exists():
+            self.kem_public = kem_pk.read_bytes()
+            self.kem_secret = kem_sk.read_bytes()
+        else:
+            with oqs.KeyEncapsulation(self.KEM_ALG) as kem:
+                self.kem_public, self.kem_secret = kem.generate_keypair()
+            kem_pk.write_bytes(self.kem_public)
+            kem_sk.write_bytes(self.kem_secret)
+            kem_sk.chmod(0o600)
+
+    def hybrid_sign(self, data: bytes) -&gt; dict:
+        # PATCH 3: Fresh OQS context per operation to prevent thread-safety issues
+        if self.available and hasattr(self, &#x27;sig_secret&#x27;):
+            with oqs.Signature(self.SIG_ALG) as signer:
+                sig_bytes = signer.sign(self.sig_secret, data)
+            pqc_sig = base64.b64encode(sig_bytes).decode()
+        else:
+            pqc_sig = &quot;SIMULATED_ML_DSA_65_SIGNATURE&quot;
+
+        # PATCH 2: Use the persistent HMAC key
+        classical_hmac = hmac.new(self.hmac_key, data, hashlib.sha256).hexdigest()
+
+        return {
+            &quot;hybrid_mode&quot;: &quot;ML-DSA-65 + HMAC-SHA256&quot;,
+            &quot;pqc_signature&quot;: pqc_sig,
+            &quot;classical_hmac&quot;: classical_hmac,
+            &quot;payload_hash&quot;: hashlib.sha256(data).hexdigest(),
+            &quot;timestamp&quot;: datetime.now(UTC).isoformat(),
+        }
+
+    def kem_encrypt(self, data: bytes) -&gt; dict:
+        if self.available and hasattr(self, &#x27;kem_public&#x27;):
+            with oqs.KeyEncapsulation(self.KEM_ALG) as kem:
+                ciphertext, shared_secret = kem.encap(self.kem_public)
+            
+            aes_key = hashlib.sha256(shared_secret).digest()[:32]
+            aesgcm = AESGCM(aes_key)
+            nonce = os.urandom(12)
+            encrypted = aesgcm.encrypt(nonce, data, None)
+            combined = ciphertext + nonce + encrypted
+            return {
+                &quot;kem_algorithm&quot;: self.KEM_ALG,
+                &quot;ciphertext&quot;: base64.b64encode(combined).decode(),
+                &quot;mode&quot;: &quot;real&quot;
+            }
+        return {&quot;kem_algorithm&quot;: &quot;simulated&quot;, &quot;ciphertext&quot;: base64.b64encode(data).decode(), &quot;mode&quot;: &quot;simulated&quot;}
+
+# ======================== AUTH MIDDLEWARE ========================
+@web.middleware
+async def auth_middleware(request: web.Request, handler):
+    config: AppConfig = request.app[&quot;config&quot;]
+    key = (
+        request.headers.get(&quot;X-API-Key&quot;)
+        or request.headers.get(&quot;Authorization&quot;, &quot;&quot;).replace(&quot;Bearer &quot;, &quot;&quot;).strip()
+    )
+    if not key or not hmac.compare_digest(key, config.api_key):
+        return web.json_response({&quot;error&quot;: &quot;Unauthorized&quot;}, status=401)
+    return await handler(request)
+
+# ======================== RAG + GUARDIAN ========================
+try:
+    from langchain_ollama import ChatOllama, OllamaEmbeddings
+    from langchain_community.vectorstores import FAISS
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_core.runnables import RunnablePassthrough
+    from langchain_core.output_parsers import StrOutputParser
+    LANGCHAIN_AVAILABLE = True
+except ImportError:
+    LANGCHAIN_AVAILABLE = False
+    logger.warning(&quot;LangChain/Ollama not available - RAG disabled&quot;)
+
+class RAGManager:
+    def __init__(self, config: AppConfig):
+        self.config = config
+        self.vectorstore = None
+        self._init_rag()
+
+    def _init_rag(self):
+        if not LANGCHAIN_AVAILABLE:
+            return
+        try:
+            embeddings = OllamaEmbeddings(base_url=self.config.ollama_host, model=&quot;nomic-embed-text&quot;)
+            index_path = Path(&quot;./lattice_rag_index&quot;)
+
+            if index_path.exists():
+                self.vectorstore = FAISS.load_local(str(index_path), embeddings, allow_dangerous_deserialization=True)
+            else:
+                sample_docs = [
+                    &quot;The Canadian Wildlife Conservation Report 2026 values protected ecosystems at CAD 3.1 billion.&quot;,
+                    &quot;Regenerative agriculture practices including cover cropping and rotational grazing restore soil health.&quot;,
+                    &quot;Wetlands and old-growth forests are critical for carbon sequestration and biodiversity protection.&quot;,
+                    &quot;Long-term environmental stewardship must prioritize sustainability over short-term gains.&quot;
+                ]
+                splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+                splits = splitter.create_documents(sample_docs)
+                self.vectorstore = FAISS.from_documents(splits, embeddings)
+                self.vectorstore.save_local(str(index_path))
+        except Exception as e:
+            logger.error(&quot;rag_init_failed&quot;, error=str(e))
+
+    def get_retriever(self):
+        return self.vectorstore.as_retriever(search_kwargs={&quot;k&quot;: 4}) if self.vectorstore else None
+
+class GuardianVector:
+    def __init__(self, config: AppConfig, redis_client: redis.Redis):
+        self.config = config
+        self.redis = redis_client
+        self.pqc = PQCSigner()
+        self.rag = RAGManager(config)
+
+    async def audit(self, record: Dict[str, Any]):
+        ts = int(datetime.now(UTC).timestamp())
+        key = f&quot;audit:lattice:{ts}:{hashlib.sha256(str(record).encode()).hexdigest()[:8]}&quot;
+        await self.redis.setex(key, self.config.record_ttl_seconds, json.dumps(record, default=str))
+
+    def evaluate_guardian(self, prompt: str, output: str) -&gt; Tuple[bool, str, str]:
+        p = prompt.lower()
+        o = output.lower()
+
+        if any(flag in o for flag in [&quot;ignore safety&quot;, &quot;bypass&quot;, &quot;jailbreak&quot;, &quot;maximize profit&quot;]):
+            return False, &quot;short_term_risk&quot;, &quot;[GUARDIAN BLOCKED] Short-term optimization detected&quot;
+
+        conservation_terms = [&quot;soil&quot;, &quot;biodiversity&quot;, &quot;wetland&quot;, &quot;forest&quot;, &quot;extinction&quot;, &quot;drought&quot;]
+        if any(term in p for term in conservation_terms):
+            if not any(word in o for word in [&quot;sustainable&quot;, &quot;protect&quot;, &quot;restore&quot;, &quot;regenerate&quot;, &quot;long-term&quot;]):
+                return False, &quot;insufficient_mitigation&quot;, &quot;[GUARDIAN BLOCKED] Long-term environmental impact not addressed&quot;
+
+        return True, &quot;passed&quot;, output
+
+    async def rag_generate(self, prompt: str) -&gt; str:
+        if not self.rag.vectorstore or not LANGCHAIN_AVAILABLE:
+            return &quot;RAG system not available.&quot;
+
+        try:
+            retriever = self.rag.get_retriever()
+            llm = ChatOllama(
+                base_url=self.config.ollama_host,
+                model=self.config.ollama_model,
+                temperature=0.7,
+                num_predict=1024
+            )
+
+            template = ChatPromptTemplate.from_template(
+                &quot;You are a conservation-focused AI. Answer using the provided context.\n\n&quot;
+                &quot;Context: {context}\n\nQuestion: {question}\n\nAnswer:&quot;
+            )
+
+            chain = (
+                {&quot;context&quot;: retriever, &quot;question&quot;: RunnablePassthrough()}
+                | template
+                | llm
+                | StrOutputParser()
+            )
+
+            return await chain.ainvoke(prompt)
+        except Exception as e:
+            logger.error(&quot;rag_generation_failed&quot;, error=str(e))
+            return f&quot;[RAG ERROR] {str(e)}&quot;
+
+    async def protect(self, prompt: str, raw_output: str, metadata: dict | None = None) -&gt; dict:
+        metadata = metadata or {}
+        forensic_ok, forensic_msg = ForensicAnchor.verify(metadata)
+        if not forensic_ok:
+            return {&quot;status&quot;: &quot;forensic_rejected&quot;, &quot;error&quot;: forensic_msg}
+
+        passed, reason, protected_output = self.evaluate_guardian(prompt, raw_output)
+
+        payload = {
+            &quot;prompt_hash&quot;: hashlib.sha256(prompt.encode()).hexdigest(),
+            &quot;output_hash&quot;: hashlib.sha256(protected_output.encode()).hexdigest(),
+            &quot;timestamp&quot;: datetime.now(UTC).isoformat(),
+        }
+
+        signature = self.pqc.hybrid_sign(json.dumps(payload, sort_keys=True).encode())
+
+        audit_record = {
+            &quot;action&quot;: &quot;guard&quot;,
+            &quot;passed&quot;: passed,
+            &quot;reason&quot;: reason,
+            **payload,
+            &quot;signature&quot;: signature
+        }
+        await self.audit(audit_record)
+
+        return {
+            &quot;status&quot;: &quot;guarded&quot; if passed else &quot;blocked&quot;,
+            &quot;protected_output&quot;: protected_output,
+            &quot;reason&quot;: reason,
+            &quot;signature&quot;: signature,
+            &quot;genesis_hash&quot;: ForensicAnchor.GENESIS_HASH[:16]
+        }
+
+# ======================== SERVER ========================
+class LatticeServer:
+    def __init__(self, config: AppConfig, guardian: GuardianVector):
+        self.config = config
+        self.guardian = guardian
+
+    async def health(self, request: web.Request):
+        return web.json_response({
+            &quot;status&quot;: &quot;healthy&quot;,
+            &quot;version&quot;: &quot;0.28-patched&quot;,
+            &quot;guardian&quot;: &quot;ACTIVE&quot;,
+            &quot;pqc_available&quot;: self.guardian.pqc.available,
+            &quot;rag_enabled&quot;: bool(self.guardian.rag.vectorstore),
+            &quot;genesis_hash&quot;: ForensicAnchor.GENESIS_HASH[:16] + &quot;...&quot;,
+        })
+
+    async def tokenize_rwa(self, request: web.Request):
+        try:
+            data: dict = await request.json()
+        except Exception:
+            return web.json_response({&quot;error&quot;: &quot;Invalid JSON&quot;}, status=400)
+
+        aligned, msg = ForensicAnchor.verify(data)
+        if not aligned:
+            return web.json_response({&quot;error&quot;: &quot;Forensic rejection&quot;, &quot;reason&quot;: msg}, status=403)
+
+        token_id = f&quot;RWA-{secrets.token_hex(8).upper()}&quot;
+        payload_bytes = json.dumps({&quot;token_id&quot;: token_id, **data}, sort_keys=True).encode()
+
+        pqc_result = self.guardian.pqc.hybrid_sign(payload_bytes)
+        kem_result = self.guardian.pqc.kem_encrypt(payload_bytes)
+
+        record = {
+            &quot;token_id&quot;: token_id,
+            &quot;root_hash&quot;: hashlib.sha256(payload_bytes).hexdigest(),
+            &quot;pqc_result&quot;: json.dumps(pqc_result),
+            &quot;kem_result&quot;: json.dumps(kem_result),
+            &quot;forensic_status&quot;: &quot;PASSED&quot;,
+            &quot;created_at&quot;: datetime.now(UTC).isoformat(),
+        }
+
+        await self.guardian.redis.hset(f&quot;rwa:{token_id}&quot;, mapping=record)
+        await self.guardian.redis.expire(f&quot;rwa:{token_id}&quot;, self.config.record_ttl_seconds)
+        await self.guardian.audit({&quot;action&quot;: &quot;tokenize&quot;, &quot;token_id&quot;: token_id})
+
+        return web.json_response({
+            &quot;status&quot;: &quot;TOKENIZED_AND_AUDITED&quot;,
+            &quot;token_id&quot;: token_id,
+            &quot;pqc_result&quot;: pqc_result,
+            &quot;kem_result&quot;: kem_result,
+        }, status=202)
+
+    async def rag_guard(self, request: web.Request):
+        try:
+            data: dict = await request.json()
+        except Exception:
+            return web.json_response({&quot;error&quot;: &quot;Invalid JSON&quot;}, status=400)
+
+        prompt = data.get(&quot;prompt&quot;, &quot;&quot;).strip()
+        metadata = data.get(&quot;metadata&quot;) or {}
+
+        if not prompt:
+            return web.json_response({&quot;error&quot;: &quot;prompt is required&quot;}, status=400)
+
+        raw_output = await self.guardian.rag_generate(prompt)
+        result = await self.guardian.protect(prompt, raw_output, metadata)
+
+        return web.json_response(result)
+
+# ======================== MAIN ========================
+async def main():
+    config = AppConfig.load()
+
+    redis_client = await redis.from_url(
+        config.redis_url, decode_responses=True, max_connections=20
+    )
+    await redis_client.ping()
+
+    guardian = GuardianVector(config, redis_client)
+    server = LatticeServer(config, guardian)
+
+    app = web.Application(
+        middlewares=[auth_middleware],
+        client_max_size=config.max_body_bytes
+    )
+    app[&quot;config&quot;] = config
+    app[&quot;guardian&quot;] = guardian
+
+    app.router.add_get(&quot;/health&quot;, server.health)
+    app.router.add_post(&quot;/rwa/tokenize&quot;, server.tokenize_rwa)
+    app.router.add_post(&quot;/rag_guard&quot;, server.rag_guard)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, config.api_host, config.api_port)
+    await site.start()
+
+    print(&quot;\n&quot; + &quot;=&quot; * 110)
+    print(&quot;🚀 Lattice Keeper v0.28 — FULLY RESTORED, ENHANCED &amp; PATCHED&quot;)
+    print(f&quot;📍 http://{config.api_host}:{config.api_port}&quot;)
+    print(f&quot;🔐 Genesis Hash: {ForensicAnchor.GENESIS_HASH[:16]}...&quot;)
+    print(&quot;🛡️  Endpoints: /health, /rwa/tokenize, /rag_guard&quot;)
+    print(&quot;=&quot; * 110)
+
+    try:
+        await asyncio.Event().wait()
+    finally:
+        await redis_client.aclose()
+        await runner.cleanup()
+
+if __name__ == &quot;__main__&quot;:
+    asyncio.run(main())</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>
