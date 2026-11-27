@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulForge Radio • Generative Album Art — Jay Vallea</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            background: radial-gradient(circle at center, #0a0c1a 0%, #000000 100%);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #nebulaCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .content-overlay {
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(3px);
+            min-height: 100vh;
+        }
+        
+        .album-art {
+            box-shadow: 0 0 60px rgba(168, 85, 247, 0.5);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .album-art:hover {
+            transform: scale(1.02);
+        }
+        
+        .playing .album-art {
+            animation: gentlePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes gentlePulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.4); }
+            50% { box-shadow: 0 0 80px rgba(168, 85, 247, 0.8); }
+        }
+        
+        .sound-bar-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 3px;
+            height: 55px;
+            margin: 15px 0;
+        }
+        
+        .sound-bar {
+            width: 5px;
+            background: linear-gradient(to top, #a855f7, #e879f9, #fbbf24);
+            border-radius: 3px;
+            transition: height 0.02s ease;
+            min-height: 2px;
+        }
+        
+        .visualizer-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 20;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: monospace;
+        }
+        
+        .visualizer-toggle:hover {
+            background: rgba(168, 85, 247, 0.5);
+        }
+        
+        .quality-badge {
+            font-size: 10px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            padding: 3px 10px;
+            display: inline-block;
+        }
+        
+        #fileList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #fileList::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+        }
+        #fileList::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            border-radius: 3px;
+        }
+        
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 120px;
+            height: 4px;
+            background: #3f3f46;
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #a855f7;
+            cursor: pointer;
+        }
+        
+        .delete-track {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .file-item:hover .delete-track {
+            opacity: 1;
+        }
+        
+        .bg-zinc-900\/45 {
+            background: rgba(12, 12, 20, 0.45) !important;
+        }
+        
+        .bg-zinc-900\/35 {
+            background: rgba(12, 12, 20, 0.35) !important;
+        }
+        
+        .border-purple-500\/30 {
+            border-color: rgba(168, 85, 247, 0.2) !important;
+        }
+        
+        button, .upload-btn {
+            transition: all 0.2s ease;
+        }
+        
+        button:active, .upload-btn:active {
+            transform: scale(0.98);
+        }
+        
+        audio {
+            display: none;
+        }
+        
+        .art-gen-badge {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-family: monospace;
+        }
+        
+        .album-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<canvas id="nebulaCanvas"></canvas>
+
+<div class="content-overlay">
+    <div class="max-w-2xl mx-auto pt-12 px-4 pb-24">
+        <div class="text-center mb-10">
+            <h1 class="text-6xl font-bold tracking-tighter bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
+                SOULFORGE
+            </h1>
+            <p class="text-purple-300 text-sm tracking-widest mt-1">⚡ GENERATIVE ALBUM ART • AUDIO REACTIVE ⚡</p>
+        </div>
+
+        <div id="playerCard" class="bg-zinc-900/45 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-8 shadow-2xl">
+            <div class="flex justify-center mb-8">
+                <div class="album-wrapper">
+                    <img id="albumArt" 
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231a1a2e'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%23a855f7' opacity='0.5'/%3E%3Ctext x='50' y='55' font-size='10' fill='%23c9a84c' text-anchor='middle' font-family='monospace'%3EMASTER%3C/text%3E%3Ctext x='50' y='68' font-size='8' fill='%23e879f9' text-anchor='middle'%3ENEBULA%3C/text%3E%3C/svg%3E" 
+                         class="album-art w-80 h-80 rounded-2xl object-cover border-4 border-purple-500">
+                    <div class="art-gen-badge">🎨 GENERATIVE</div>
+                </div>
+            </div>
+
+            <div class="text-center mb-8">
+                <h2 id="trackTitle" class="text-2xl font-semibold text-white">Select or upload a track</h2>
+                <p id="trackArtist" class="text-purple-400 mt-1">Master Nebula</p>
+                <div class="mt-2">
+                    <span class="quality-badge text-zinc-400">🎧 AUDIO-REACTIVE GENERATIVE ART • 14 LUFS OPTIMIZED</span>
+                </div>
+            </div>
+
+            <!-- SOUND BAR VISUALIZER -->
+            <div class="sound-bar-container" id="soundBarContainer"></div>
+
+            <div class="mb-6">
+                <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-0 transition-all"></div>
+                </div>
+                <div class="flex justify-between text-xs text-zinc-400 mt-2">
+                    <span id="currentTime">0:00</span>
+                    <span id="totalTime">0:00</span>
+                </div>
+            </div>
+
+            <div class="flex justify-center items-center gap-8 mb-6">
+                <button onclick="previousTrack()" class="text-3xl text-zinc-400 hover:text-white transition cursor-pointer">⏮</button>
+                <button id="playBtn" onclick="togglePlay()" 
+                        class="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center text-4xl hover:scale-105 transition cursor-pointer">
+                    ▶
+                </button>
+                <button onclick="nextTrack()" class="text-3xl text-zinc-400 hover:text-white transition cursor-pointer">⏭</button>
+            </div>
+            
+            <div class="flex items-center justify-center gap-3 mt-4">
+                <i class="fas fa-volume-down text-zinc-500 text-sm"></i>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="85">
+                <i class="fas fa-volume-up text-zinc-500 text-sm"></i>
+                <span id="volumePercent" class="text-xs text-zinc-500">85%</span>
+            </div>
+
+            <audio id="audioPlayer" preload="auto"></audio>
+        </div>
+
+        <div class="mt-8 bg-zinc-900/35 backdrop-blur-xl border border-zinc-700 rounded-3xl p-6">
+            <div class="text-sm text-purple-300 mb-4 flex items-center gap-2">
+                <i class="fas fa-headphones"></i>
+                <span>YOUR LIBRARY</span>
+                <span class="text-xs text-zinc-500 ml-auto" id="trackCount"></span>
+            </div>
+            <div id="fileList" class="max-h-80 overflow-y-auto space-y-2 text-sm"></div>
+            
+            <label class="mt-6 block w-full text-center py-5 border-2 border-dashed border-purple-500/50 rounded-2xl cursor-pointer hover:border-purple-500 transition group">
+                <span class="text-purple-400 group-hover:text-purple-300">
+                    <i class="fas fa-cloud-upload-alt mr-2"></i>Upload WAV / MP3 / FLAC
+                </span>
+                <input type="file" id="fileInput" multiple accept="audio/*" class="hidden">
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="visualizer-toggle" onclick="toggleVisualizer()">
+    ✨ Master Nebula Visualizer Active
+</div>
+
+<script>
+    // ============ CREATE SOUND BARS ============
+    const soundBarContainer = document.getElementById('soundBarContainer');
+    const NUM_BARS = 48;
+    
+    function createSoundBars() {
+        soundBarContainer.innerHTML = '';
+        for (let i = 0; i < NUM_BARS; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'sound-bar';
+            bar.style.height = '2px';
+            soundBarContainer.appendChild(bar);
+        }
+    }
+    createSoundBars();
+    
+    function updateSoundBars(frequencyData) {
+        const bars = document.querySelectorAll('.sound-bar');
+        if (!bars.length) return;
+        
+        for (let i = 0; i < bars.length; i++) {
+            const index = Math.floor(i * frequencyData.length / bars.length);
+            const value = frequencyData[index] / 255;
+            const height = Math.max(2, value * 50);
+            bars[i].style.height = height + 'px';
+            
+            if (value > 0.7) {
+                bars[i].style.background = '#fbbf24';
+                bars[i].style.boxShadow = '0 0 6px #fbbf24';
+            } else if (value > 0.4) {
+                bars[i].style.background = '#e879f9';
+                bars[i].style.boxShadow = '0 0 3px #e879f9';
+            } else {
+                bars[i].style.background = '#a855f7';
+                bars[i].style.boxShadow = 'none';
+            }
+        }
+    }
+    
+    // ============ GENERATIVE ALBUM ART ENGINE ============
+    let currentArtFrame = null;
+    let artAnimationId = null;
+    let lastFreqData = new Uint8Array(128);
+    
+    function generateLiveAlbumArt(frequencyData, intensity, bassBoost, midBoost, trebleBoost) {
+        const size = 320;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const artCtx = canvas.getContext('2d');
+        
+        // Extract frequency bands
+        const bassAvg = frequencyData.slice(0, 10).reduce((a,b)=>a+b,0)/10;
+        const midAvg = frequencyData.slice(10, 30).reduce((a,b)=>a+b,0)/20;
+        const trebleAvg = frequencyData.slice(30, 60).reduce((a,b)=>a+b,0)/30;
+        
+        const bassNorm = Math.min(1, bassAvg / 200);
+        const midNorm = Math.min(1, midAvg / 200);
+        const trebleNorm = Math.min(1, trebleAvg / 200);
+        
+        // Dynamic colors based on frequency content
+        const hueBase = (bassNorm * 60) + (midNorm * 180) + (trebleNorm * 300);
+        const hue1 = (hueBase + (intensity * 360)) % 360;
+        const hue2 = (hue1 + 40 + (bassNorm * 60)) % 360;
+        const hue3 = (hue2 + 40 + (trebleNorm * 60)) % 360;
+        
+        // Gradient background
+        const grad = artCtx.createLinearGradient(0, 0, size, size);
+        grad.addColorStop(0, `hsl(${hue1}, 80%, ${20 + bassNorm * 20}%)`);
+        grad.addColorStop(0.5, `hsl(${hue2}, 85%, ${25 + midNorm * 15}%)`);
+        grad.addColorStop(1, `hsl(${hue3}, 90%, ${15 + trebleNorm * 25}%)`);
+        artCtx.fillStyle = grad;
+        artCtx.fillRect(0, 0, size, size);
+        
+        // Reactive geometric circles (pulse to bass)
+        const bassPulse = 0.5 + bassNorm * 0.8;
+        const midPulse = 0.5 + midNorm * 0.6;
+        const treblePulse = 0.5 + trebleNorm * 0.4;
+        
+        // Outer ring
+        artCtx.beginPath();
+        artCtx.arc(size/2, size/2, 100 + bassNorm * 40, 0, Math.PI * 2);
+        artCtx.strokeStyle = `hsla(${hue2}, 100%, 65%, ${0.4 + bassNorm * 0.5})`;
+        artCtx.lineWidth = 3 + bassNorm * 8;
+        artCtx.stroke();
+        
+        // Mid ring
+        artCtx.beginPath();
+        artCtx.arc(size/2, size/2, 70 + midNorm * 35, 0, Math.PI * 2);
+        artCtx.strokeStyle = `hsla(${hue3}, 100%, 70%, ${0.5 + midNorm * 0.5})`;
+        artCtx.lineWidth = 2 + midNorm * 6;
+        artCtx.stroke();
+        
+        // Inner core
+        artCtx.beginPath();
+        artCtx.arc(size/2, size/2, 40 + trebleNorm * 25, 0, Math.PI * 2);
+        artCtx.fillStyle = `hsla(${hue1}, 100%, 60%, ${0.6 + trebleNorm * 0.4})`;
+        artCtx.fill();
+        
+        // Frequency spikes radiating outward
+        const spikeCount = 24;
+        for (let i = 0; i < spikeCount; i++) {
+            const angle = (i / spikeCount) * Math.PI * 2;
+            const freqIndex = Math.floor(i * frequencyData.length / spikeCount);
+            const spikeStrength = frequencyData[freqIndex] / 255;
+            const spikeLength = 25 + spikeStrength * 60;
+            
+            const x1 = size/2 + Math.cos(angle) * 60;
+            const y1 = size/2 + Math.sin(angle) * 60;
+            const x2 = size/2 + Math.cos(angle) * (60 + spikeLength);
+            const y2 = size/2 + Math.sin(angle) * (60 + spikeLength);
+            
+            artCtx.beginPath();
+            artCtx.moveTo(x1, y1);
+            artCtx.lineTo(x2, y2);
+            artCtx.strokeStyle = `hsla(${hue2 + i * 15}, 100%, 70%, ${0.4 + spikeStrength * 0.6})`;
+            artCtx.lineWidth = 2 + spikeStrength * 4;
+            artCtx.stroke();
+        }
+        
+        // Sacred geometry polygons
+        const sides = 5 + Math.floor(bassNorm * 7);
+        const radius = 85 + bassNorm * 35;
+        artCtx.beginPath();
+        for (let i = 0; i <= sides; i++) {
+            const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+            const x = size/2 + Math.cos(angle) * radius;
+            const y = size/2 + Math.sin(angle) * radius;
+            if (i === 0) artCtx.moveTo(x, y);
+            else artCtx.lineTo(x, y);
+        }
+        artCtx.closePath();
+        artCtx.strokeStyle = `hsla(${hue3}, 100%, 75%, ${0.5 + midNorm * 0.5})`;
+        artCtx.lineWidth = 2 + midNorm * 3;
+        artCtx.stroke();
+        
+        // Inner sacred geometry
+        const innerSides = 8;
+        const innerRadius = 50 + trebleNorm * 30;
+        artCtx.beginPath();
+        for (let i = 0; i <= innerSides; i++) {
+            const angle = (i / innerSides) * Math.PI * 2;
+            const x = size/2 + Math.cos(angle) * innerRadius;
+            const y = size/2 + Math.sin(angle) * innerRadius;
+            if (i === 0) artCtx.moveTo(x, y);
+            else artCtx.lineTo(x, y);
+        }
+        artCtx.closePath();
+        artCtx.strokeStyle = `hsla(${hue1}, 100%, 80%, ${0.6 + trebleNorm * 0.4})`;
+        artCtx.lineWidth = 1.5 + trebleNorm * 2;
+        artCtx.stroke();
+        
+        // Glitch effects on strong beats
+        if (intensity > 0.7) {
+            for (let i = 0; i < 20; i++) {
+                artCtx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
+                artCtx.fillRect(Math.random() * size, Math.random() * size, 3 + Math.random() * 10, 1);
+            }
+        }
+        
+        // Particle dots around the edge (reactive to treble)
+        for (let i = 0; i < 60; i++) {
+            const angle = (i / 60) * Math.PI * 2;
+            const rad = 110 + trebleNorm * 30 + Math.sin(Date.now() / 500 + i) * 5;
+            const x = size/2 + Math.cos(angle) * rad;
+            const y = size/2 + Math.sin(angle) * rad;
+            artCtx.beginPath();
+            artCtx.arc(x, y, 1.5 + trebleNorm * 3, 0, Math.PI * 2);
+            artCtx.fillStyle = `hsla(${hue1 + i * 10}, 100%, 70%, ${0.5 + trebleNorm * 0.5})`;
+            artCtx.fill();
+        }
+        
+        // Track title overlay (minimal)
+        const trackName = document.getElementById('trackTitle').innerText;
+        const shortName = trackName.length > 18 ? trackName.substring(0, 16) + '...' : trackName;
+        
+        artCtx.font = 'bold 16px "Orbitron", monospace';
+        artCtx.fillStyle = `rgba(255, 255, 255, ${0.7 + intensity * 0.3})`;
+        artCtx.shadowBlur = 8;
+        artCtx.shadowColor = 'rgba(0,0,0,0.5)';
+        artCtx.textAlign = 'center';
+        artCtx.fillText(shortName, size/2, size - 25);
+        
+        artCtx.font = '10px monospace';
+        artCtx.fillStyle = `rgba(255, 255, 255, 0.5)`;
+        artCtx.fillText('⚡ SOULFORGE', size/2, size - 12);
+        
+        artCtx.shadowBlur = 0;
+        
+        return canvas.toDataURL();
+    }
+    
+    // ============ MASTER NEBULA VISUALIZER ============
+    const canvas = document.getElementById('nebulaCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    
+    let smoothedIntensity = 0;
+    let nebulaTime = 0;
+    let pulseWave = 0;
+    let flyingTextX = -500;
+    let flyingTextY = 110;
+    let flyingTextSpeed = 2.3;
+    let visualizerEnabled = true;
+    
+    // Audio analysis
+    let audioContext = null;
+    let analyserNode = null;
+    let sourceNode = null;
+    let mediaElement = null;
+    let animationId = null;
+    let isAnalyzerConnected = false;
+    
+    let particles = [];
+    const PARTICLE_COUNT = 110;
+    
+    function initParticles() {
+        for(let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push({
+                x: Math.random(), y: Math.random(),
+                size: 2 + Math.random() * 6,
+                speed: 0.4 + Math.random() * 2.2,
+                hue: 180 + Math.random() * 190,
+                angle: Math.random() * Math.PI * 2
+            });
+        }
+    }
+    initParticles();
+    
+    function resizeCanvas() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    function updateFlyingText(beatIntensity) {
+        let speed = flyingTextSpeed + (beatIntensity * 3.0);
+        flyingTextX += speed;
+        if(flyingTextX > W + 580) {
+            flyingTextX = -580;
+            flyingTextY = 70 + Math.random() * 140;
+        }
+    }
+    
+    function drawBackground() {
+        const grad = ctx.createLinearGradient(0, 0, W, H);
+        grad.addColorStop(0, '#05050a');
+        grad.addColorStop(0.5, '#0a0a18');
+        grad.addColorStop(1, '#02040c');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+        
+        for(let s = 0; s < 200; s++) {
+            const starX = (s * 1237) % W;
+            const starY = (s * 829) % H;
+            const twinkle = (Math.sin(nebulaTime * 2 + s) + 1) / 2;
+            const bright = 0.1 + twinkle * 0.25;
+            ctx.fillStyle = `rgba(255, 245, 210, ${bright})`;
+            ctx.fillRect(starX, starY, 1.2, 1.2);
+        }
+    }
+    
+    function drawMasterNebula(intensity, localNebulaTime, localPulseWave, localTextX, localTextY) {
+        const cx = W/2, cy = H/2;
+        const beat = Math.min(1, intensity * 1.3);
+        
+        const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 70 + beat*110);
+        coreGlow.addColorStop(0, `rgba(255, 180, 255, ${0.55+beat*0.25})`);
+        coreGlow.addColorStop(0.4, `rgba(150, 50, 220, ${0.45+beat*0.25})`);
+        coreGlow.addColorStop(0.7, `rgba(60, 20, 120, ${0.25+beat*0.15})`);
+        coreGlow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = coreGlow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 140 + beat*85, 0, Math.PI*2);
+        ctx.fill();
+        
+        for(let layer = 0; layer < 5; layer++) {
+            const layerIntensity = beat * (1 - layer*0.14);
+            const radiusBase = 75 + layer*48 + beat*60;
+            const hue = (215 + layer*28 + localNebulaTime*28) % 360;
+            ctx.beginPath();
+            for(let ang = 0; ang <= Math.PI*2; ang += 0.1) {
+                const warpX = Math.sin(ang*2.4 + localNebulaTime) * 38 * layerIntensity;
+                const warpY = Math.cos(ang*1.7 + localNebulaTime*0.85) * 28 * layerIntensity;
+                const x = cx + Math.cos(ang + localNebulaTime*0.5) * (radiusBase + warpX);
+                const y = cy + Math.sin(ang*1.25 + localNebulaTime*0.45) * (radiusBase*0.88 + warpY);
+                if(ang === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = `hsla(${hue}, 96%, 68%, ${0.22 + layerIntensity*0.42})`;
+            ctx.fill();
+        }
+        
+        for(let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            const angleAnim = p.angle + localNebulaTime * p.speed * (0.7+beat);
+            const radius = 85 + beat*110 + Math.sin(localNebulaTime*0.85 + i)*45;
+            const x = cx + Math.cos(angleAnim) * radius * (p.x*0.7 + 0.3);
+            const y = cy + Math.sin(angleAnim*0.85) * radius * (p.y*0.7+0.3);
+            const size = p.size + beat*8;
+            const huePart = (p.hue + localNebulaTime*48) % 360;
+            const alpha = 0.55 + beat*0.45 + Math.sin(localNebulaTime*4.2 + i)*0.2;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI*2);
+            ctx.fillStyle = `hsla(${huePart}, 100%, 72%, ${alpha})`;
+            ctx.fill();
+            if(beat > 0.6) {
+                ctx.beginPath();
+                ctx.arc(x, y, size*1.5, 0, Math.PI*2);
+                ctx.fillStyle = `hsla(${huePart}, 100%, 68%, ${alpha*0.45})`;
+                ctx.fill();
+            }
+        }
+        
+        if(beat > 0.32) {
+            const waveRad = (localPulseWave % 190) + beat*130;
+            ctx.beginPath();
+            ctx.arc(cx, cy, waveRad, 0, Math.PI*2);
+            ctx.strokeStyle = `rgba(210, 130, 255, ${0.55+beat*0.45})`;
+            ctx.lineWidth = 3.5 + beat*7;
+            ctx.stroke();
+        }
+        
+        ctx.save();
+        ctx.shadowBlur = 24;
+        ctx.shadowColor = "#ff44ee";
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+        const txtGrad = ctx.createLinearGradient(localTextX, localTextY-20, localTextX+400, localTextY+38);
+        txtGrad.addColorStop(0, '#ffaaff');
+        txtGrad.addColorStop(0.4, '#e879f9');
+        txtGrad.addColorStop(0.8, '#a855f7');
+        txtGrad.addColorStop(1, '#f0f');
+        ctx.font = `bold ${Math.min(64, W/12)}px "Orbitron", "Bebas Neue", monospace`;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = txtGrad;
+        ctx.fillText("⚡ MASTER NEBULA ⚡", localTextX, localTextY);
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 2.5;
+        ctx.strokeText("⚡ MASTER NEBULA ⚡", localTextX, localTextY);
+        
+        if(beat > 0.55) {
+            for(let s = 0; s < 12; s++) {
+                ctx.beginPath();
+                ctx.arc(localTextX + Math.random() * 380, localTextY + Math.random() * 60 - 20, 2 + Math.random()*5, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 150, 220, ${0.7+Math.random()*0.3})`;
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+    }
+    
+    // Connect audio analyzer
+    async function connectAnalyzer() {
+        mediaElement = document.getElementById('audioPlayer');
+        if (!mediaElement) {
+            setTimeout(connectAnalyzer, 500);
+            return;
+        }
+        
+        if (isAnalyzerConnected) return;
+        
+        try {
+            if (audioContext && audioContext.state !== 'closed') {
+                await audioContext.close();
+            }
+            
+            audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                latencyHint: 'interactive',
+                sampleRate: 44100
+            });
+            
+            analyserNode = audioContext.createAnalyser();
+            analyserNode.fftSize = 256;
+            analyserNode.smoothingTimeConstant = 0.3;
+            
+            sourceNode = audioContext.createMediaElementSource(mediaElement);
+            sourceNode.connect(analyserNode);
+            analyserNode.connect(audioContext.destination);
+            
+            isAnalyzerConnected = true;
+            console.log("✅ Analyzer connected");
+            
+            startVisualization();
+            startAlbumArtGeneration();
+        } catch(e) {
+            console.log("Analyzer error:", e);
+            startVisualization();
+        }
+    }
+    
+    // Start generative album art loop
+    function startAlbumArtGeneration() {
+        if (artAnimationId) cancelAnimationFrame(artAnimationId);
+        
+        function updateArt() {
+            if (analyserNode && mediaElement && !mediaElement.paused && isAnalyzerConnected) {
+                try {
+                    const freq = new Uint8Array(analyserNode.frequencyBinCount);
+                    analyserNode.getByteFrequencyData(freq);
+                    lastFreqData = freq;
+                    
+                    let sum = 0;
+                    for(let v of freq) sum += v;
+                    let intensity = sum / (freq.length * 255);
+                    smoothedIntensity = smoothedIntensity * 0.7 + intensity * 0.3;
+                    
+                    // Extract band energies for art generation
+                    const bassAvg = freq.slice(0, 10).reduce((a,b)=>a+b,0)/10;
+                    const midAvg = freq.slice(10, 30).reduce((a,b)=>a+b,0)/20;
+                    const trebleAvg = freq.slice(30, 60).reduce((a,b)=>a+b,0)/30;
+                    
+                    const newArt = generateLiveAlbumArt(freq, smoothedIntensity, bassAvg/255, midAvg/255, trebleAvg/255);
+                    document.getElementById('albumArt').src = newArt;
+                } catch(e) {}
+            }
+            artAnimationId = requestAnimationFrame(updateArt);
+        }
+        updateArt();
+    }
+    
+    function startVisualization() {
+        if (animationId) cancelAnimationFrame(animationId);
+        
+        function animate() {
+            if (!visualizerEnabled) {
+                animationId = requestAnimationFrame(animate);
+                return;
+            }
+            
+            let activeIntensity = 0.2;
+            
+            if (analyserNode && mediaElement && !mediaElement.paused && isAnalyzerConnected) {
+                try {
+                    const freq = new Uint8Array(analyserNode.frequencyBinCount);
+                    analyserNode.getByteFrequencyData(freq);
+                    
+                    updateSoundBars(freq);
+                    
+                    let sum = 0;
+                    for(let v of freq) sum += v;
+                    let raw = sum / (freq.length * 255);
+                    smoothedIntensity = smoothedIntensity * 0.6 + raw * 0.4;
+                    activeIntensity = Math.min(1, smoothedIntensity * 1.2);
+                } catch(e) {
+                    const t = Date.now() / 1000;
+                    activeIntensity = 0.3 + Math.sin(t * 2) * 0.15;
+                }
+            } else if (mediaElement && !mediaElement.paused) {
+                const t = Date.now() / 1000;
+                activeIntensity = 0.3 + Math.sin(t * 2.5) * 0.2;
+                smoothedIntensity = activeIntensity;
+                
+                const bars = document.querySelectorAll('.sound-bar');
+                if (bars.length) {
+                    for (let i = 0; i < bars.length; i++) {
+                        const randomVal = 0.2 + Math.sin(t * 3 + i * 0.3) * 0.3;
+                        bars[i].style.height = Math.max(2, randomVal * 40) + 'px';
+                    }
+                }
+            } else {
+                const t = Date.now() / 1000;
+                activeIntensity = 0.15 + Math.sin(t * 1.2) * 0.1;
+                smoothedIntensity = activeIntensity;
+            }
+            
+            drawBackground();
+            updateFlyingText(activeIntensity);
+            drawMasterNebula(activeIntensity, nebulaTime, pulseWave, flyingTextX, flyingTextY);
+            
+            nebulaTime += 0.016 + activeIntensity * 0.03;
+            pulseWave += 6 + activeIntensity * 18;
+            if(pulseWave > 360) pulseWave -= 360;
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        animate();
+    }
+    
+    function toggleVisualizer() {
+        visualizerEnabled = !visualizerEnabled;
+        const toggle = document.querySelector('.visualizer-toggle');
+        if (visualizerEnabled) {
+            toggle.style.background = 'rgba(0,0,0,0.5)';
+            toggle.innerHTML = '✨ Master Nebula Visualizer Active';
+        } else {
+            toggle.style.background = 'rgba(100,100,100,0.5)';
+            toggle.innerHTML = '⏸️ Visualizer Paused';
+        }
+    }
+    
+    // ============ PLAYER ============
+    const audio = document.getElementById('audioPlayer');
+    const playBtn = document.getElementById('playBtn');
+    const titleEl = document.getElementById('trackTitle');
+    const artistEl = document.getElementById('trackArtist');
+    const albumArtEl = document.getElementById('albumArt');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeEl = document.getElementById('currentTime');
+    const totalTimeEl = document.getElementById('totalTime');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumePercent = document.getElementById('volumePercent');
+    const trackCountSpan = document.getElementById('trackCount');
+
+    let trackList = [];
+    let currentIndex = -1;
+    let isPlaying = false;
+
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+    
+    volumeSlider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        audio.volume = val / 100;
+        volumePercent.textContent = val + '%';
+    });
+    audio.volume = 0.85;
+
+    function loadLibrary() {
+        const saved = localStorage.getItem('soulforge_library_v6');
+        if (saved) {
+            try {
+                trackList = JSON.parse(saved);
+                renderLibrary();
+                updateTrackCount();
+            } catch(e) {}
+        }
+    }
+
+    function saveLibrary() {
+        localStorage.setItem('soulforge_library_v6', JSON.stringify(trackList));
+        updateTrackCount();
+    }
+
+    function updateTrackCount() {
+        trackCountSpan.textContent = `${trackList.length} track${trackList.length !== 1 ? 's' : ''}`;
+    }
+
+    function renderLibrary() {
+        const container = document.getElementById('fileList');
+        if (!trackList.length) {
+            container.innerHTML = `<p class="text-zinc-500 text-center py-8"><i class="fas fa-music mr-2"></i>No tracks yet. Upload WAV files for best quality.</p>`;
+            return;
+        }
+        container.innerHTML = trackList.map((track, i) => `
+            <div class="file-item flex items-center gap-4 p-4 rounded-2xl hover:bg-zinc-800/50 cursor-pointer transition ${currentIndex === i ? 'bg-purple-900/30 border border-purple-500/30' : ''}" 
+                 onclick="playTrack(${i})">
+                <span class="text-xl">${currentIndex === i ? '🎧' : '🎵'}</span>
+                <div class="flex-1 truncate">
+                    <div class="font-medium">${track.name.replace(/\.[^/.]+$/, '')}</div>
+                </div>
+                <span class="delete-track text-zinc-500 hover:text-red-400 transition" onclick="event.stopPropagation(); deleteTrack(${i})">
+                    <i class="fas fa-trash-alt"></i>
+                </span>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        
+        files.forEach(file => {
+            if (file.type.startsWith('audio/')) {
+                const url = URL.createObjectURL(file);
+                trackList.push({
+                    name: file.name,
+                    url: url
+                });
+            }
+        });
+        
+        saveLibrary();
+        renderLibrary();
+        if (currentIndex === -1 && trackList.length > 0) playTrack(0);
+        e.target.value = '';
+    });
+
+    async function playTrack(index) {
+        if (index < 0 || index >= trackList.length) return;
+        currentIndex = index;
+        const track = trackList[index];
+
+        const wasPlaying = isPlaying;
+        if (wasPlaying) {
+            audio.pause();
+        }
+        
+        audio.src = track.url;
+        audio.load();
+        
+        const trackName = track.name.replace(/\.[^/.]+$/, '');
+        titleEl.textContent = trackName;
+        artistEl.textContent = "Master Nebula";
+        
+        if (!isAnalyzerConnected) {
+            await connectAnalyzer();
+        }
+        
+        if (audioContext && audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            try {
+                await playPromise;
+                isPlaying = true;
+                playBtn.innerHTML = '⏸';
+                document.getElementById('playerCard').classList.add('playing');
+            } catch(e) {
+                console.log("Playback error:", e);
+                isPlaying = false;
+                playBtn.innerHTML = '▶';
+            }
+        }
+        
+        renderLibrary();
+        flyingTextX = -500;
+        flyingTextY = 70 + Math.random() * 140;
+    }
+
+    function deleteTrack(index) {
+        if (trackList[index] && trackList[index].url) {
+            URL.revokeObjectURL(trackList[index].url);
+        }
+        trackList.splice(index, 1);
+        if (currentIndex === index) {
+            currentIndex = -1;
+            audio.pause();
+            audio.src = '';
+            titleEl.textContent = 'Select or upload a track';
+            albumArtEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231a1a2e'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%23a855f7' opacity='0.5'/%3E%3Ctext x='50' y='55' font-size='10' fill='%23c9a84c' text-anchor='middle'%3EMASTER%3C/text%3E%3Ctext x='50' y='68' font-size='8' fill='%23e879f9' text-anchor='middle'%3ENEBULA%3C/text%3E%3C/svg%3E";
+            isPlaying = false;
+            playBtn.innerHTML = '▶';
+            document.getElementById('playerCard').classList.remove('playing');
+        } else if (currentIndex > index) {
+            currentIndex--;
+        }
+        saveLibrary();
+        renderLibrary();
+    }
+
+    function togglePlay() {
+        if (!audio.src) {
+            if (trackList.length > 0) playTrack(0);
+            return;
+        }
+        
+        if (isPlaying) {
+            audio.pause();
+            playBtn.innerHTML = '▶';
+            document.getElementById('playerCard').classList.remove('playing');
+        } else {
+            audio.play().then(() => {
+                playBtn.innerHTML = '⏸';
+                document.getElementById('playerCard').classList.add('playing');
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }).catch(e => console.log("Play error:", e));
+        }
+        isPlaying = !isPlaying;
+    }
+
+    audio.addEventListener('timeupdate', () => {
+        if (audio.duration && !isNaN(audio.duration)) {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = progress + '%';
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+            totalTimeEl.textContent = formatTime(audio.duration);
+        }
+    });
+
+    audio.addEventListener('ended', () => {
+        nextTrack();
+    });
+
+    function nextTrack() {
+        if (trackList.length === 0) return;
+        let next = currentIndex + 1;
+        if (next >= trackList.length) next = 0;
+        playTrack(next);
+    }
+
+    function previousTrack() {
+        if (trackList.length === 0) return;
+        let prev = currentIndex - 1;
+        if (prev < 0) prev = trackList.length - 1;
+        playTrack(prev);
+    }
+
+    function formatTime(seconds) {
+        if (!seconds || isNaN(seconds)) return "0:00";
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60);
+        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // Initialize
+    window.onload = () => {
+        loadLibrary();
+        resizeCanvas();
+        createSoundBars();
+        
+        const initAnalyzer = async () => {
+            await connectAnalyzer();
+            document.body.removeEventListener('click', initAnalyzer);
+            document.body.removeEventListener('touchstart', initAnalyzer);
+        };
+        document.body.addEventListener('click', initAnalyzer);
+        document.body.addEventListener('touchstart', initAnalyzer);
+    };
+    
+    window.playTrack = playTrack;
+    window.previousTrack = previousTrack;
+    window.nextTrack = nextTrack;
+    window.deleteTrack = deleteTrack;
+    window.togglePlay = togglePlay;
+    window.toggleVisualizer = toggleVisualizer;
+</script>
+</body>
+</html>
