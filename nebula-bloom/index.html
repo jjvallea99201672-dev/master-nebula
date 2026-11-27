@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nebula Bloom — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Nebula Bloom</h1>
+  <p class="subtitle">A mutated snowflake formula in Python</p>
+  <p>A short Pillow script that grows a nine-armed bloom from the familiar snowflake recursion: uneven split angles, a curl at each level, and colour that travels from indigo to gold. Running it writes <code>nebula_bloom.png</code> in the working directory. It is a drawing script, not a service. No keys are included.</p>
+  <div class="row"><a class="btn" href="nebula_bloom.py" download>Download the .py</a></div>
+  <div class="src">&quot;&quot;&quot;
+Nebula Bloom — made from the snowflake formula, mutated.
+
+Snowflake:  forward, split at 45°, scale by 0.7, repeat (perfect symmetry)
+Nebula Bloom: forward, split at a *varying* angle, scale by ~0.68,
+              add a little curl at each level, repeat — and let the
+              colour travel from indigo -&gt; cyan -&gt; violet -&gt; pink as
+              you go out. Same rule, completely different creature.
+&quot;&quot;&quot;
+import math
+import random
+from PIL import Image, ImageDraw, ImageFilter
+
+random.seed(11)  # peoplelie11
+W = 2000
+img = Image.new(&quot;RGB&quot;, (W, W), (7, 8, 22))
+glow = Image.new(&quot;RGB&quot;, (W, W), (0, 0, 0))
+draw = ImageDraw.Draw(img)
+gdraw = ImageDraw.Draw(glow)
+
+# faint background stars
+for _ in range(350):
+    x, y = random.randrange(W), random.randrange(W)
+    r = random.choice([1, 1, 1, 2])
+    draw.ellipse([x - r, y - r, x + r, y + r], fill=(140, 160, 210))
+
+PALETTE = [
+    (80, 90, 255),    # indigo (trunk)
+    (60, 180, 255),   # blue
+    (60, 230, 220),   # cyan
+    (160, 110, 255),  # violet
+    (255, 110, 200),  # pink
+    (255, 190, 120),  # gold tips
+]
+
+def colour(depth_left, max_depth=7):
+    idx = min(len(PALETTE) - 1, max_depth - depth_left)
+    return PALETTE[idx]
+
+tips = []
+
+def branch(x, y, angle, length, depth, curl):
+    if depth == 0 or length &lt; 3:
+        tips.append((x, y))
+        return
+    rad = math.radians(angle)
+    x2 = x + math.cos(rad) * length
+    y2 = y + math.sin(rad) * length
+    c = colour(depth)
+    w = max(1, depth)
+    gdraw.line([(x, y), (x2, y2)], fill=tuple(v // 3 for v in c), width=w * 4)
+    draw.line([(x, y), (x2, y2)], fill=c, width=w)
+
+    # the mutations: uneven split, uneven shrink, and a curl that
+    # makes the whole thing spiral instead of mirroring
+    split = random.uniform(24, 52)
+    branch(x2, y2, angle - split + curl, length * random.uniform(0.60, 0.72), depth - 1, curl)
+    branch(x2, y2, angle + split + curl, length * random.uniform(0.60, 0.72), depth - 1, curl)
+    # occasional third, middle shoot — snowflakes never do this
+    if depth &gt; 3 and random.random() &lt; 0.35:
+        branch(x2, y2, angle + curl * 2, length * 0.55, depth - 2, curl)
+
+cx = cy = W // 2
+# 9 uneven arms (snowflake insists on 6) rotated by the golden angle-ish
+for i in range(9):
+    base = -90 + i * 40 + random.uniform(-9, 9)
+    branch(cx, cy, base, 205, 7, curl=7)
+
+img = Image.blend(img, img.filter(ImageFilter.GaussianBlur(0.4)), 0.85)
+# composite the glow underneath the sharp lines
+base = Image.new(&quot;RGB&quot;, (W, W), (7, 8, 22))
+glow_blur = glow.filter(ImageFilter.GaussianBlur(9))
+img = Image.blend(glow_blur, img, 0.72)
+draw = ImageDraw.Draw(img)
+# star-like sparks at every branch tip
+for (x, y) in tips:
+    r = random.uniform(2, 4.5)
+    draw.ellipse([x - r, y - r, x + r, y + r], fill=(255, 235, 200))
+
+img.save(&quot;nebula_bloom.png&quot;)
+print(f&quot;done — {len(tips)} tips&quot;)
+</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>
