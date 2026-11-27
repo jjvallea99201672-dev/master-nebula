@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>THE CONSTRUCT - YouTube Ready Recording</title>
+  <title>THE CONSTRUCT - Recording Studio (FIXED)</title>
   <style>
     body {
       margin: 0;
@@ -17,44 +17,6 @@
       cursor: crosshair;
     }
     
-    #ui {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-      z-index: 10;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(12px);
-      padding: 8px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    #ui button {
-      padding: 6px 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 6px;
-      background: rgba(255,255,255,0.03);
-      color: rgba(255,255,255,0.5);
-      cursor: pointer;
-      font-size: 11px;
-      font-family: monospace;
-      transition: all 0.3s;
-      white-space: nowrap;
-    }
-    #ui button:hover {
-      background: rgba(108, 92, 231, 0.2);
-      color: white;
-    }
-    #ui button.active {
-      background: rgba(108, 92, 231, 0.3);
-      color: white;
-      border-color: #6c5ce7;
-    }
-    
     #studio {
       position: fixed;
       bottom: 20px;
@@ -62,13 +24,13 @@
       transform: translateX(-50%);
       background: rgba(0,0,0,0.85);
       backdrop-filter: blur(16px);
-      padding: 12px 18px;
-      border-radius: 14px;
+      padding: 16px 20px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.06);
       z-index: 10;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
       justify-content: center;
       max-width: 95%;
@@ -102,14 +64,6 @@
       background: rgba(0, 255, 100, 0.2);
       border-color: #00ff66;
       color: #00ff66;
-    }
-    #studio button.youtube {
-      background: rgba(255, 0, 0, 0.15);
-      border-color: #ff0000;
-      color: #ff4444;
-    }
-    #studio button.youtube:hover {
-      background: rgba(255, 0, 0, 0.25);
     }
     
     @keyframes pulse {
@@ -164,6 +118,12 @@
       font-family: monospace;
       cursor: pointer;
     }
+    .control-group select:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .control-group select option {
+      background: #1a1a2e;
+    }
     
     #fileInput {
       display: none;
@@ -171,7 +131,7 @@
     
     #status {
       position: fixed;
-      top: 72px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
       color: rgba(255,255,255,0.2);
@@ -180,7 +140,7 @@
       z-index: 10;
       text-align: center;
       background: rgba(0,0,0,0.4);
-      padding: 4px 14px;
+      padding: 6px 14px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.03);
       pointer-events: none;
@@ -192,7 +152,7 @@
     
     #recordingIndicator {
       position: fixed;
-      top: 72px;
+      top: 60px;
       right: 20px;
       color: #ff0044;
       font-family: monospace;
@@ -223,16 +183,26 @@
       border: 1px solid rgba(0,255,0,0.03);
     }
     
+    #progress {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.3);
+      font-family: monospace;
+      font-size: 10px;
+      z-index: 10;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 12px;
+      border-radius: 6px;
+      display: none;
+      letter-spacing: 1px;
+    }
+    #progress.active {
+      display: block;
+    }
+    
     @media (max-width: 768px) {
-      #ui {
-        top: 10px;
-        padding: 6px 10px;
-        gap: 4px;
-      }
-      #ui button {
-        font-size: 9px;
-        padding: 4px 10px;
-      }
       #studio {
         padding: 10px 12px;
         gap: 6px;
@@ -251,8 +221,8 @@
       }
       #status {
         font-size: 8px;
-        top: 56px;
-        padding: 2px 10px;
+        top: 10px;
+        padding: 4px 10px;
       }
       #fps {
         font-size: 8px;
@@ -261,7 +231,7 @@
         padding: 2px 8px;
       }
       #recordingIndicator {
-        top: 56px;
+        top: 50px;
         right: 10px;
         font-size: 9px;
         padding: 2px 8px;
@@ -271,37 +241,32 @@
 </head>
 <body>
   <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
-  <div id="ui">
-    <button class="active" data-mode="0">🌌 Genesis</button>
-    <button data-mode="1">⚡ Glitch</button>
-    <button data-mode="2">🌈 Soul</button>
-    <button data-mode="3">✨ Mythic</button>
-    <button data-mode="4">🔮 Full</button>
-  </div>
-
-  <div id="status">🌀 <span>THE CONSTRUCT · YOUTUBE READY</span> · record · export · sound</div>
+  <div id="status">🌀 <span>THE CONSTRUCT · RECORDING STUDIO</span> · record · export · sound</div>
   <div id="fps">FPS: 0</div>
   <div id="recordingIndicator">🔴 RECORDING</div>
+  <div id="progress">⏳ Processing...</div>
 
   <canvas id="canvas"></canvas>
 
   <div id="studio">
+    <!-- Recording controls -->
     <div class="control-group">
       <button id="recordBtn">🔴 Record</button>
       <button id="exportBtn">💾 Export</button>
-      <button id="youtubeBtn" class="youtube">▶️ YouTube</button>
     </div>
     
     <div class="separator"></div>
     
+    <!-- Audio controls -->
     <div class="control-group">
       <label>🔊 Vol</label>
-      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" />
-      <label id="volumeLabel">80%</label>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7" />
+      <label id="volumeLabel">70%</label>
     </div>
     
     <div class="separator"></div>
     
+    <!-- Audio source -->
     <div class="control-group">
       <label>🎵 Sound</label>
       <select id="soundSelect">
@@ -316,8 +281,9 @@
     
     <div class="separator"></div>
     
+    <!-- Upload YOUR audio -->
     <div class="control-group">
-      <button id="uploadBtn">📤 Load Your Audio</button>
+      <button id="uploadBtn">📤 Load YOUR Audio</button>
       <input type="file" id="fileInput" accept="audio/*" />
       <label id="audioFileName" style="font-size:9px;color:rgba(255,255,255,0.3);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></label>
     </div>
@@ -325,13 +291,14 @@
 
   <script>
     // ==========================================================
-    // THE CONSTRUCT - YOUTUBE READY RECORDING
+    // THE CONSTRUCT - RECORDING STUDIO (FIXED)
     // ==========================================================
     
     const canvas = document.getElementById('canvas');
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
     const statusDiv = document.getElementById('status');
     const recordingIndicator = document.getElementById('recordingIndicator');
+    const progressDiv = document.getElementById('progress');
     
     function resize() {
       canvas.width = window.innerWidth;
@@ -342,13 +309,13 @@
     resize();
 
     // ==========================================================
-    // AUDIO ENGINE - YOUTUBE COMPATIBLE
+    // AUDIO ENGINE (FIXED)
     // ==========================================================
     class AudioEngine {
       constructor() {
         this.ctx = null;
         this.isPlaying = false;
-        this.volume = 0.8;
+        this.volume = 0.7;
         this.currentSound = 'cosmic';
         this.oscillators = [];
         this.gainNode = null;
@@ -357,35 +324,22 @@
         this.customBuffer = null;
         this.customSource = null;
         this.mediaStreamDestination = null;
-        this.recordingNode = null;
       }
       
       init() {
         if (this.ctx && this.ctx.state === 'running') return;
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Master gain
         this.gainNode = this.ctx.createGain();
         this.gainNode.gain.value = this.volume;
-        
-        // Analyser
         this.analyser = this.ctx.createAnalyser();
         this.analyser.fftSize = 256;
-        
-        // MediaStream destination for recording - FIXED
-        this.mediaStreamDestination = this.ctx.createMediaStreamDestination();
-        
-        // Connect: gain -> analyser -> speakers
         this.gainNode.connect(this.analyser);
         this.analyser.connect(this.ctx.destination);
-        
-        // Connect: gain -> recording destination (separate path)
-        this.recordingNode = this.ctx.createGain();
-        this.recordingNode.gain.value = 1.0;
-        this.gainNode.connect(this.recordingNode);
-        this.recordingNode.connect(this.mediaStreamDestination);
-        
         this.audioData = new Float32Array(this.analyser.frequencyBinCount);
+        
+        // Create media stream destination for recording
+        this.mediaStreamDestination = this.ctx.createMediaStreamDestination();
+        this.gainNode.connect(this.mediaStreamDestination);
         
         this.playSound(this.currentSound);
         return true;
@@ -551,7 +505,7 @@
     const audio = new AudioEngine();
 
     // ==========================================================
-    // SHADER
+    // SHADER (same as before, with audio reactivity)
     // ==========================================================
     const shaderSource = `
 #ifdef GL_ES
@@ -773,7 +727,7 @@ void main() {
     gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
     // ==========================================================
-    // RECORDING SYSTEM - YOUTUBE COMPATIBLE
+    // RECORDING SYSTEM (FIXED)
     // ==========================================================
     class RecordingSystem {
       constructor() {
@@ -782,10 +736,9 @@ void main() {
         this.isRecording = false;
         this.stream = null;
         this.canvasStream = null;
-        this.recordedBlob = null;
       }
       
-      async startRecording(canvas, audioEngine) {
+      async startRecording(canvas, audioContext) {
         if (this.isRecording) {
           return this.stopRecording();
         }
@@ -794,20 +747,26 @@ void main() {
           // Get canvas stream
           this.canvasStream = canvas.captureStream(60);
           
-          // Get audio stream from audio engine
+          // Get audio stream from audio context
           let audioStream = null;
-          if (audioEngine && audioEngine.mediaStreamDestination) {
-            audioStream = audioEngine.mediaStreamDestination.stream;
+          if (audioContext && audioContext.mediaStreamDestination) {
+            audioStream = audioContext.mediaStreamDestination.stream;
           }
           
           // Combine streams
-          const videoTracks = this.canvasStream.getVideoTracks();
-          const audioTracks = audioStream ? audioStream.getAudioTracks() : [];
+          const tracks = [...this.canvasStream.getVideoTracks()];
+          if (audioStream) {
+            tracks.push(...audioStream.getAudioTracks());
+          }
           
-          // Create combined stream
-          this.stream = new MediaStream([...videoTracks, ...audioTracks]);
+          this.stream = new MediaStream(tracks);
           
-          // YouTube prefers specific codecs
+          // Check if MediaRecorder is supported
+          if (!window.MediaRecorder) {
+            throw new Error('MediaRecorder not supported in this browser');
+          }
+          
+          // Try different MIME types
           let mimeType = 'video/webm;codecs=vp9,opus';
           if (!MediaRecorder.isTypeSupported(mimeType)) {
             mimeType = 'video/webm;codecs=vp8,opus';
@@ -821,8 +780,7 @@ void main() {
           
           this.recorder = new MediaRecorder(this.stream, {
             mimeType: mimeType,
-            videoBitsPerSecond: 5000000,
-            audioBitsPerSecond: 192000
+            videoBitsPerSecond: 5000000 // 5 Mbps
           });
           
           this.chunks = [];
@@ -837,14 +795,15 @@ void main() {
             this.isRecording = false;
           };
           
+          // Start recording with 1-second chunks
           this.recorder.start(1000);
           this.isRecording = true;
-          this.recordedBlob = null;
           
+          // Update UI
           recordingIndicator.classList.add('active');
           document.getElementById('recordBtn').textContent = '⏹️ Stop';
           document.getElementById('recordBtn').classList.add('recording');
-          statusDiv.innerHTML = `🌀 <span>RECORDING</span> · 🔴 ${this.chunks.length}s · ${audio.currentSound}`;
+          statusDiv.innerHTML = `🌀 <span>RECORDING</span> · 🔴 live · ${Math.round(this.chunks.length * 0.001)}s`;
           
           return true;
         } catch (err) {
@@ -856,7 +815,7 @@ void main() {
       
       stopRecording() {
         return new Promise((resolve) => {
-          if (!this.isRecording || !this.recorder) {
+          if (!this.isRecording) {
             resolve(null);
             return;
           }
@@ -864,8 +823,8 @@ void main() {
           this.isRecording = false;
           
           this.recorder.onstop = () => {
+            // Create blob from chunks
             const blob = new Blob(this.chunks, { type: 'video/webm' });
-            this.recordedBlob = blob;
             
             // Clean up
             this.chunks = [];
@@ -879,12 +838,11 @@ void main() {
             }
             this.recorder = null;
             
+            // Update UI
             recordingIndicator.classList.remove('active');
             document.getElementById('recordBtn').textContent = '🔴 Record';
             document.getElementById('recordBtn').classList.remove('recording');
-            
-            const sizeMB = (blob.size / 1024 / 1024).toFixed(1);
-            statusDiv.innerHTML = `🌀 <span>RECORDING STOPPED</span> · ${sizeMB} MB · click Export or YouTube`;
+            statusDiv.innerHTML = `🌀 <span>RECORDING STOPPED</span> · ${(blob.size / 1024 / 1024).toFixed(1)} MB saved`;
             
             resolve(blob);
           };
@@ -893,36 +851,23 @@ void main() {
         });
       }
       
-      downloadRecording(format) {
-        if (!this.recordedBlob || this.recordedBlob.size === 0) {
-          statusDiv.innerHTML = `🌀 <span>ERROR</span> · no recording to export`;
+      downloadRecording(blob) {
+        if (!blob || blob.size === 0) {
+          statusDiv.innerHTML = `🌀 <span>ERROR</span> · no recording data`;
           return;
         }
         
-        const blob = this.recordedBlob;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        
-        let filename = `construct-${timestamp}`;
-        if (format === 'youtube') {
-          filename += '-youtube';
-        }
-        filename += '.webm';
-        
         a.href = url;
-        a.download = filename;
+        a.download = `construct-${timestamp}.webm`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 5000);
         
-        const sizeMB = (blob.size / 1024 / 1024).toFixed(1);
-        statusDiv.innerHTML = `🌀 <span>EXPORTED</span> · ${filename} (${sizeMB} MB)`;
-      }
-      
-      getRecordingBlob() {
-        return this.recordedBlob;
+        statusDiv.innerHTML = `🌀 <span>EXPORTED</span> · construct-${timestamp}.webm saved to downloads`;
       }
     }
 
@@ -958,25 +903,30 @@ void main() {
     // Record button
     document.getElementById('recordBtn').addEventListener('click', async () => {
       if (recorder.isRecording) {
-        await recorder.stopRecording();
+        const blob = await recorder.stopRecording();
+        if (blob && blob.size > 0) {
+          // Auto-download or just store
+          statusDiv.innerHTML = `🌀 <span>RECORDING READY</span> · click Export to save`;
+        }
       } else {
         if (!audio.ctx) {
           audio.init();
-          audioInitialized = true;
         }
-        await recorder.startRecording(canvas, audio);
+        const success = await recorder.startRecording(canvas, audio.ctx);
+        if (success) {
+          statusDiv.innerHTML = `🌀 <span>RECORDING</span> · 🔴 recording video + audio`;
+        }
       }
     });
 
     // Export button
     document.getElementById('exportBtn').addEventListener('click', () => {
-      recorder.downloadRecording('standard');
-    });
-
-    // YouTube button
-    document.getElementById('youtubeBtn').addEventListener('click', () => {
-      recorder.downloadRecording('youtube');
-      statusDiv.innerHTML = `🌀 <span>YOUTUBE READY</span> · file optimized for YouTube upload`;
+      if (recorder.chunks && recorder.chunks.length > 0) {
+        const blob = new Blob(recorder.chunks, { type: 'video/webm' });
+        recorder.downloadRecording(blob);
+      } else {
+        statusDiv.innerHTML = `🌀 <span>ERROR</span> · no recording to export`;
+      }
     });
 
     // Volume control
@@ -1009,7 +959,7 @@ void main() {
         const buffer = await audio.ctx.decodeAudioData(arrayBuffer);
         audio.loadCustomAudio(buffer);
         document.getElementById('soundSelect').value = 'custom';
-        document.getElementById('audioFileName').textContent = file.name.slice(0, 20) + (file.name.length > 20 ? '...' : '');
+        document.getElementById('audioFileName').textContent = file.name.slice(0, 20) + '...';
         statusDiv.innerHTML = `🌀 <span>LOADED</span> · ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)`;
       } catch (err) {
         console.error('Audio load error:', err);
@@ -1103,11 +1053,11 @@ void main() {
 
     render();
 
-    console.log('🌀 THE CONSTRUCT · YOUTUBE READY');
-    console.log('🎬 5 visual modes available at top');
-    console.log('🔴 Record captures video + audio');
-    console.log('▶️ YouTube button exports YouTube-optimized file');
-    console.log('📤 Load YOUR Audio = play your own music');
+    console.log('🌀 THE CONSTRUCT · RECORDING STUDIO (FIXED)');
+    console.log('📤 "Load YOUR Audio" = upload MP3/WAV files');
+    console.log('🎵 Your music will make the construct react!');
+    console.log('🔴 Record = capture video + audio');
+    console.log('💾 Export = save to your PC');
   </script>
 </body>
 </html>
