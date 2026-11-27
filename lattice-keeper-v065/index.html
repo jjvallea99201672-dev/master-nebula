@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lattice Keeper v0.65 Source — Jay Vallea</title>
+<meta name="description" content="Lattice Keeper v0.65, patch b3d8f407: the production-hardening audit release.">
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Lattice Keeper v0.65</h1>
+  <p class="subtitle">Patch b3d8f407 · parent v0.64 · genesis anchor fd0adf90</p>
+  <p>Production-hardening pass on Lattice Keeper: patch IDs are now inside the signed message, the chain is verified before it is served, CORS is an allowlist, and proof routes need a bearer token. Not deployed, so not binding. No keys are included; the token is read from the environment.</p>
+  <div class="row"><a class="btn" href="lattice_keeper_v065.py" download>Download the .py</a></div>
+  <div style="white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)">#!/usr/bin/env python3
+&quot;&quot;&quot;
+lattice_keeper_v065.py
+Patch ID: b3d8f407
+Genesis Anchor: fd0adf90
+Parent: v0.64 / 7c2f5e13
+Strict Coherence Guard: Level 3 - Lineage Lock
+
+CHANGELOG v0.64 -&gt; v0.65 (production hardening audit):
+1. FIX (High): patch_id is now INSIDE the signed message. Signed payload
+        is versioned (&quot;sigv2&quot;) and unambiguous:
+            &quot;sigv2|{fp_hex}|{genesis}|{prev_hash}|{patch_id}&quot;
+        A proof whose patch_id is changed no longer verifies. v0.64-style
+        unsigned-patch_id proofs are rejected explicitly (sig_version
+        field); nothing was deployed on v0.64, so no migration path is
+        owed. Bridge verification updated to match.
+2. FIX (High): /api/chain now walks and verifies every proof (fp, sig,
+        chain hash, patch_id, genesis, link) BEFORE serving. Fails
+        closed with 503 on any invalid entry. No unvalidated JSON is
+        ever returned.
+3. FIX (High): CORS is an explicit allowlist (LK_ALLOWED_ORIGINS,
+        comma-separated). No origin header is emitted when unset —
+        same-origin only. All proof/chain endpoints require a bearer
+        token (LK_BRIDGE_TOKEN) when configured; without it they refuse
+        to serve proofs (fail closed).
+4. FIX (Medium): audit() validates the parent via an explicit lineage
+        map (patch -&gt; its actual parent), not mere registry membership.
+5. FIX (Medium): Fp.from_hex uses a strict full-string policy:
+        optional leading &quot;0x&quot; only, all hex, &lt;= 64 chars. Mid-string
+        prefixes and junk are rejected with ValueError.
+6. FIX (Medium): audit status is renamed implementation_status (what
+        the checks measure) and release approval is reported separately
+        and honestly: it is NOT derivable from in-process checks and is
+        reported as None with a note, never as an earned &quot;approved&quot;.
+
+Carried forward from v0.64 restyle: chain-load validation, atomic
+fsync&#x27;d save, append() prev_hash guard, strict chain load, POSIX key
+permission check, derived (not declared) audit status.
+
+NOT DEPLOYED MEANS NOT BINDING: chain-hash format unchanged from
+v0.64, but the sigv2 signed-payload change means v0.64-era proofs do
+not verify. Start a fresh chain file.
+&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import hashlib
+import json
+import logging
+import os
+import re
+import tempfile
+import time
+from dataclasses import asdict, dataclass, field, replace
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
+
+# ============================================================================
+# Constants and lineage
+# ============================================================================
+
+GENESIS_ANCHOR = &quot;fd0adf90&quot;
+PATCH_VERSION = &quot;v0.65&quot;
+PATCH_ID = &quot;b3d8f407&quot;
+PARENT_PATCH = &quot;7c2f5e13&quot;
+SIG_VERSION = &quot;sigv2&quot;
+
+KNOWN_PATCH_IDS = {
+    &quot;fd0adf90&quot;,
+    &quot;8a61c3b2&quot;,
+    &quot;9f4a7e1d&quot;,
+    &quot;4b1e9c02&quot;,
+    &quot;7c2f5e13&quot;,
+    &quot;b3d8f407&quot;,
+}
+
+# v0.65 FIX 4: explicit lineage — patch_id -&gt; its actual parent.
+# Membership in KNOWN_PATCH_IDS is not enough; the parent must be correct.
+LINEAGE: Dict[str, str] = {
+    &quot;8a61c3b2&quot;: &quot;fd0adf90&quot;,
+    &quot;9f4a7e1d&quot;: &quot;8a61c3b2&quot;,
+    &quot;4b1e9c02&quot;: &quot;9f4a7e1d&quot;,
+    &quot;7c2f5e13&quot;: &quot;4b1e9c02&quot;,
+    &quot;b3d8f407&quot;: &quot;7c2f5e13&quot;,
+}
+
+PALLAS_P_LIMBS = (
+    0x992D30ED00000001,
+    0x224698FC094CF91B,
+    0x0000000000000000,
+    0x4000000000000000,
+)
+
+PALLAS_P_HEX = (
+    &quot;40000000000000000000000000000000&quot;
+    &quot;224698fc094cf91b&quot;
+    &quot;992d30ed00000001&quot;
+)
+
+DEFAULT_CHAIN_FILE = Path(os.getenv(&quot;LK_CHAIN_FILE&quot;, &quot;./broadcast_chain.json&quot;))
+DEFAULT_KEY_FILE = Path(os.getenv(&quot;LK_KEY_FILE&quot;, &quot;./keeper.key&quot;))
+
+_FP_HEX_RE = re.compile(r&quot;^(?:0x)?[0-9a-fA-F]{1,64}$&quot;)
+
+
+# ============================================================================
+# Pallas field arithmetic
+# ============================================================================
+
+def compare_limbs(a, b) -&gt; int:
+    for index in range(3, -1, -1):
+        if a[index] &gt; b[index]:
+            return 1
+        if a[index] &lt; b[index]:
+            return -1
+    return 0
+
+
+def add_limbs(a, b):
+    carry = 0
+    result = []
+    for index in range(4):
+        total = a[index] + b[index] + carry
+        result.append(total &amp; 0xFFFFFFFFFFFFFFFF)
+        carry = total &gt;&gt; 64
+    return tuple(result), carry
+
+
+def sub_limbs(a, b):
+    borrow = 0
+    result = []
+    for index in range(4):
+        difference = a[index] - b[index] - borrow
+        if difference &lt; 0:
+            difference += 1 &lt;&lt; 64
+            borrow = 1
+        else:
+            borrow = 0
+        result.append(difference &amp; 0xFFFFFFFFFFFFFFFF)
+    return tuple(result), borrow
+
+
+@dataclass
+class Fp:
+    limbs: Tuple[int, int, int, int]
+
+    def __post_init__(self):
+        if len(self.limbs) != 4:
+            raise ValueError(&quot;Fp requires exactly four limbs&quot;)
+        if not all(0 &lt;= value &lt; (1 &lt;&lt; 64) for value in self.limbs):
+            raise ValueError(&quot;Fp limbs must be unsigned 64-bit integers&quot;)
+        self._reduce_inplace()
+
+    def _reduce_inplace(self):
+        limbs = list(self.limbs)
+        modulus = tuple(PALLAS_P_LIMBS)
+        while compare_limbs(tuple(limbs), modulus) &gt;= 0:
+            reduced, _ = sub_limbs(tuple(limbs), modulus)
+            limbs = list(reduced)
+        object.__setattr__(self, &quot;limbs&quot;, tuple(limbs))
+
+    def to_hex(self) -&gt; str:
+        return &quot;&quot;.join(f&quot;{value:016x}&quot; for value in reversed(self.limbs))
+
+    def to_hex_le(self) -&gt; str:
+        return &quot;&quot;.join(f&quot;{value:016x}&quot; for value in self.limbs)
+
+    @classmethod
+    def zero(cls) -&gt; &quot;Fp&quot;:
+        return cls((0, 0, 0, 0))
+
+    @classmethod
+    def one(cls) -&gt; &quot;Fp&quot;:
+        return cls((1, 0, 0, 0))
+
+    @classmethod
+    def from_hex(cls, hex_str: str) -&gt; &quot;Fp&quot;:
+        &quot;&quot;&quot;
+        v0.65 FIX 5: strict full-string policy. An optional LEADING &quot;0x&quot;
+        is allowed; a prefix embedded mid-string (&quot;120x...&quot;) or any
+        non-hex character is rejected with ValueError instead of being
+        silently stripped.
+        &quot;&quot;&quot;
+        if not isinstance(hex_str, str) or not _FP_HEX_RE.fullmatch(hex_str):
+            raise ValueError(f&quot;invalid Fp hex input: {hex_str!r}&quot;)
+        normalized = hex_str.lower()
+        if normalized.startswith(&quot;0x&quot;):
+            normalized = normalized[2:]
+        normalized = normalized.zfill(64)
+        limbs = [0, 0, 0, 0]
+        for index in range(4):
+            chunk = normalized[index * 16:(index + 1) * 16]
+            limbs[3 - index] = int(chunk, 16)
+        return cls(tuple(limbs))
+
+    @classmethod
+    def from_bytes_hash(cls, data: bytes) -&gt; &quot;Fp&quot;:
+        digest = hashlib.sha256(data).digest()
+        limbs = []
+        for index in range(4):
+            chunk = digest[index * 8:(index + 1) * 8]
+            limbs.append(int.from_bytes(chunk, &quot;little&quot;))
+        return cls(tuple(limbs))
+
+
+def fp_add(a: Fp, b: Fp) -&gt; Fp:
+    result_limbs, carry = add_limbs(a.limbs, b.limbs)
+    if carry or compare_limbs(result_limbs, tuple(PALLAS_P_LIMBS)) &gt;= 0:
+        result_limbs, _ = sub_limbs(result_limbs, tuple(PALLAS_P_LIMBS))
+    return Fp(result_limbs)
+
+
+def fp_hash_to_field(data: str) -&gt; Fp:
+    return Fp.from_bytes_hash(data.encode(&quot;utf-8&quot;))
+
+
+def validate_pallas_limbs(limbs) -&gt; bool:
+    try:
+        rendered = &quot;&quot;.join(f&quot;{value:016x}&quot; for value in reversed(tuple(limbs)))
+    except (TypeError, ValueError):
+        return False
+    return rendered == PALLAS_P_HEX
+
+
+def verify_genesis_anchor(patch_id: str, anchor: str) -&gt; bool:
+    return anchor == GENESIS_ANCHOR and patch_id in KNOWN_PATCH_IDS
+
+
+def verify_lineage(patch_id: str, parent_id: str) -&gt; bool:
+    &quot;&quot;&quot;v0.65 FIX 4: parent must be THIS patch&#x27;s actual parent, not merely known.&quot;&quot;&quot;
+    return LINEAGE.get(patch_id) == parent_id
+
+
+# ============================================================================
+# Proof construction
+# ============================================================================
+
+def _compute_fp_hex(artist: str, title: str, timestamp: int, genesis: str, previous_hash: str) -&gt; str:
+    data = f&quot;{artist}|{title}|{timestamp}|{genesis}|{previous_hash}&quot;
+    return fp_hash_to_field(data).to_hex()
+
+
+def _signing_message(fp_hex: str, genesis: str, previous_hash: str, patch_id: str) -&gt; bytes:
+    &quot;&quot;&quot;
+    v0.65 FIX 1: versioned, unambiguous signed payload including patch_id.
+    &quot;&quot;&quot;
+    return f&quot;{SIG_VERSION}|{fp_hex}|{genesis}|{previous_hash}|{patch_id}&quot;.encode(&quot;utf-8&quot;)
+
+
+def _compute_chain_hash(previous_hash: str, signature: str, artist: str, title: str, timestamp: int) -&gt; str:
+    chain_input = f&quot;{previous_hash}|{signature}|{artist}|{title}|{timestamp}&quot;.encode(&quot;utf-8&quot;)
+    return hashlib.sha256(chain_input).hexdigest()
+
+
+# ============================================================================
+# Key management
+# ============================================================================
+
+def _check_key_permissions(path: Path) -&gt; None:
+    if os.name != &quot;posix&quot;:
+        return
+    mode = path.stat().st_mode &amp; 0o777
+    if mode &amp; 0o077:
+        raise PermissionError(
+            f&quot;{path} has permissions 0o{mode:03o}; private key must not be &quot;
+            f&quot;group/world accessible. Run: chmod 600 {path}&quot;
+        )
+
+
+def load_or_create_private_key(path: Path = DEFAULT_KEY_FILE) -&gt; Ed25519PrivateKey:
+    if path.exists():
+        _check_key_permissions(path)
+        raw = path.read_bytes()
+        if len(raw) != 32:
+            raise ValueError(f&quot;{path} must contain exactly 32 raw private-key bytes&quot;)
+        return Ed25519PrivateKey.from_private_bytes(raw)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    key = Ed25519PrivateKey.generate()
+    raw = key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    path.write_bytes(raw)
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
+    logging.info(&quot;[Key] Generated new Ed25519 keypair at %s&quot;, path)
+    return key
+
+
+# ============================================================================
+# Broadcast proof
+# ============================================================================
+
+@dataclass
+class BroadcastProof:
+    title: str
+    artist: str
+    timestamp: int
+    fp_element: str
+    signature: str
+    public_key: str
+    prev_hash: str
+    proof_chain_hash: str
+    genesis_anchor: str
+    patch_id: str
+    sig_version: str = SIG_VERSION
+    sig_alg: str = &quot;Ed25519&quot;
+
+    def to_dict(self) -&gt; Dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict) -&gt; &quot;BroadcastProof&quot;:
+        values = dict(data)
+        values.setdefault(&quot;sig_alg&quot;, &quot;Ed25519&quot;)
+        if &quot;public_key&quot; not in values:
+            raise ValueError(&quot;Cannot load pre-v0.63 proof: public_key is missing&quot;)
+        sig_version = values.get(&quot;sig_version&quot;)
+        if sig_version != SIG_VERSION:
+            # v0.64-era proofs (unsigned patch_id) are rejected explicitly.
+            raise ValueError(
+                f&quot;unsupported sig_version {sig_version!r}; &quot;
+                f&quot;this build verifies {SIG_VERSION} payloads only &quot;
+                f&quot;(patch_id must be signed)&quot;
+            )
+        return cls(**values)
+
+    def to_metadata(self) -&gt; Dict:
+        return {
+            &quot;song&quot;: f&quot;{self.artist} - {self.title}&quot;,
+            &quot;X-Lattice-Signature&quot;: self.signature,
+            &quot;X-Lattice-PublicKey&quot;: self.public_key,
+            &quot;X-Lattice-Fp&quot;: self.fp_element[:16],
+            &quot;X-Lattice-Chain&quot;: self.proof_chain_hash[:16],
+            &quot;X-Lattice-Genesis&quot;: self.genesis_anchor,
+            &quot;X-Lattice-Timestamp&quot;: str(self.timestamp),
+            &quot;X-Lattice-PatchId&quot;: self.patch_id,
+            &quot;X-Lattice-SigVersion&quot;: self.sig_version,
+            &quot;X-Lattice-SigAlg&quot;: self.sig_alg,
+        }
+
+    def to_liquidsoap_cmd(self) -&gt; str:
+        song = f&quot;{self.artist} - {self.title}&quot;.replace(&quot;\\&quot;, &quot;\\\\&quot;).replace(&#x27;&quot;&#x27;, &#x27;\\&quot;&#x27;)
+        return (
+            f&#x27;var.set now_playing = &quot;{song}&quot;\n&#x27;
+            f&#x27;var.set lattice_sig = &quot;{self.signature}&quot;\n&#x27;
+            f&#x27;var.set lattice_pk = &quot;{self.public_key}&quot;\n&#x27;
+            f&#x27;var.set lattice_chain = &quot;{self.proof_chain_hash[:16]}&quot;&#x27;
+        )
+
+
+# ============================================================================
+# Chain store
+# ============================================================================
+
+class ChainStore:
+    def __init__(self, path: Path = DEFAULT_CHAIN_FILE):
+        self.path = path
+
+    def load(self) -&gt; Dict:
+        if not self.path.exists():
+            return {&quot;current_hash&quot;: None, &quot;chain&quot;: []}
+        try:
+            data = json.loads(self.path.read_text(encoding=&quot;utf-8&quot;))
+            if not isinstance(data, dict):
+                raise ValueError(&quot;chain file root must be an object&quot;)
+            if not isinstance(data.get(&quot;chain&quot;, []), list):
+                raise ValueError(&quot;chain field must be a list&quot;)
+            return data
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f&quot;Failed to load chain {self.path}: {exc}&quot;) from exc
+
+    def save(self, state: Dict) -&gt; None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode=&quot;w&quot;, encoding=&quot;utf-8&quot;, dir=self.path.parent,
+            prefix=f&quot;.{self.path.name}.&quot;, suffix=&quot;.tmp&quot;, delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            json.dump(state, handle, indent=2)
+            handle.write(&quot;\n&quot;)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.replace(temporary_path, self.path)
+        finally:
+            try:
+                temporary_path.unlink()
+            except FileNotFoundError:
+                pass
+
+
+# ============================================================================
+# Broadcast chain
+# ============================================================================
+
+@dataclass
+class BroadcastChain:
+    genesis_anchor: str = GENESIS_ANCHOR
+    chain: List[BroadcastProof] = field(default_factory=list)
+    current_hash: str = &quot;&quot;
+    _store: ChainStore = field(default_factory=ChainStore, repr=False)
+
+    def __post_init__(self):
+        state = self._store.load()
+        stored_chain = state.get(&quot;chain&quot;, [])
+        if stored_chain:
+            self.chain = [BroadcastProof.from_dict(item) for item in stored_chain]
+            self._validate_loaded_chain()
+            expected_head = self._expected_head()
+            stored_head = state.get(&quot;current_hash&quot;)
+            if stored_head != expected_head:
+                raise ValueError(&quot;stored current_hash does not match the recomputed chain head&quot;)
+            self.current_hash = expected_head
+            logging.info(
+                &quot;[BroadcastChain] Resumed: %d proofs, head=%s...&quot;,
+                len(self.chain), self.current_hash[:16],
+            )
+        else:
+            self.current_hash = hashlib.sha256(self.genesis_anchor.encode(&quot;utf-8&quot;)).hexdigest()
+            logging.info(&quot;[BroadcastChain] Fresh chain, genesis=%s...&quot;, self.current_hash[:16])
+
+    def _expected_head(self) -&gt; str:
+        current = hashlib.sha256(self.genesis_anchor.encode(&quot;utf-8&quot;)).hexdigest()
+        for proof in self.chain:
+            current = proof.proof_chain_hash
+        return current
+
+    def _validate_loaded_chain(self) -&gt; None:
+        expected_previous = hashlib.sha256(self.genesis_anchor.encode(&quot;utf-8&quot;)).hexdigest()
+        for index, proof in enumerate(self.chain):
+            if proof.prev_hash != expected_previous:
+                raise ValueError(f&quot;chain break at index {index}: prev_hash mismatch&quot;)
+            expected_previous = proof.proof_chain_hash
+
+    def append(self, proof: BroadcastProof) -&gt; None:
+        if proof.prev_hash != self.current_hash:
+            raise ValueError(&quot;proof prev_hash does not match current chain head&quot;)
+        self.chain.append(proof)
+        self.current_hash = proof.proof_chain_hash
+        self._store.save({
+            &quot;current_hash&quot;: self.current_hash,
+            &quot;chain&quot;: [p.to_dict() for p in self.chain],
+        })
+
+
+# ============================================================================
+# SoulForge broadcast keeper
+# ============================================================================
+
+class SoulForgeBroadcastKeeper:
+    &quot;&quot;&quot;Signs broadcast metadata with Ed25519 (sigv2 payloads) and chains proofs.&quot;&quot;&quot;
+
+    def __init__(
+        self,
+        genesis_anchor: str = GENESIS_ANCHOR,
+        store: Optional[ChainStore] = None,
+        key_path: Path = DEFAULT_KEY_FILE,
+    ):
+        self.genesis_anchor = genesis_anchor
+        self.patch_id = PATCH_ID
+        self.version = PATCH_VERSION
+
+        self.private_key = load_or_create_private_key(key_path)
+        self.public_key_bytes = self.private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        self.public_key_hex = self.public_key_bytes.hex()
+
+        self.chain = BroadcastChain(
+            genesis_anchor=genesis_anchor,
+            _store=store or ChainStore(),
+        )
+
+    def sign_broadcast(self, title: str, artist: str = &quot;SOUL FORGE&quot;) -&gt; BroadcastProof:
+        timestamp = int(time.time())
+        previous_hash = self.chain.current_hash
+
+        fp_hex = _compute_fp_hex(artist, title, timestamp, self.genesis_anchor, previous_hash)
+        message = _signing_message(fp_hex, self.genesis_anchor, previous_hash, self.patch_id)
+        signature = self.private_key.sign(message).hex()
+        chain_hash = _compute_chain_hash(previous_hash, signature, artist, title, timestamp)
+
+        proof = BroadcastProof(
+            title=title,
+            artist=artist,
+            timestamp=timestamp,
+            fp_element=fp_hex,
+            signature=signature,
+            public_key=self.public_key_hex,
+            prev_hash=previous_hash,
+            proof_chain_hash=chain_hash,
+            genesis_anchor=self.genesis_anchor,
+            patch_id=self.patch_id,
+            sig_version=SIG_VERSION,
+        )
+        self.chain.append(proof)
+
+        logging.info(
+            &quot;[BROADCAST PROOF] %s - %s | Fp:%s... sig:%s... pk:%s...&quot;,
+            artist, title, fp_hex[:16], signature[:16], self.public_key_hex[:16],
+        )
+        return proof
+
+    def verify_proof(self, proof: BroadcastProof) -&gt; Tuple[bool, str]:
+        if proof.sig_alg != &quot;Ed25519&quot;:
+            return False, &quot;unsupported signature algorithm&quot;
+        if proof.sig_version != SIG_VERSION:
+            return False, f&quot;unsupported sig_version: {proof.sig_version!r}&quot;
+        if len(proof.fp_element) != 64:
+            return False, &quot;invalid fp_element length&quot;
+        if len(proof.signature) != 128:
+            return False, &quot;invalid signature length&quot;
+        if len(proof.public_key) != 64:
+            return False, &quot;invalid public_key length&quot;
+        if proof.public_key != self.public_key_hex:
+            return False, &quot;public_key mismatch&quot;
+
+        fp_hex = _compute_fp_hex(
+            proof.artist, proof.title, proof.timestamp,
+            proof.genesis_anchor, proof.prev_hash,
+        )
+        if fp_hex != proof.fp_element:
+            return False, &quot;fp_element mismatch&quot;
+
+        # v0.65 FIX 1: patch_id is inside the signed message. Swapping it
+        # for another known ID invalidates the signature.
+        message = _signing_message(fp_hex, proof.genesis_anchor, proof.prev_hash, proof.patch_id)
+        try:
+            public_key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(proof.public_key))
+            public_key.verify(bytes.fromhex(proof.signature), message)
+        except (ValueError, InvalidSignature) as exc:
+            return False, f&quot;signature verification failed: {type(exc).__name__}&quot;
+
+        expected_chain_hash = _compute_chain_hash(
+            proof.prev_hash, proof.signature, proof.artist, proof.title, proof.timestamp,
+        )
+        if expected_chain_hash != proof.proof_chain_hash:
+            return False, &quot;proof_chain_hash mismatch&quot;
+
+        if proof.genesis_anchor != self.genesis_anchor:
+            return False, &quot;genesis_anchor mismatch&quot;
+        if proof.patch_id not in KNOWN_PATCH_IDS:
+            return False, f&quot;unknown patch_id: {proof.patch_id}&quot;
+
+        return True, &quot;proof valid&quot;
+
+    def verify_chain(self) -&gt; Tuple[bool, str]:
+        expected_previous = hashlib.sha256(self.genesis_anchor.encode(&quot;utf-8&quot;)).hexdigest()
+        for index, proof in enumerate(self.chain.chain):
+            if proof.prev_hash != expected_previous:
+                return False, f&quot;chain break at index {index}: prev_hash mismatch&quot;
+            valid, reason = self.verify_proof(proof)
+            if not valid:
+                return False, f&quot;proof {index} invalid: {reason}&quot;
+            expected_previous = proof.proof_chain_hash
+        if self.chain.current_hash != expected_previous:
+            return False, &quot;chain head mismatch&quot;
+        return True, f&quot;chain valid ({len(self.chain.chain)} proofs)&quot;
+
+    def get_chain_state(self) -&gt; Dict:
+        return {
+            &quot;genesis_anchor&quot;: self.genesis_anchor,
+            &quot;patch_id&quot;: self.patch_id,
+            &quot;version&quot;: self.version,
+            &quot;sig_version&quot;: SIG_VERSION,
+            &quot;public_key&quot;: self.public_key_hex,
+            &quot;chain_length&quot;: len(self.chain.chain),
+            &quot;current_hash&quot;: self.chain.current_hash,
+            &quot;last_proof&quot;: self.chain.chain[-1].to_metadata() if self.chain.chain else None,
+        }
+
+    def generate_bridge_code(self) -&gt; str:
+        &quot;&quot;&quot;
+        Node.js bridge v0.65 — verification-only.
+        v0.65: sigv2 payload (patch_id signed), /api/chain fails closed,
+        CORS allowlist, optional bearer-token auth on proof/chain routes.
+        &quot;&quot;&quot;
+        public_key_hex = self.public_key_hex
+        genesis_anchor = self.genesis_anchor
+        patch_id = self.patch_id
+        return f&#x27;&#x27;&#x27;// SOUL FORGE BROADCAST PROOF BRIDGE — v0.65
+// Verification-only. Holds only the PUBLIC key.
+&quot;use strict&quot;;
+
+const express = require(&quot;express&quot;);
+const cors = require(&quot;cors&quot;);
+const net = require(&quot;net&quot;);
+const crypto = require(&quot;crypto&quot;);
+const fs = require(&quot;fs&quot;);
+
+const app = express();
+
+const LIQUIDSOAP_HOST = process.env.LIQ_HOST || &quot;localhost&quot;;
+const LIQUIDSOAP_PORT = parseInt(process.env.LIQ_PORT || &quot;1234&quot;, 10);
+const GENESIS_ANCHOR = &quot;{genesis_anchor}&quot;;
+const CHAIN_FILE = process.env.LK_CHAIN_FILE || &quot;./broadcast_chain.json&quot;;
+const PUBLIC_KEY_HEX = process.env.LK_PUBLIC_KEY || &quot;{public_key_hex}&quot;;
+const PATCH_ID = &quot;{patch_id}&quot;;
+const SIG_VERSION = &quot;sigv2&quot;;
+
+// v0.65 FIX 3: CORS allowlist. Unset =&gt; no CORS header (same-origin only).
+const ALLOWED_ORIGINS = (process.env.LK_ALLOWED_ORIGINS || &quot;&quot;)
+    .split(&quot;,&quot;)
+    .map(s =&gt; s.trim())
+    .filter(Boolean);
+
+// v0.65 FIX 3: bearer token. Unset =&gt; proof/chain endpoints refuse to serve.
+const BRIDGE_TOKEN = process.env.LK_BRIDGE_TOKEN || &quot;&quot;;
+
+if (ALLOWED_ORIGINS.length &gt; 0) {{
+    app.use(cors({{ origin: (origin, cb) =&gt; {{
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+        cb(new Error(&quot;origin not allowed&quot;));
+    }}}}));
+}}
+
+app.use(express.json());
+
+function requireToken(request, response, next) {{
+    if (!BRIDGE_TOKEN) {{
+        return response.status(503).send({{
+            ok: false,
+            reason: &quot;bridge token not configured; serving proofs refused&quot;
+        }});
+    }}
+    const header = request.get(&quot;authorization&quot;) || &quot;&quot;;
+    if (header !== `Bearer ${{BRIDGE_TOKEN}}`) {{
+        return response.status(401).send({{ ok: false, reason: &quot;unauthorized&quot; }});
+    }}
+    next();
+}}
+
+const KNOWN_PATCH_IDS = new Set([
+    &quot;fd0adf90&quot;, &quot;8a61c3b2&quot;, &quot;9f4a7e1d&quot;,
+    &quot;4b1e9c02&quot;, &quot;7c2f5e13&quot;, &quot;b3d8f407&quot;
+]);
+
+const PALLAS_P = [
+    BigInt(&quot;0x992d30ed00000001&quot;),
+    BigInt(&quot;0x224698fc094cf91b&quot;),
+    BigInt(&quot;0x0000000000000000&quot;),
+    BigInt(&quot;0x4000000000000000&quot;)
+];
+const MASK64 = (1n &lt;&lt; 64n) - 1n;
+
+function compareLimbs(a, b) {{
+    for (let i = 3; i &gt;= 0; i--) {{
+        if (a[i] &gt; b[i]) return 1;
+        if (a[i] &lt; b[i]) return -1;
+    }}
+    return 0;
+}}
+
+function subLimbs(a, b) {{
+    let borrow = 0n;
+    const result = [];
+    for (let i = 0; i &lt; 4; i++) {{
+        let diff = a[i] - b[i] - borrow;
+        if (diff &lt; 0n) {{ diff += (1n &lt;&lt; 64n); borrow = 1n; }}
+        else borrow = 0n;
+        result.push(diff &amp; MASK64);
+    }}
+    return result;
+}}
+
+function fpReduceBytes(buffer32) {{
+    const limbs = [];
+    for (let i = 0; i &lt; 4; i++) {{
+        const low = BigInt(buffer32.readUInt32LE(i * 8));
+        const high = BigInt(buffer32.readUInt32LE(i * 8 + 4));
+        limbs.push(low | (high &lt;&lt; 32n));
+    }}
+    while (compareLimbs(limbs, PALLAS_P) &gt;= 0) {{
+        const reduced = subLimbs(limbs, PALLAS_P);
+        for (let i = 0; i &lt; 4; i++) limbs[i] = reduced[i];
+    }}
+    return [...limbs].reverse()
+        .map(v =&gt; v.toString(16).padStart(16, &quot;0&quot;)).join(&quot;&quot;);
+}}
+
+function fpHash(data) {{
+    return fpReduceBytes(crypto.createHash(&quot;sha256&quot;).update(data).digest());
+}}
+
+function rawPubKeyToSpki(rawHex) {{
+    const raw = Buffer.from(rawHex, &quot;hex&quot;);
+    const prefix = Buffer.from(&quot;302a300506032b6570032100&quot;, &quot;hex&quot;);
+    return Buffer.concat([prefix, raw]);
+}}
+
+// v0.65 FIX 1: sigv2 message — patch_id is signed.
+function verifySignature(fpHex, genesis, previousHash, patchId, signatureHex) {{
+    const message = Buffer.from(
+        `${{SIG_VERSION}}|${{fpHex}}|${{genesis}}|${{previousHash}}|${{patchId}}`,
+        &quot;utf8&quot;
+    );
+    const signature = Buffer.from(signatureHex, &quot;hex&quot;);
+    const spki = rawPubKeyToSpki(PUBLIC_KEY_HEX);
+    const key = crypto.createPublicKey({{ key: spki, format: &quot;der&quot;, type: &quot;spki&quot; }});
+    return crypto.verify(null, message, key, signature);
+}}
+
+function loadChain() {{
+    try {{
+        if (fs.existsSync(CHAIN_FILE)) {{
+            return JSON.parse(fs.readFileSync(CHAIN_FILE, &quot;utf8&quot;));
+        }}
+    }} catch (error) {{
+        console.warn(&quot;[ChainStore] Load failed:&quot;, error.message);
+    }}
+    return {{
+        current_hash: crypto.createHash(&quot;sha256&quot;).update(GENESIS_ANCHOR).digest(&quot;hex&quot;),
+        chain: []
+    }};
+}}
+
+let chainState = loadChain();
+
+function verifyProof(proof) {{
+    if (proof.sig_version !== SIG_VERSION) {{
+        return {{ ok: false, reason: &quot;unsupported sig_version&quot; }};
+    }}
+    if (proof.public_key !== PUBLIC_KEY_HEX) {{
+        return {{ ok: false, reason: &quot;public key mismatch&quot; }};
+    }}
+    const fpInput =
+        `${{proof.artist}}|${{proof.title}}|` +
+        `${{proof.timestamp}}|${{proof.genesis_anchor}}|` +
+        `${{proof.prev_hash}}`;
+    const fpHex = fpHash(fpInput);
+    if (fpHex !== proof.fp_element) {{
+        return {{ ok: false, reason: &quot;fp_element mismatch&quot; }};
+    }}
+    if (!verifySignature(fpHex, proof.genesis_anchor, proof.prev_hash,
+                          proof.patch_id, proof.signature)) {{
+        return {{ ok: false, reason: &quot;signature verification failed&quot; }};
+    }}
+    const chainInput =
+        `${{proof.prev_hash}}|${{proof.signature}}|` +
+        `${{proof.artist}}|${{proof.title}}|` +
+        `${{proof.timestamp}}`;
+    const chainHash = crypto.createHash(&quot;sha256&quot;).update(chainInput).digest(&quot;hex&quot;);
+    if (chainHash !== proof.proof_chain_hash) {{
+        return {{ ok: false, reason: &quot;chain_hash mismatch&quot; }};
+    }}
+    if (!KNOWN_PATCH_IDS.has(proof.patch_id)) {{
+        return {{ ok: false, reason: &quot;unknown patch_id&quot; }};
+    }}
+    if (proof.genesis_anchor !== GENESIS_ANCHOR) {{
+        return {{ ok: false, reason: &quot;genesis mismatch&quot; }};
+    }}
+    return {{ ok: true, reason: &quot;proof valid&quot; }};
+}}
+
+// v0.65 FIX 2: full chain walk before serving. Fails closed.
+function verifyWholeChain() {{
+    const genesisHash = crypto.createHash(&quot;sha256&quot;)
+        .update(GENESIS_ANCHOR).digest(&quot;hex&quot;);
+    let expected = genesisHash;
+    for (let i = 0; i &lt; chainState.chain.length; i++) {{
+        const proof = chainState.chain[i];
+        if (proof.prev_hash !== expected) {{
+            return {{ ok: false, reason: `chain break at index ${{i}}` }};
+        }}
+        const result = verifyProof(proof);
+        if (!result.ok) {{
+            return {{ ok: false, reason: `proof ${{i}} invalid: ${{result.reason}}` }};
+        }}
+        expected = proof.proof_chain_hash;
+    }}
+    return {{ ok: true, reason: `chain valid (${{chainState.chain.length}} proofs)` }};
+}}
+
+function telnetCmd(command) {{
+    return new Promise((resolve, reject) =&gt; {{
+        const client = new net.Socket();
+        let settled = false;
+        let data = &quot;&quot;;
+        const timer = setTimeout(() =&gt; {{
+            finish(new Error(&quot;Liquidsoap timeout&quot;), data);
+        }}, 1000);
+        function finish(error, result) {{
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            client.destroy();
+            if (error) reject(error);
+            else resolve(result);
+        }}
+        client.connect(LIQUIDSOAP_PORT, LIQUIDSOAP_HOST,
+            () =&gt; client.write(command + &quot;\\n&quot;));
+        client.on(&quot;data&quot;, chunk =&gt; {{ data += chunk; }});
+        client.on(&quot;close&quot;, () =&gt; finish(null, data));
+        client.on(&quot;error&quot;, error =&gt; finish(error, data));
+    }});
+}}
+
+app.get(&quot;/admin/metadata&quot;, requireToken, (request, response) =&gt; {{
+    const proofB64 = request.query.proof_b64;
+    if (!proofB64) {{
+        return response.status(400).send({{ ok: false, reason: &quot;no proof supplied&quot; }});
+    }}
+    let proof;
+    try {{
+        proof = JSON.parse(Buffer.from(proofB64, &quot;base64&quot;).toString(&quot;utf8&quot;));
+    }} catch (error) {{
+        return response.status(400).send({{ ok: false, reason: &quot;invalid proof encoding&quot; }});
+    }}
+    const result = verifyProof(proof);
+    return response.status(result.ok ? 200 : 400).send(result);
+}});
+
+app.post(&quot;/api/verify&quot;, requireToken, (request, response) =&gt; {{
+    const result = verifyProof(request.body);
+    return response.status(result.ok ? 200 : 400).send(result);
+}});
+
+// v0.65 FIX 2: no unvalidated chain data is ever returned.
+app.get(&quot;/api/chain&quot;, requireToken, (request, response) =&gt; {{
+    const chainCheck = verifyWholeChain();
+    if (!chainCheck.ok) {{
+        return response.status(503).send({{
+            ok: false, reason: `chain invalid: ${{chainCheck.reason}}`
+        }});
+    }}
+    return response.send({{
+        genesis_anchor: GENESIS_ANCHOR,
+        public_key: PUBLIC_KEY_HEX,
+        length: chainState.chain.length,
+        chain: chainState.chain.slice(-20)
+    }});
+}});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () =&gt; {{
+    console.log(&quot;Soul Forge Broadcast Proof Bridge v0.65&quot;);
+    console.log(`Genesis: ${{GENESIS_ANCHOR}}`);
+    console.log(`Public key: ${{PUBLIC_KEY_HEX}}`);
+    console.log(`Chain file: ${{CHAIN_FILE}}`);
+    console.log(`CORS allowlist: ${{ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS.join(&quot;, &quot;) : &quot;(same-origin only)&quot;}}`);
+    console.log(`Auth: ${{BRIDGE_TOKEN ? &quot;bearer token required&quot; : &quot;NOT CONFIGURED — proof routes refuse to serve&quot;}}`);
+    console.log(&quot;Signing: DISABLED&quot;);
+    console.log(&quot;Verification: ENABLED&quot;);
+}});
+&#x27;&#x27;&#x27;
+
+
+# ============================================================================
+# LatticeKeeperV065
+# ============================================================================
+
+class LatticeKeeperV065:
+    def __init__(self):
+        self.genesis_anchor = GENESIS_ANCHOR
+        self.patch_id = PATCH_ID
+        self.parent_patch = PARENT_PATCH
+        self.version = PATCH_VERSION
+        self.broadcast_keeper = SoulForgeBroadcastKeeper()
+
+    def audit(self) -&gt; Dict:
+        &quot;&quot;&quot;
+        v0.65 FIX 6: implementation_status is what the in-process checks
+        measure. Release approval is NOT derivable from these checks and
+        is reported as None with a note — never as an earned verdict.
+        &quot;&quot;&quot;
+        chain_ok, chain_message = self.broadcast_keeper.verify_chain()
+        genesis_ok = verify_genesis_anchor(self.patch_id, self.genesis_anchor)
+        # v0.65 FIX 4: lineage — parent must be THIS patch&#x27;s actual parent.
+        lineage_ok = verify_lineage(self.patch_id, self.parent_patch)
+        limbs_ok = validate_pallas_limbs(PALLAS_P_LIMBS)
+
+        measured_checks = [
+            (&quot;genesis_anchor_verified&quot;, genesis_ok),
+            (&quot;lineage_verified&quot;, lineage_ok),
+            (&quot;pallas_limbs_validated&quot;, limbs_ok),
+            (&quot;chain_valid&quot;, chain_ok),
+        ]
+
+        implementation_status = (
+            &quot;SHIPABLE&quot; if all(value for _, value in measured_checks)
+            else &quot;NOT_SHIPABLE&quot;
+        )
+
+        return {
+            **{name: value for name, value in measured_checks},
+            &quot;version&quot;: self.version,
+            &quot;patch_id&quot;: self.patch_id,
+            &quot;signature_alg&quot;: &quot;Ed25519&quot;,
+            &quot;sig_version&quot;: SIG_VERSION,
+            &quot;public_key&quot;: self.broadcast_keeper.public_key_hex,
+            &quot;chain_message&quot;: chain_message,
+            &quot;chain_length&quot;: len(self.broadcast_keeper.chain.chain),
+            &quot;current_chain_hash&quot;: self.broadcast_keeper.chain.current_hash,
+            &quot;endianness&quot;: &quot;little-endian (limbs[0] = LSB)&quot;,
+            &quot;implementation_status&quot;: implementation_status,
+            &quot;release_approved&quot;: None,
+            &quot;release_note&quot;: (
+                &quot;release approval requires deployment review &quot;
+                &quot;(environment, secrets, threat model); it is not &quot;
+                &quot;derivable from in-process checks&quot;
+            ),
+        }
+
+
+# ============================================================================
+# Self-tests
+# ============================================================================
+
+def run_self_tests() -&gt; bool:
+    print(&quot;\n&quot; + &quot;=&quot; * 60)
+    print(&quot;LATTICE KEEPER v0.65 SELF-TESTS&quot;)
+    print(&quot;=&quot; * 60)
+
+    with tempfile.TemporaryDirectory(prefix=&quot;lk_v065_&quot;) as tmp:
+        tmp = Path(tmp)
+        key_path = tmp / &quot;keeper.key&quot;
+
+        print(&quot;\nTest 1: Pallas limbs valid&quot;)
+        assert validate_pallas_limbs(PALLAS_P_LIMBS)
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 2: Fp add and reduction&quot;)
+        assert fp_add(Fp((1, 0, 0, 0)), Fp((2, 0, 0, 0))).limbs[0] == 3
+        p_minus_one = Fp((PALLAS_P_LIMBS[0] - 1, *PALLAS_P_LIMBS[1:]))
+        assert fp_add(p_minus_one, Fp.one()).limbs == (0, 0, 0, 0)
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 3: Fp hex round-trip&quot;)
+        field_value = fp_hash_to_field(&quot;ROUND TRIP PROBE&quot;)
+        assert Fp.from_hex(field_value.to_hex()).limbs == field_value.limbs
+        assert Fp.from_hex(&quot;0x&quot; + field_value.to_hex()).limbs == field_value.limbs
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 4: v0.65 FIX 5 — from_hex rejects mid-string prefix and junk&quot;)
+        for bad in (&quot;120x&quot; + &quot;0&quot; * 60, &quot;zz&quot; * 32, &quot;0x&quot; + &quot;g&quot; * 8, &quot;12 34&quot;):
+            try:
+                Fp.from_hex(bad)
+                raise AssertionError(f&quot;from_hex should reject {bad!r}&quot;)
+            except ValueError:
+                pass
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 5: deterministic field hashing&quot;)
+        first = fp_hash_to_field(&quot;MOYSES - TRLY LOOP&quot;)
+        second = fp_hash_to_field(&quot;MOYSES - TRLY LOOP&quot;)
+        assert first.to_hex() == second.to_hex()
+        assert first.to_hex() != fp_hash_to_field(&quot;DIFFERENT&quot;).to_hex()
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 6: v0.65 FIX 4 — lineage requires the correct parent&quot;)
+        assert verify_lineage(PATCH_ID, PARENT_PATCH)
+        assert verify_lineage(&quot;7c2f5e13&quot;, &quot;4b1e9c02&quot;)
+        assert not verify_lineage(PATCH_ID, &quot;fd0adf90&quot;), \
+            &quot;wrong parent must fail lineage even if it is a known/genesis id&quot;
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 7: unknown patch rejected&quot;)
+        assert not verify_genesis_anchor(&quot;deadbeef&quot;, GENESIS_ANCHOR)
+        print(&quot;  passed&quot;)
+
+        class MemoryStore(ChainStore):
+            def __init__(self):
+                self.state = {&quot;current_hash&quot;: None, &quot;chain&quot;: []}
+            def load(self):
+                return self.state
+            def save(self, state):
+                self.state = state
+
+        keeper = SoulForgeBroadcastKeeper(store=MemoryStore(), key_path=key_path)
+
+        print(&quot;Test 8: unsafe private-key permissions rejected&quot;)
+        bad_key_path = tmp / &quot;bad.key&quot;
+        bad_key_path.write_bytes(key_path.read_bytes())
+        if os.name == &quot;posix&quot;:
+            bad_key_path.chmod(0o644)
+            try:
+                load_or_create_private_key(bad_key_path)
+                raise AssertionError(&quot;world-readable key should be rejected&quot;)
+            except PermissionError:
+                print(&quot;  passed&quot;)
+        else:
+            print(&quot;  skipped on non-POSIX platform&quot;)
+
+        print(&quot;Test 9: real Ed25519 signature (sigv2)&quot;)
+        proof_one = keeper.sign_broadcast(&quot;TRLY LOOP&quot;, &quot;MOYSES&quot;)
+        assert len(proof_one.signature) == 128
+        assert len(proof_one.public_key) == 64
+        assert proof_one.sig_version == &quot;sigv2&quot;
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 10: v0.65 FIX 1 — patch_id tampering invalidates signature&quot;)
+        swapped_id = replace(proof_one, patch_id=&quot;9f4a7e1d&quot;)  # another KNOWN id
+        valid, reason = keeper.verify_proof(swapped_id)
+        assert not valid, &quot;swapping patch_id to a known id must fail signature&quot;
+        assert &quot;signature&quot; in reason
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 11: v0.65 FIX 1 — sigv1-style (unsigned patch_id) proof rejected&quot;)
+        legacy_message = f&quot;{proof_one.fp_element}|{proof_one.genesis_anchor}|{proof_one.prev_hash}&quot;.encode()
+        legacy_sig = keeper.private_key.sign(legacy_message).hex()
+        legacy_proof = replace(proof_one, signature=legacy_sig, sig_version=&quot;sigv1&quot;)
+        valid, reason = keeper.verify_proof(legacy_proof)
+        assert not valid
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 12: chain linking and verification&quot;)
+        proof_two = keeper.sign_broadcast(&quot;BEMMMM&quot;, &quot;BRITTY&quot;)
+        assert proof_two.prev_hash == proof_one.proof_chain_hash
+        keeper.sign_broadcast(&quot;XIBA&quot;, &quot;MNGOOA&quot;)
+        valid, reason = keeper.verify_chain()
+        assert valid, reason
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 13: proof verification (happy path)&quot;)
+        valid, reason = keeper.verify_proof(proof_one)
+        assert valid, reason
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 14: artist tampering rejected&quot;)
+        valid, reason = keeper.verify_proof(replace(proof_one, artist=&quot;IMPOSTOR&quot;))
+        assert not valid
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 15: title tampering rejected&quot;)
+        valid, reason = keeper.verify_proof(replace(proof_one, title=&quot;TAMPERED&quot;))
+        assert not valid
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 16: signature tampering rejected&quot;)
+        valid, reason = keeper.verify_proof(replace(proof_one, signature=&quot;ff&quot; * 64))
+        assert not valid
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 17: public-key tampering rejected&quot;)
+        other_pk = Ed25519PrivateKey.generate().public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        ).hex()
+        valid, reason = keeper.verify_proof(replace(proof_one, public_key=other_pk))
+        assert not valid
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 18: forged signature rejected&quot;)
+        forged = replace(
+            proof_one,
+            signature=hashlib.sha256(proof_one.fp_element.encode()).hexdigest() + &quot;00&quot; * 32,
+        )
+        valid, reason = keeper.verify_proof(forged)
+        assert not valid
+        print(f&quot;  passed: {reason}&quot;)
+
+        print(&quot;Test 19: Liquidsoap command and metadata carry proof&quot;)
+        cmd = proof_one.to_liquidsoap_cmd()
+        assert proof_one.signature in cmd and proof_one.public_key in cmd
+        meta = proof_one.to_metadata()
+        assert meta[&quot;X-Lattice-SigVersion&quot;] == &quot;sigv2&quot;
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 20: serialization round-trip; legacy dict rejected&quot;)
+        restored = BroadcastProof.from_dict(proof_one.to_dict())
+        assert restored.signature == proof_one.signature
+        legacy_dict = proof_one.to_dict()
+        del legacy_dict[&quot;sig_version&quot;]
+        try:
+            BroadcastProof.from_dict(legacy_dict)
+            raise AssertionError(&quot;pre-sigv2 dict should be rejected&quot;)
+        except ValueError:
+            print(&quot;  passed&quot;)
+
+        print(&quot;Test 21: derived implementation status; wrong lineage fails audit&quot;)
+        audit = LatticeKeeperV065.__new__(LatticeKeeperV065)
+        audit.genesis_anchor = GENESIS_ANCHOR
+        audit.patch_id = PATCH_ID
+        audit.parent_patch = PARENT_PATCH
+        audit.version = PATCH_VERSION
+        audit.broadcast_keeper = keeper
+
+        report = audit.audit()
+        assert report[&quot;implementation_status&quot;] == &quot;SHIPABLE&quot;
+        assert report[&quot;release_approved&quot;] is None, \
+            &quot;release approval must never be self-awarded&quot;
+
+        audit.parent_patch = &quot;fd0adf90&quot;  # wrong parent: known, but incorrect
+        bad_report = audit.audit()
+        assert bad_report[&quot;implementation_status&quot;] == &quot;NOT_SHIPABLE&quot;
+        assert bad_report[&quot;lineage_verified&quot;] is False
+        audit.parent_patch = PARENT_PATCH
+
+        keeper.chain.chain[0] = replace(keeper.chain.chain[0], title=&quot;HACKED&quot;)
+        tampered_report = audit.audit()
+        assert tampered_report[&quot;implementation_status&quot;] == &quot;NOT_SHIPABLE&quot;
+        keeper.chain.chain[0] = replace(keeper.chain.chain[0], title=&quot;TRLY LOOP&quot;)
+        print(&quot;  passed&quot;)
+
+        print(&quot;Test 22: v0.65 FIX 2/3 — bridge fails closed, CORS allowlist, sigv2&quot;)
+        bridge = keeper.generate_bridge_code()
+        assert &quot;verifyWholeChain&quot; in bridge, &quot;chain endpoint must verify before serving&quot;
+        assert &quot;503&quot; in bridge, &quot;chain endpoint must fail closed&quot;
+        assert &quot;LK_ALLOWED_ORIGINS&quot; in bridge, &quot;CORS must be an allowlist&quot;
+        assert &quot;requireToken&quot; in bridge, &quot;proof routes must be gated&quot;
+        assert &quot;sigv2&quot; in bridge and &quot;proof.patch_id&quot; in bridge, \
+            &quot;bridge must sign/verify patch_id in sigv2 payload&quot;
+        assert &quot;clearTimeout&quot; in bridge and &quot;client.destroy&quot; in bridge
+        print(&quot;  passed&quot;)
+
+    print(&quot;\n&quot; + &quot;=&quot; * 60)
+    print(&quot;ALL v0.65 SELF-TESTS PASSED&quot;)
+    print(&quot;=&quot; * 60)
+    return True
+
+
+# ============================================================================
+# Main
+# ============================================================================
+
+def main() -&gt; int:
+    logging.basicConfig(level=logging.INFO, format=&quot;[%(asctime)s] %(levelname)s: %(message)s&quot;)
+    keeper = LatticeKeeperV065()
+    broadcast_keeper = keeper.broadcast_keeper
+
+    print(&quot;=&quot; * 60)
+    print(f&quot;LATTICE KEEPER {PATCH_VERSION}&quot;)
+    print(f&quot;Genesis: {GENESIS_ANCHOR}  Parent: {PARENT_PATCH} -&gt; {PATCH_ID}&quot;)
+    print(f&quot;Public key: {broadcast_keeper.public_key_hex}&quot;)
+    print(&quot;=&quot; * 60)
+
+    for title, artist in [(&quot;TRLY LOOP&quot;, &quot;MOYSES&quot;), (&quot;BEMMMM&quot;, &quot;BRITTY&quot;), (&quot;XIBA&quot;, &quot;MNGOOA&quot;)]:
+        proof = broadcast_keeper.sign_broadcast(title, artist)
+        print(f&quot;  {proof.artist} - {proof.title} | &quot;
+              f&quot;sig:{proof.signature[:16]}... chain:{proof.proof_chain_hash[:8]}...&quot;)
+
+    chain_valid, chain_message = broadcast_keeper.verify_chain()
+    print(f&quot;\nChain verify: {chain_message}&quot;)
+    print(f&quot;\nAudit: {json.dumps(keeper.audit(), indent=2)}&quot;)
+    return 0 if chain_valid else 1
+
+
+if __name__ == &quot;__main__&quot;:
+    if run_self_tests():
+        print(&quot;\nINITIALIZING DEPLOYMENT\n&quot;)
+        raise SystemExit(main())
+    raise SystemExit(1)</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. Written by directing AI models; not deployed.</footer>
+</article>
+
+<script src="../script.js"></script>
+</body>
+</html>
