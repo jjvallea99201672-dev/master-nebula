@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometric Hash Anomaly Test — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper p,.paper li{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .src{white-space:pre;font-family:Courier New,Courier,monospace;font-size:13px;line-height:1.5;overflow-x:auto;border:1px solid var(--line);padding:14px;margin-top:1.2em;color:var(--text)}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Geometric Hash Anomaly Test</h1>
+  <p class="subtitle">Fixed version, 2026-10-23 audit</p>
+  <p>A small SHA-256 prefix-collision test for coordinates on a binary sector tree in the Poincaré disk. This audit pass measures prefixes in bytes, counts collisions in linear time, and compares them to a birthday-paradox baseline and to a random control set. It does not claim an anomaly unless the lattice collides more than chance and the control.</p>
+  <div class="row"><a class="btn" href="geometric_hash_anomaly_test.py" download>Download the .py</a></div>
+  <div class="src">&quot;&quot;&quot;
+Geometric Hash Anomaly Test — FIXED version (2026-10-23 audit)
+
+What was wrong with the original, and what this version does instead:
+
+1. PREFIX UNITS. The original sliced hex strings (h[:4] = 4 hex chars
+   = 2 bytes) but reported the result as &quot;4 bytes&quot;. This version
+   measures prefixes in BYTES on the raw SHA-256 digest.
+
+2. COLLISION COUNTING. The original used O(n^2) pair loops. This
+   version counts with a Counter in O(n) and reports colliding
+   *pairs* and *groups*.
+
+3. BASELINE. The original treated &quot;0 collisions&quot; as the pass mark.
+   Short prefixes collide by pure chance (birthday paradox), so
+   every count is printed next to its birthday expectation.
+   ANOMALY = deviation from that baseline, not collisions existing.
+
+4. CONTROL. A same-size set of uniformly random points is hashed
+   the exact same way. If lattice coordinates collide more than
+   random coordinates do, that is evidence. If both match the
+   baseline, the hash space is behaving randomly for both.
+
+5. GEOMETRY PARAMETERS ACTUALLY USED. In the original, delta_rho
+   and ideal_step were defined but never used, and the generator
+   was a binary tree mislabelled as a 3-coordinated Bethe lattice.
+   Here, node depth d sits at hyperbolic radius rho = d * delta,
+   mapped into the Poincare disk as r = R_inf * tanh(rho / 2),
+   and the user&#x27;s step (0.59) and the ideal step (ln 2) are run
+   side by side. Model named honestly: a binary sector tree in
+   the disk (2 children/node), Bethe-like, not a {p,q} tiling.
+
+6. OVERLAP. Same-depth nodes share a radius, so their nearest
+   neighbours are adjacent in angle. Sorting per depth replaces
+   the O(n^2) scan (and there is no centre-node self-pair).
+
+Coordinates are formatted to 6 decimal places, exactly as in the
+original, and duplicate coordinates are counted explicitly.
+
+Usage: python3 geometric_hash_test_fixed.py [--depth 12]
+&quot;&quot;&quot;
+import argparse, hashlib, math, random
+from collections import Counter, defaultdict
+
+R_INF = 477.0
+USER_STEP = 0.59
+IDEAL_STEP = math.log(2)          # ~0.693147
+PREFIX_BYTES = (1, 2, 4)          # measured on raw digest bytes
+
+def generate(step, max_depth):
+    &quot;&quot;&quot;Binary sector tree: node at sector centre, hyperbolic radius d*step.&quot;&quot;&quot;
+    nodes = []
+    def gen(depth, a0, a1):
+        if depth &gt; max_depth:
+            return
+        mid = (a0 + a1) / 2
+        r = R_INF * math.tanh(depth * step / 2) if depth else 0.0
+        nodes.append((depth, mid, round(r * math.cos(mid), 6), round(r * math.sin(mid), 6)))
+        gen(depth + 1, a0, mid)
+        gen(depth + 1, mid, a1)
+    gen(0, 0.0, 2 * math.pi)
+    return nodes
+
+def random_control(n, seed=99):
+    rng = random.Random(seed)
+    pts = []
+    for _ in range(n):
+        a = rng.uniform(0, 2 * math.pi)
+        r = R_INF * math.sqrt(rng.random())   # uniform over the disk
+        pts.append((round(r * math.cos(a), 6), round(r * math.sin(a), 6)))
+    return pts
+
+def geometry_stats(nodes):
+    by_depth = defaultdict(list)
+    for d, ang, x, y in nodes:
+        by_depth[d].append((ang, x, y))
+    min_sep, overlap_pairs = math.inf, 0
+    for d, group in by_depth.items():
+        if len(group) &lt; 2:
+            continue
+        group.sort()
+        m = len(group)
+        for i in range(m):
+            _, x1, y1 = group[i]
+            _, x2, y2 = group[(i + 1) % m]
+            dist = math.hypot(x1 - x2, y1 - y2)
+            min_sep = min(min_sep, dist)
+            if dist &lt; 0.1:
+                overlap_pairs += 1
+    return min_sep, overlap_pairs
+
+def hash_stats(coords, label):
+    n = len(coords)
+    digests = [hashlib.sha256(f&quot;{x},{y}&quot;.encode()).digest() for x, y in coords]
+    dup_coords = n - len(set(coords))
+    unique_full = len(set(digests))
+    print(f&quot;  [{label}] n={n}  duplicate coords={dup_coords}  unique full SHA-256={unique_full}&quot;)
+    total_pairs = n * (n - 1) // 2
+    for b in PREFIX_BYTES:
+        counts = Counter(d[:b] for d in digests)
+        pairs = sum(k * (k - 1) // 2 for k in counts.values())
+        groups = sum(1 for k in counts.values() if k &gt; 1)
+        expected = total_pairs / (256 ** b)
+        print(f&quot;    prefix {b} byte(s): colliding pairs={pairs} (groups={groups}) &quot;
+              f&quot;| birthday-expected ~{expected:.4g} | ratio {pairs/expected:.2f}x&quot;)
+
+def run(step, label, max_depth):
+    nodes = generate(step, max_depth)
+    coords = [(x, y) for _, _, x, y in nodes]
+    min_sep, overlaps = geometry_stats(nodes)
+    print(f&quot;{label}  step={step:.6f}  depth&lt;={max_depth}&quot;)
+    print(f&quot;  geometry: min same-depth separation={min_sep:.4f}  overlap pairs (&lt;0.1)={overlaps}&quot;)
+    hash_stats(coords, &quot;lattice&quot;)
+    ctrl = random_control(len(coords))
+    hash_stats(ctrl, &quot;control&quot;)
+    print()
+
+if __name__ == &quot;__main__&quot;:
+    ap = argparse.ArgumentParser()
+    ap.add_argument(&quot;--depth&quot;, type=int, default=12)
+    args = ap.parse_args()
+    if args.depth &gt; 20:
+        print(&quot;Warning: depth &gt; 20 means &gt;2M nodes; counts stay O(n) but memory grows.&quot;)
+    print(f&quot;GEOMETRIC HASH ANOMALY TEST (fixed) — R_inf={R_INF}\n&quot;)
+    run(USER_STEP, &quot;USER STEP&quot;, args.depth)
+    run(IDEAL_STEP, &quot;IDEAL STEP (ln 2)&quot;, args.depth)
+    print(&quot;Reading: a hash anomaly exists only if the lattice counts deviate&quot;)
+    print(&quot;materially from BOTH the birthday expectation AND the random control.&quot;)
+</div>
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>

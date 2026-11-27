@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lattice Keeper v0.30 Source — Jay Vallea</title>
+<meta name="theme-color" content="#05060f">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .paper{max-width:760px;margin:0 auto;padding:100px 20px 80px}
+  .paper .back{display:inline-block;margin-bottom:28px;color:var(--dim);text-decoration:none;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  .paper .back:hover{color:var(--cyan);text-shadow:var(--glow-c)}
+  .paper .eyebrow{margin-bottom:10px}
+  .paper h1{font-size:clamp(28px,5vw,44px);letter-spacing:.06em;line-height:1.15;margin:0 0 12px;
+    background:linear-gradient(180deg,#fff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,.3))}
+  .paper .subtitle{color:var(--gold);text-shadow:0 0 14px rgba(255,200,61,.25);font-size:18px;margin:0 0 36px}
+  .paper h2{font-size:22px;letter-spacing:.1em;text-transform:uppercase;margin:2.2em 0 .6em;color:var(--text)}
+  .paper h2::after{width:56px}
+  .paper h3{font-size:18px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.25);margin:1.4em 0 .4em;letter-spacing:.04em}
+  .paper p,.paper li,.paper td,.paper th{color:var(--text);font-size:17px;line-height:1.7}
+  .paper .dim{color:var(--dim)}
+  .paper ul,.paper ol{margin:.4em 0 1em;padding-left:1.25em}
+  .paper li{margin:.35em 0}
+  .paper li::marker{color:var(--gold)}
+  .paper table{border-collapse:collapse;margin:1em 0 1.4em;width:100%;font-size:15px}
+  .paper th,.paper td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+  .paper th{color:var(--gold)}
+  .paper code{font-family:Courier New,Courier,monospace;font-size:0.92em}
+  .paper hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .paper footer.page-end{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .paper .file-list{font-family:Courier New,Courier,monospace;font-size:14px;line-height:1.6;column-width:320px}
+  .paper .file-list a{color:var(--cyan);text-decoration:none}
+  .paper .file-list a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="skip" href="#note">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../">MASTER <span>NEBULA</span></a>
+  <nav id="menu">
+    <a href="../#software">Software</a>
+    <a href="../#music">Music</a>
+    <a href="../#gallery">Gallery</a>
+    <a href="../#physics">Physics</a>
+    <a href="../#about">About</a>
+  </nav>
+</header>
+<article class="paper" id="note">
+  <a class="back" href="../#software">← Back to Master Nebula</a>
+  <p class="eyebrow">Jay Vallea · Master Nebula</p>
+  <h1>Lattice Keeper v0.30</h1>
+  <p class="subtitle">Operator-signed policy · 2026-10-21</p>
+  <p>The hardened v0.30 package (2026-10-21): a signed-record HTTP service with hybrid Ed25519 + ML-DSA-65 signatures, optional ML-KEM-768, a signed hash-chained audit log in Redis, and an operator-signed policy that only an offline operator key can change. ESP32 firmware <code>guardian_v030</code> is included. This is later than the single-file v0.28, and earlier than v0.65 and v1.0; those pages stay in place.</p>
+  <p>No private keys are in this tree. <code>.env.example</code> and <code>firmware/guardian_v030/secrets.example.h</code> are placeholders only. <code>LATTICE_API_KEY</code> and related secrets have no defaults. The server is written to refuse operator private keys in <code>KEYS_DIR</code>. The genesis hash <code>fd0adf90…</code> is the public forensic anchor, not a private key. A zip of the same tree is ready to upload as <code>lattice-keeper-v030.zip</code>.</p>
+  <div class="row">
+    <a class="btn" href="README.md">Read the README</a>
+    <a class="btn" href="lattice-keeper-v030.zip" download>Download the zip</a>
+  </div>
+  <h2>Source tree</h2>
+  <div class="file-list">
+<div><a href=".dockerignore">.dockerignore</a></div>
+<div><a href=".env.example">.env.example</a></div>
+<div><a href=".gitignore">.gitignore</a></div>
+<div><a href="CHANGELOG.md">CHANGELOG.md</a></div>
+<div><a href="Dockerfile">Dockerfile</a></div>
+<div><a href="LICENSE">LICENSE</a></div>
+<div><a href="README.md">README.md</a></div>
+<div><a href="docker-compose.rag.yml">docker-compose.rag.yml</a></div>
+<div><a href="docker-compose.yml">docker-compose.yml</a></div>
+<div><a href="firmware/guardian_v030/.gitignore">firmware/guardian_v030/.gitignore</a></div>
+<div><a href="firmware/guardian_v030/README.md">firmware/guardian_v030/README.md</a></div>
+<div><a href="firmware/guardian_v030/config.h">firmware/guardian_v030/config.h</a></div>
+<div><a href="firmware/guardian_v030/guardian_v030.ino">firmware/guardian_v030/guardian_v030.ino</a></div>
+<div><a href="firmware/guardian_v030/host_test/gen_vectors.py">firmware/guardian_v030/host_test/gen_vectors.py</a></div>
+<div><a href="firmware/guardian_v030/host_test/rng_stub.cpp">firmware/guardian_v030/host_test/rng_stub.cpp</a></div>
+<div><a href="firmware/guardian_v030/host_test/run.sh">firmware/guardian_v030/host_test/run.sh</a></div>
+<div><a href="firmware/guardian_v030/host_test/test_policy_core.cpp">firmware/guardian_v030/host_test/test_policy_core.cpp</a></div>
+<div><a href="firmware/guardian_v030/policy_core.h">firmware/guardian_v030/policy_core.h</a></div>
+<div><a href="firmware/guardian_v030/secrets.example.h">firmware/guardian_v030/secrets.example.h</a></div>
+<div><a href="pyproject.toml">pyproject.toml</a></div>
+<div><a href="scripts/smoke.sh">scripts/smoke.sh</a></div>
+<div><a href="src/lattice_keeper/__init__.py">src/lattice_keeper/__init__.py</a></div>
+<div><a href="src/lattice_keeper/__main__.py">src/lattice_keeper/__main__.py</a></div>
+<div><a href="src/lattice_keeper/audit.py">src/lattice_keeper/audit.py</a></div>
+<div><a href="src/lattice_keeper/cli.py">src/lattice_keeper/cli.py</a></div>
+<div><a href="src/lattice_keeper/config.py">src/lattice_keeper/config.py</a></div>
+<div><a href="src/lattice_keeper/crypto.py">src/lattice_keeper/crypto.py</a></div>
+<div><a href="src/lattice_keeper/guardian.py">src/lattice_keeper/guardian.py</a></div>
+<div><a href="src/lattice_keeper/models.py">src/lattice_keeper/models.py</a></div>
+<div><a href="src/lattice_keeper/operator.py">src/lattice_keeper/operator.py</a></div>
+<div><a href="src/lattice_keeper/policy.py">src/lattice_keeper/policy.py</a></div>
+<div><a href="src/lattice_keeper/rag.py">src/lattice_keeper/rag.py</a></div>
+<div><a href="src/lattice_keeper/ratelimit.py">src/lattice_keeper/ratelimit.py</a></div>
+<div><a href="src/lattice_keeper/reference.py">src/lattice_keeper/reference.py</a></div>
+<div><a href="src/lattice_keeper/server.py">src/lattice_keeper/server.py</a></div>
+<div><a href="src/lattice_keeper/telemetry.py">src/lattice_keeper/telemetry.py</a></div>
+<div><a href="tests/__init__.py">tests/__init__.py</a></div>
+<div><a href="tests/conftest.py">tests/conftest.py</a></div>
+<div><a href="tests/test_api.py">tests/test_api.py</a></div>
+<div><a href="tests/test_audit.py">tests/test_audit.py</a></div>
+<div><a href="tests/test_auth.py">tests/test_auth.py</a></div>
+<div><a href="tests/test_config.py">tests/test_config.py</a></div>
+<div><a href="tests/test_crypto.py">tests/test_crypto.py</a></div>
+<div><a href="tests/test_guardian.py">tests/test_guardian.py</a></div>
+<div><a href="tests/test_policy.py">tests/test_policy.py</a></div>
+<div><a href="tests/test_rag_manifest.py">tests/test_rag_manifest.py</a></div>
+<div><a href="tests/test_telemetry.py">tests/test_telemetry.py</a></div>
+<div><a href="tests/test_validation.py">tests/test_validation.py</a></div>
+  </div>
+
+  
+  <footer class="page-end">Jay Vallea · JAY.01 · Master Nebula. No keys are included.</footer>
+</article>
+<script src="../script.js"></script>
+</body>
+</html>
