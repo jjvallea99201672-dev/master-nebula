@@ -36,7 +36,7 @@
   <p class="tag">Software, music, images and physics ideas. Built with AI as a collaborator, steered by one human.</p>
   <div class="cta">
     <a class="btn gold" href="soul-forge/">Open Soul Forge Studio</a>
-    <a class="btn" href="#music">Hear the music</a>
+    <a class="btn" href="music/">Hear the music</a>
     <a class="btn" href="#physics">Watch the physics</a>
   </div>
 </section>
@@ -833,6 +833,18 @@
   <p class="lead">Songs and visuals from the <strong>MASTER NEBULA</strong> channel. Songs are made with AI music tools such as Suno, from Jay's ideas, lyrics and direction.</p>
 
   <div class="cards" style="margin:0 0 36px">
+    <article class="card feature" id="site-tracks">
+      <div class="body">
+        <span class="badge live">Listen here</span>
+        <h3>Tracks</h3>
+        <p>Songs you can play on this site, starting with <em>Rise Above</em> and <em>No Surrender</em>. More will be added as they arrive.</p>
+        <ul class="tracks" id="home-track-list">
+          <li><a href="music/#rise-above">Rise Above <span style="color:var(--dim)">· 4:09</span></a></li>
+          <li><a href="music/#no-surrender">No Surrender <span style="color:var(--dim)">· 4:11</span></a></li>
+        </ul>
+        <div class="row"><a class="btn gold" href="music/">Open the track list</a></div>
+      </div>
+    </article>
     <article class="card">
       <div class="body">
         <span class="badge live">Live in your browser</span>
@@ -1033,5 +1045,30 @@
 
 <div class="lightbox" id="lightbox" hidden><button class="close" aria-label="Close">×</button><img alt=""></div>
 <script src="script.js"></script>
+<script>
+(function () {
+  var list = document.getElementById("home-track-list");
+  if (!list) return;
+  fetch("music/tracks.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error("no json"); return r.json(); })
+    .then(function (data) {
+      if (!data.tracks || !data.tracks.length) return;
+      list.innerHTML = "";
+      data.tracks.forEach(function (t) {
+        var a = document.createElement("a");
+        a.href = "music/#" + t.slug;
+        a.appendChild(document.createTextNode(t.title + " "));
+        var s = document.createElement("span");
+        s.style.color = "var(--dim)";
+        s.textContent = "· " + (t.duration || "");
+        a.appendChild(s);
+        var li = document.createElement("li");
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    })
+    .catch(function () { /* keep the written fallback list */ });
+})();
+</script>
 </body>
 </html>

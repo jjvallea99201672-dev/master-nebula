@@ -1,0 +1,19 @@
+{
+  "artist": "Master Nebula",
+  "tracks": [
+    {
+      "slug": "rise-above",
+      "title": "Rise Above",
+      "artist": "Master Nebula",
+      "duration": "4:09",
+      "src": "rise-above.mp3"
+    },
+    {
+      "slug": "no-surrender",
+      "title": "No Surrender",
+      "artist": "Master Nebula",
+      "duration": "4:11",
+      "src": "no-surrender.mp3"
+    }
+  ]
+}
