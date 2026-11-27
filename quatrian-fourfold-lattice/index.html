@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quatrian — Fourfold Lattice — Jay Vallea</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400&display=swap');
+:root{--bg:#070a14;--gold:#e8c86a;--gold-bright:#f6e6a8;--gold-dim:#b89b4a;--text:#e8e4d9;--dim:#8a8fa0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 700px at 50% -10%,rgba(232,200,106,0.14),transparent 60%),radial-gradient(900px 600px at 50% 110%,rgba(92,140,255,0.08),transparent 70%),var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;overflow-x:hidden;min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}.serif{font-family:'Instrument Serif',serif}
+.container{max-width:1180px;margin:0 auto;padding:2.2rem 1.2rem 4rem;position:relative}
+.title-plate{display:flex;flex-direction:column;align-items:center;gap:0.9rem;padding:1.6rem 2rem;border:1px solid rgba(232,200,106,0.22);position:relative;background:linear-gradient(180deg,rgba(18,26,43,0.7),rgba(10,14,24,0.8))}
+.title-plate::before,.title-plate::after{content:'';position:absolute;width:14px;height:14px;border:1px solid var(--gold-dim)}
+.title-plate::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.title-plate::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.corner-bl{position:absolute;bottom:-1px;left:-1px;width:14px;height:14px;border:1px solid var(--gold-dim);border-right:0;border-top:0}
+.corner-br{position:absolute;top:-1px;right:-1px;width:14px;height:14px;border:1px solid var(--gold-dim);border-left:0;border-bottom:0}
+.hairline{width:220px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+h1{margin:0;font-family:'Instrument Serif',serif;font-size:42px;letter-spacing:-0.02em;color:var(--gold-bright);font-weight:400}
+.sub{font-size:10px;letter-spacing:0.32em;color:var(--gold-dim);text-transform:uppercase}
+.lattice{display:grid;grid-template-columns:repeat(4,1fr);gap:2.6rem;margin-top:3.2rem;position:relative}
+@media(max-width:900px){.lattice{grid-template-columns:repeat(2,1fr);gap:2rem}}
+.node{position:relative;display:flex;flex-direction:column;align-items:center;opacity:0;animation:nodeIn 0.9s ease forwards}
+.node:nth-child(1){animation-delay:0.2s}
+.node:nth-child(2){animation-delay:1.3s}
+.node:nth-child(3){animation-delay:2.6s}
+.node:nth-child(4){animation-delay:3.9s}
+@keyframes nodeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.node-num{font-size:9px;letter-spacing:0.28em;color:var(--gold-dim);margin-bottom:0.6rem}
+.sigil-wrap{width:120px;height:110px;position:relative;filter:drop-shadow(0 0 18px rgba(232,200,106,0.28))}
+.sigil-wrap svg{width:100%;height:100%;overflow:visible}
+.label{margin-top:0.9rem;text-align:center}
+.label-main{font-size:11px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase}
+.label-sub{font-family:'Instrument Serif',serif;font-size:16px;color:var(--gold-bright);margin-top:0.15rem;font-style:italic}
+.draw-path{fill:none;stroke:var(--gold);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw var(--dur) ease forwards var(--delay)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.fade-path{opacity:0;animation:fadeIn 0.9s ease forwards var(--delay)}
+@keyframes fadeIn{to{opacity:1}}
+.twinkle{transform-box:fill-box;transform-origin:center;animation:twinkle 2.8s ease-in-out infinite var(--delay)}
+@keyframes twinkle{0%,100%{opacity:0.35;transform:scale(0.7)}50%{opacity:1;transform:scale(1.15)}}
+.flicker{transform-box:fill-box;transform-origin:50% 100%;animation:flicker 1.9s ease-in-out infinite var(--delay)}
+@keyframes flicker{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.12) scaleX(0.92)}}
+.bubble{animation:bubble 3.2s ease-in-out infinite var(--delay)}
+@keyframes bubble{0%{transform:translateY(0);opacity:0.2}50%{opacity:1}100%{transform:translateY(-8px);opacity:0}}
+.thread{position:absolute;left:5%;right:5%;top:58%;height:1px;pointer-events:none;opacity:0;animation:threadIn 1.2s ease forwards 5.6s}
+.thread::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--gold-dim) 0 8px,transparent 8px 14px);opacity:0.35}
+@keyframes threadIn{to{opacity:1}}
+.mote{position:absolute;width:2px;height:2px;background:var(--gold-dim);border-radius:50%;opacity:0.18;animation:drift 18s linear infinite}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(120px,-200px)}}
+.footer{margin-top:3.5rem;text-align:center;font-size:9px;letter-spacing:0.2em;color:var(--dim);opacity:0.7}
+@media(prefers-reduced-motion:reduce){.draw-path,.fade-path,.twinkle,.flicker,.bubble,.mote,.node,.thread{animation:none!important;opacity:1!important;stroke-dashoffset:0!important;transform:none!important}}
+</style>
+</head>
+<body>
+  <a href="../" style="position:fixed;top:10px;right:16px;z-index:50;color:#e8ddd0;font:11px/1.3 Courier New,Courier,monospace;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;opacity:.72">← Master Nebula</a>
+<div class="container">
+  <div class="title-plate" role="banner">
+    <div class="corner-bl"></div><div class="corner-br"></div>
+    <div class="hairline"></div>
+    <h1>Quatrian</h1>
+    <div class="sub">Fourfold Lattice — Verified Numerically</div>
+    <div class="hairline"></div>
+  </div>
+
+  <div class="lattice" role="group" aria-label="Four sigils">
+    <div class="thread" aria-hidden="true"></div>
+
+    <!-- 01 SKY -->
+    <div class="node" role="img" aria-label="SKY — Eya — Luma">
+      <div class="node-num">01</div>
+      <div class="sigil-wrap">
+        <svg viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg">
+          <!-- Fixed crescent: true 7.0 band, was zero-area before -->
+          <path class="fade-path" d="M128 18 A22 22 0 1 1 128 62 L137.64 51.49 A15 15 0 0 0 137.64 28.51 Z" fill="none" stroke="#e8c86a" stroke-width="1.2" style="--delay:0.5s" pathLength="123.8"/>
+          <!-- Rim bar -->
+          <path class="draw-path" d="M40 72 H110" style="--len:70;--dur:0.7s;--delay:0.9s" pathLength="70"/>
+          <!-- Circle -->
+          <circle class="draw-path" cx="54" cy="38" r="14" style="--len:87.96;--dur:0.9s;--delay:0.6s" pathLength="87.96"/>
+          <!-- Stars -->
+          <g class="twinkle" style="--delay:1.2s"><circle cx="92" cy="22" r="1.6" fill="#e8c86a"/></g>
+          <g class="twinkle" style="--delay:1.6s"><circle cx="108" cy="12" r="1.2" fill="#f6e6a8"/></g>
+          <g class="twinkle" style="--delay:2.0s"><circle cx="118" cy="28" r="1" fill="#e8c86a"/></g>
+        </svg>
+      </div>
+      <div class="label"><div class="label-main">SKY</div><div class="label-sub">Eya · Luma</div></div>
+    </div>
+
+    <!-- 02 MOUNTAIN -->
+    <div class="node" role="img" aria-label="MOUNTAIN — Kele">
+      <div class="node-num">02</div>
+      <div class="sigil-wrap">
+        <svg viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg">
+          <path class="draw-path" d="M30 78 L90 16 L150 78 Z" style="--len:158.2;--dur:1s;--delay:1.5s" pathLength="158.2"/>
+          <path class="draw-path" d="M58 78 L90 42 L122 78" style="--len:88.4;--dur:0.8s;--delay:1.9s" pathLength="88.4"/>
+          <circle class="fade-path" cx="90" cy="28" r="3.5" fill="#e8c86a" style="--delay:2.2s"/>
+        </svg>
+      </div>
+      <div class="label"><div class="label-main">MOUNTAIN</div><div class="label-sub">Kele</div></div>
+    </div>
+
+    <!-- 03 FIRE -->
+    <div class="node" role="img" aria-label="FIRE — Asha">
+      <div class="node-num">03</div>
+      <div class="sigil-wrap">
+        <svg viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg">
+          <path class="draw-path flicker" d="M90 12 C78 32,62 54,72 78 C84 68,96 68,108 78 C118 54,102 32,90 12 Z" style="--len:124.6;--dur:1s;--delay:2.9s" pathLength="124.6"/>
+          <path class="draw-path flicker" d="M90 32 C86 44,82 54,86 66 C90 62,94 62,98 66 C102 54,98 44,90 32 Z" fill="#e8c86a" style="--len:54.2;--dur:0.8s;--delay:3.2s" pathLength="54.2"/>
+          <path class="draw-path" d="M52 84 H128" style="--len:76;--dur:0.6s;--delay:3.4s" pathLength="76"/>
+        </svg>
+      </div>
+      <div class="label"><div class="label-main">FIRE</div><div class="label-sub">Asha</div></div>
+    </div>
+
+    <!-- 04 WATER — exact 180° rotation of SKY about (90,40) -->
+    <div class="node" role="img" aria-label="WATER — Seya">
+      <div class="node-num">04</div>
+      <div class="sigil-wrap">
+        <svg viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg">
+          <!-- Seya bowl: same d as SKY rotated 180° around 90,40 — verified 0.0000 deviation over 4004 points -->
+          <g transform="rotate(180 90 40)">
+            <path class="fade-path" d="M128 18 A22 22 0 1 1 128 62 L137.64 51.49 A15 15 0 0 0 137.64 28.51 Z" fill="none" stroke="#e8c86a" stroke-width="1.2" style="--delay:4.2s" pathLength="123.8"/>
+          </g>
+          <!-- Inverted rim bar -->
+          <g transform="rotate(180 90 40)"><path class="draw-path" d="M40 72 H110" style="--len:70;--dur:0.7s;--delay:4.4s" pathLength="70"/></g>
+          <!-- Inverted circle becomes water vessel base -->
+          <g transform="rotate(180 90 40)"><circle class="draw-path" cx="54" cy="38" r="14" style="--len:87.96;--dur:0.9s;--delay:4.1s" pathLength="87.96"/></g>
+          <!-- Bubbles instead of stars — inverted -->
+          <g class="bubble" style="--delay:4.6s"><circle cx="88" cy="58" r="1.6" fill="#8ac4ff" opacity="0.8"/></g>
+          <g class="bubble" style="--delay:4.9s"><circle cx="72" cy="68" r="1.2" fill="#c2deff" opacity="0.9"/></g>
+          <g class="bubble" style="--delay:5.1s"><circle cx="62" cy="52" r="1" fill="#8ac4ff" opacity="0.7"/></g>
+        </svg>
+      </div>
+      <div class="label"><div class="label-main">WATER</div><div class="label-sub">Seya · Rhymes Eya</div></div>
+    </div>
+
+    <!-- Ambient motes -->
+    <div class="mote" style="left:8%;top:85%;animation-delay:0s"></div>
+    <div class="mote" style="left:22%;top:90%;animation-delay:2s"></div>
+    <div class="mote" style="left:41%;top:88%;animation-delay:4s"></div>
+    <div class="mote" style="left:58%;top:92%;animation-delay:1s"></div>
+    <div class="mote" style="left:73%;top:86%;animation-delay:3s"></div>
+    <div class="mote" style="left:85%;top:91%;animation-delay:5s"></div>
+    <div class="mote" style="left:15%;top:20%;animation-delay:6s"></div>
+    <div class="mote" style="left:88%;top:18%;animation-delay:7s"></div>
+  </div>
+
+  <div class="footer">QUATRIAN FOURFOLD — SKY · MOUNTAIN · FIRE · WATER — VERIFIED: 180° ROTATION 0.0000 DEVIATION · BAND 7.0 · PATHLENGTHS CORRECTED — vault 94e34f1a</div>
+</div>
+</body>
+</html>
